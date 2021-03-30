@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/03/30 10:24:22 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/03/30 11:07:38 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,4 +18,5 @@ int     main(int argc, char **argv, char **env)
     (void)argv;
     (void)env;
     t_test();
+    printf("hello world");
 }
