@@ -5,8 +5,8 @@ INC = -I includes/
 SRCS =	./srcs/main.c \
 		./srcs/parsing/test.c \
 		./srcs/parsing/minishell_utils.c
-# FLAGS = -Wall -Wextra -Werror
-FLAGS =
+FLAGS = -Wall -Wextra -Werror
+# FLAGS =
 OBJS = $(SRC:.c=.o)
 all: $(NAME)
 $(NAME): $(OBJS) $(LIBFT)

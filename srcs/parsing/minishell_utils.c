@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/04/02 13:28:12 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/04/07 11:45:33 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/04/07 12:17:15 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -134,10 +134,7 @@ char	**ft_split_edited(char const *s)
 
 	i = 0;
 	j = 0;
-	if (!s)
-		return (NULL);
-	w = (char**)malloc(sizeof(char *) * (nb_w(s) + 1));
-	if (!w)
+	if (!(w = (char**)malloc(sizeof(char *) * (nb_w(s) + 1))) || !s)
 		return (NULL);
 	while (s[i] != '\0' && nb_w(s) > j)
 	{
@@ -152,4 +149,19 @@ char	**ft_split_edited(char const *s)
 	}
 	w[j] = 0;
 	return (w);
+}
+
+void	free_t2(char **w)
+{
+	int i;
+	int	x;
+
+	i = 0;
+	x = ft_strlen2(w);
+	while (x > i)
+	{
+		free(w[i]);
+		i++;
+	}
+	free(w);
 }
