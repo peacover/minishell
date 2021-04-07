@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/04/02 13:28:12 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/04/07 10:13:08 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/04/07 11:45:33 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -87,4 +87,69 @@ void	ft_putnbr(int n)
 	}
 	else
 		ft_putchar(nb + '0');
+}
+
+int		nb_w(char const *s)
+{
+	int i;
+	int x;
+	int l;
+
+	i = 0;
+	x = 0;
+	l = 0;
+	while (s[i] != '\0')
+	{
+		if (s[i] == ' ' || s[i] == ';' || s[i] == '|')
+			x = 0;
+		else if (x == 0)
+		{
+			x = 1;
+			l++;
+		}
+		i++;
+	}
+	return (l);
+}
+
+int		nb_c(char const *s, int i)
+{
+	int l;
+
+	l = 0;
+	while (s[i] != ' ' && s[i] != ';' && s[i] != '|' && s[i] != '\0')
+	{
+		l++;
+		i++;
+	}
+	return (l);
+}
+
+char	**ft_split_edited(char const *s)
+{
+	char	**w;
+	int		i;
+	int		j;
+	int		k;
+
+	i = 0;
+	j = 0;
+	if (!s)
+		return (NULL);
+	w = (char**)malloc(sizeof(char *) * (nb_w(s) + 1));
+	if (!w)
+		return (NULL);
+	while (s[i] != '\0' && nb_w(s) > j)
+	{
+		k = 0;
+		while (s[i] == ' ' || s[i] == ';' || s[i] == '|')
+			i++;
+		w[j] = (char *)malloc(sizeof(char) * (nb_c(s, i) + 1));
+		while (s[i] != ' ' && s[i] != ';' && s[i] != '|' && s[i])
+			w[j][k++] = s[i++];
+		w[j][k] = '\0';
+		j++;
+	}
+	w[j] = 0;
+	return (w);
 }

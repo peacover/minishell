@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:09:15 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/04/07 10:15:50 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/04/07 11:47:12 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,5 +48,6 @@ void	ft_putstr(char *s);
 void	ft_putchar(char c);
 void	*ft_realloc(void *ptr, size_t old_size, size_t new_size);
 void	ft_putnbr(int n);
+char	**ft_split_edited(char const *s);
 
 #endif
