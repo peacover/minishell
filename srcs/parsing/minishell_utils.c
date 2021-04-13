@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/04/02 13:28:12 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/04/07 12:17:15 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/04/13 10:52:23 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -164,4 +164,18 @@ void	free_t2(char **w)
 		i++;
 	}
 	free(w);
+}
+
+char	*ft_strcpy(char *dest, char *src)
+{
+	int i;
+
+	i = 0;
+	while (src[i])
+	{
+		dest[i] = src[i];
+		i++;
+	}
+	dest[i] = '\0';
+	return (dest);
 }
