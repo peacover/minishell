@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:09:15 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/04/13 12:49:14 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/04/13 17:32:57 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,13 +32,10 @@ typedef struct  s_red
 
 typedef struct  s_sep
 {
-    char    **args;
     char    *path; // whereis echo for example
     char    t_sp; // type of separator ; or | 
     char    *cmd; // name of command ex: echo, ls, pwd ... 
-    char    *env; // result of $home for example
-    int     is_env;// = 1 if it is $ 
-    int     s_b; // skip backslash
+    char    *af_c; // after command
     t_red   *red; // redirection | or ;
     struct t_sep *next;
 }               t_sep;

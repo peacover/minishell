@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/04/13 15:10:19 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/04/13 17:21:33 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,30 +56,22 @@ char    *remove_char(char c, int i)
     //     error_msg("error multiligne 2");
     // else
     // {
-        s1 = split_char(0, i - 1);
-        // if ( i != (int)ft_strlen(g_infos.arg) - 1)
-        s2 = split_char(i + 1, t - 1);
-        // free(g_infos.arg);
-        // printf ("\ns1 = %s | s2 = %s\n", s1, s2);
-        
-        // g_infos.arg = malloc(sizeof(char) * (ft_strlen(s1) + ft_strlen(s2)));
-        if (s2 == NULL)
-            g_infos.arg = ft_strcpy(g_infos.arg, s1);
-        else
-            g_infos.arg = ft_strjoin(s1, s2);
-        // printf ("\n\narggggg = %s\n", g_infos.arg);
-        free(s1);
-        free(s2);
-        return (g_infos.arg);
-    // }
+    s1 = split_char(0, i - 1);
+    // if ( i != (int)ft_strlen(g_infos.arg) - 1)
+    s2 = split_char(i + 1, t - 1);
+    // free(g_infos.arg);
+    // printf ("\ns1 = %s | s2 = %s\n", s1, s2);
+    
+    // g_infos.arg = malloc(sizeof(char) * (ft_strlen(s1) + ft_strlen(s2)));
+    if (s2 == NULL)
+        g_infos.arg = ft_strcpy(g_infos.arg, s1);
+    else
+        g_infos.arg = ft_strjoin(s1, s2);
+    free(s1);
+    free(s2);
+    return (g_infos.arg);
 }
 
-// int     after_backslash_char(char c)
-// {
-//     if (c == '\'' || c == '\"')
-//         return (1);
-//     return (0);
-// }
 int     count_nb_quote(char c)
 {
     int i;
@@ -95,7 +87,7 @@ int     count_nb_quote(char c)
     }
     return (n);
 }
-void    handling_errors_args()
+void    handling_bs_sq_args()
 {
     int i;
     int is_bs;
@@ -176,13 +168,13 @@ void    fill_args()
     
     i = 0;
     c = '\0'; 
-    handling_errors_args();
-    // infos.args = ft_split_edited(g_infos.arg, infos.s_b);
-    // while (infos.args[i])
-    // {
-    //     printf("g_infos.arg : %s\n", infos.args[i]);
-    //     i++;
-    // }
+    handling_bs_sq_args(); // handling backslash and sibgke quotes
+    g_infos.args = ft_split_edited(g_infos.arg);
+    while (g_infos.args[i])
+    {
+        printf("g_infos.arg : %s\n", g_infos.args[i]);
+        i++;
+    }
 }
 
 int     main(int argc, char **argv, char **env)
