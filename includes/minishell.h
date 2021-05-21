@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:09:15 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/04/13 17:32:57 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/05/21 10:43:13 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,23 +27,32 @@ typedef struct  s_red
 {
     char    type; //input = i | output = o | append = a
     char    *p_file; // path file
-    struct t_red   *next;
+    struct s_red   *next;
 }               t_red;
+
+typedef struct s_cmd
+{
+    int     is_builtin; // = 1 if there is builtin for exapmle echo, pwd, ls...
+    char    *builtin;
+    char    *norm_builtin; // normalized builtin (lower)
+    char    **args; // commands without builtin
+}               t_cmd;
 
 typedef struct  s_sep
 {
     char    *path; // whereis echo for example
     char    t_sp; // type of separator ; or | 
-    char    *cmd; // name of command ex: echo, ls, pwd ... 
-    char    *af_c; // after command
-    t_red   *red; // redirection | or ;
-    struct t_sep *next;
+    char    *builtin; // name of command ex: echo, ls, pwd ... 
+    char    *af_c; // after builtin
+    t_red   *red; // redirection > or >> or <
+    t_cmd   cmd;
+    struct s_sep *next;
 }               t_sep;
 
 typedef struct  s_infos
 {
-    char    **args;
     char    *arg;
+    char    *or_arg; // original arg
     int     is_env;// = 1 if there is $
     int     is_sq;
     // int p_sq; // =1 if there is the second single quote

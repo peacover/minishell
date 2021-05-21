@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/04/13 17:21:33 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/05/21 11:10:34 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,22 +47,11 @@ char    *remove_char(char c, int i)
     char    *s1;
     char    *s2;
 
-    s1 = NULL;
-    s2 = NULL;
     (void)c;
     int t;
     t = (int)ft_strlen(g_infos.arg);
-    // if (c == '\\' && !g_infos.arg[i + 1])
-    //     error_msg("error multiligne 2");
-    // else
-    // {
     s1 = split_char(0, i - 1);
-    // if ( i != (int)ft_strlen(g_infos.arg) - 1)
     s2 = split_char(i + 1, t - 1);
-    // free(g_infos.arg);
-    // printf ("\ns1 = %s | s2 = %s\n", s1, s2);
-    
-    // g_infos.arg = malloc(sizeof(char) * (ft_strlen(s1) + ft_strlen(s2)));
     if (s2 == NULL)
         g_infos.arg = ft_strcpy(g_infos.arg, s1);
     else
@@ -99,7 +88,6 @@ void    handling_bs_sq_args()
     
     if ((count_nb_quote('\'') % 2) != 0)
         error_msg("error multiligne");
-
     while (g_infos.arg[i])
     {
         if (g_infos.arg[i] == '\'')
@@ -115,7 +103,7 @@ void    handling_bs_sq_args()
         }
         i++;
     }
-    
+
     i = 0;
     while (g_infos.arg[i])
     {
@@ -139,7 +127,6 @@ void    handling_bs_sq_args()
     }   
 }
 
-
 int    handling_errors_arg()
 {
     int i;
@@ -161,20 +148,141 @@ int    handling_errors_arg()
     }
     return (0);
 }
+
+int    check_builtin(t_sep *node)
+{
+    int i;
+
+    i = 0;
+    if (!ft_strcmp(node->cmd.norm_builtin, "echo") || !ft_strcmp(node->cmd.norm_builtin, "cd") || !ft_strcmp(node->cmd.norm_builtin, "pwd")
+    || !ft_strcmp(node->cmd.norm_builtin, "export") || !ft_strcmp(node->cmd.norm_builtin, "unset") || !ft_strcmp(node->cmd.norm_builtin, "env") || !ft_strcmp(node->cmd.norm_builtin, "exit"))
+    {
+      return (1);
+    }
+    return (0);
+    // printf ("\n s : |%s| \n", s);
+
+    // if (!ft_strcmp(s, "echo") && (s[4] == ' ' || s[4] == '\0'))
+    // {
+    //     node->cmd.is_builtin = 1;
+    //     node->builtin = ft_substr(s, 0, 4);
+    //     //printf("\nbuiltin : %s\n", node->builtin);
+    // }
+    
+}
+
+void    get_builtin(char *s, t_sep *node)
+{
+    int     i;
+
+    i = 0;
+    while (s[i] && s[i] != ' ')
+        i++;
+    node->cmd.builtin = malloc(sizeof(char) * (i + 1));
+    node->cmd.norm_builtin = malloc(sizeof(char) * (i + 1));
+    i = 0;
+    while (s[i] && s[i] != ' ')
+    {
+        node->cmd.builtin[i] = s[i];
+        node->cmd.norm_builtin[i] = ft_tolower(s[i]);
+        i++;
+    }
+    node->cmd.builtin[i] = '\0';
+    node->cmd.norm_builtin[i] = '\0';
+}
+
+void    fill_node(char *s, t_sep *node)
+{
+    // handling_bs_sq_args();
+    int i;
+
+    i = 0;
+    get_builtin(s, node);
+    printf("\nbuilting : |%s|\n", node->cmd.builtin);
+    if (!check_builtin(node))
+        error_msg("there is no builtin or buitin not handled!!");
+    node->cmd.args = ft_split(s, ' ');
+    while (node->cmd.args[i])
+    {
+        printf("\narg %d : |%s|\n", i, node->cmd.args[i]);
+        i++;
+    }
+}
+
+void addLast(t_sep **head, char *s, char type)
+{
+    t_sep *newNode = malloc(sizeof(t_sep));
+
+    type = ';';
+    fill_node(s, newNode);
+    newNode->next = NULL;
+    if(*head == NULL)
+         *head = newNode;
+    else
+    {
+        t_sep *lastNode = *head;
+        while(lastNode->next != NULL)
+        {
+            lastNode = lastNode->next;
+        }
+        lastNode->next = newNode;
+    }
+}
+
+void    print_mylist(t_sep *node)
+{
+    while (node)
+    {
+        printf("\nbuiltin : %s\n", node->builtin);
+        node = node->next;
+    }
+}
+
+void    fill_list()
+{
+    int     i;
+    int     start;
+    char    *s;
+    int     l;
+    t_sep *head;
+
+    i = 1;
+    start = 0;
+    head = NULL;
+    l = ft_strlen(g_infos.arg);
+    while (g_infos.arg[i])
+    {
+        if ((g_infos.arg[i] == '|' && g_infos.arg[i - 1] != '\\') ||
+        (g_infos.arg[i] == ';' && g_infos.arg[i - 1] != '\\') || g_infos.arg[i + 1] == '\0')
+        {
+            if (g_infos.arg[i + 1] == '\0')
+                i++;
+            while (g_infos.arg[start] == ' ')
+                start++;
+            s = ft_substr(g_infos.arg, start, i - start);
+            printf ("\n s : |%s|\n", s);
+            addLast(&head, s, g_infos.arg[i]);
+            start = i + 1;
+        }
+        i++;
+    }
+    // free(s);
+    //print_mylist(head);
+}
+
 void    fill_args()
 {
     int     i;
     char    c;
     
     i = 0;
-    c = '\0'; 
-    handling_bs_sq_args(); // handling backslash and sibgke quotes
-    g_infos.args = ft_split_edited(g_infos.arg);
-    while (g_infos.args[i])
-    {
-        printf("g_infos.arg : %s\n", g_infos.args[i]);
-        i++;
-    }
+    c = '\0';
+    
+    fill_list();
+    // handling_bs_sq_args(); // handling backslash and single quotes
+    // printf("\n my arg = %s \n", g_infos.arg);
+    // printf("\n my arg2 = %s \n", g_infos.or_arg);
+
 }
 
 int     main(int argc, char **argv, char **env)
@@ -196,6 +304,7 @@ int     main(int argc, char **argv, char **env)
     {
         g_infos.arg = malloc(1);
         i = 0;
+        // handle echo -n case !!
         ft_putstr(getcwd(str, sizeof(str)));
         ft_putstr("> ");
         while (read(0, &c, 1) > 0)
@@ -207,10 +316,12 @@ int     main(int argc, char **argv, char **env)
             i++;
         }
         g_infos.arg[i] = '\0';
+        g_infos.or_arg = ft_substr(g_infos.arg, 0, ft_strlen (g_infos.arg));
         // printf("\narg : \"%s\" | len : %zu \n", g_infos.arg, ft_strlen(g_infos.arg));
-        if (!handling_errors_arg())
+        if (!handling_errors_arg()) // handling | and ; errors 
             fill_args();
         printf ("\n\narg = %s\n", g_infos.arg);
-        free(g_infos.arg); 
+        free(g_infos.arg);
+        free(g_infos.or_arg);
     }
 }
