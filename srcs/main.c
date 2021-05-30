@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/05/25 16:16:06 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/05/30 19:17:45 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,6 +42,18 @@ char    *split_char(char *s, int start, int end)
     return (NULL);
 }
 
+void	print_args(char **w)
+{
+	int i;
+
+	i = 0;
+	while (w[i])
+	{
+		printf("\narg %d : |%s|\n", i, w[i]);
+		i++;
+	}
+}
+
 char    *remove_char(char *s, int i)
 {
     char    *s1;
@@ -49,8 +61,8 @@ char    *remove_char(char *s, int i)
 	int		l;
 	
     l = (int)ft_strlen(s);
-	s1 = malloc(sizeof(char) * (i + 1));
-	s2 = malloc(sizeof(char) * (l - i + 1));
+	// s1 = malloc(sizeof(char) * (i + 1));
+	// s2 = malloc(sizeof(char) * (l - i + 1));
 	s1 = ft_substr(s, 0, i);
 	s2 = ft_substr(s, i + 1, l - i + 1);
     
@@ -60,12 +72,15 @@ char    *remove_char(char *s, int i)
     // s1 = split_char(s, 0, i - 1);
     // s2 = split_char(s, i + 1, l - 1);
     // if (s2 == NULL)
-        //  s = ft_strcpy(s, s1);
+    //      s = ft_strcpy(s, s1);
     // else
-    free (s);
-    s = ft_strjoin(s1, s2);
+	// {
+	free(s);
+	s = ft_strjoin(s1, s2);
+	// }
     free(s1);
     free(s2);
+	// printf ("\n s : |%s|", s);
     return (s);
 }
 
@@ -140,6 +155,8 @@ int    handling_errors_arg(char *str)
     int i;
 
     i = 0;
+	if (!str)
+		return (1);
     while (str[i])
     {
         if (str[i] == ';' && str[i + 1] == ';')
@@ -167,7 +184,6 @@ int     check_fill_path(t_sep *node)
     i = 0;
     fd = 0;
     t_env *current = g_env;
-    // printf ("\ntttttttttttttttt\n");
     while (current != NULL)
     {
         if (!ft_strcmp(current->key, "PATH"))
@@ -177,13 +193,14 @@ int     check_fill_path(t_sep *node)
             {
                 s = ft_strjoin(w[i], "/");
                 s = ft_strjoin(s, node->cmd.lower_builtin);
-                // printf ("\n s = |%s| \n", s);
                 fd = open(s, O_RDONLY);
                 if (fd >= 0)
                 {
                     node->path = s;
+					// printf (" \npath : %s \n", node->path);
                     return (1);
                 }
+				close(fd);
                 i++;
             }
         }
@@ -205,15 +222,6 @@ int    check_builtin(t_sep *node)
       return (1);
     }
     return (0);
-    // printf ("\n s : |%s| \n", s);
-
-    // if (!ft_strcmp(s, "echo") && (s[4] == ' ' || s[4] == '\0'))
-    // {
-    //     node->cmd.is_builtin = 1;
-    //     node->builtin = ft_substr(s, 0, 4);
-    //     //printf("\nbuiltin : %s\n", node->builtin);
-    // }
-    
 }
 
 int     search_second_quote(char *s, int start, char type)
@@ -250,41 +258,82 @@ char	*handling_bs(char *s)
 	{
 		if (s[i] == '\\')
 		{
-            // printf ("\ns : |%s|\n", s);
+			if (!s[i + 1])
+			{
+				error_msg("error multiligne");
+                break;
+			}
 			s = remove_char(s, i);
-			i++;
 		}
 		i++;
 	}
-    // printf ("\ns : |%s|\n", s);
     return (s);
+}
+
+char	*replace_dollar(char *s, char *v, int start, int end)
+{
+	char *s1;
+	char *s2;
+	char *w;
+
+	w = NULL;
+	s1 = ft_substr(s, 0, start - 1);
+	s2 = ft_substr(s, end, ft_strlen(s) - end);
+	w = ft_strjoin(s1, v);
+	w = ft_strjoin(w, s2);
+	return (w);
+}
+
+char	*handling_dollar(char *s)
+{
+	int		i;
+	int		start;
+	char	*v;
+	t_env	*current = g_env;
+   
+	i = 0;
+	start = 0;
+	while (s[i])
+	{
+		if (s[i] == '$')
+		{
+			start = ++i;
+			while (s[i] && s[i] != ' ')
+				i++;
+			v = ft_substr(s, start, i - start);
+			while (current != NULL)
+    		{
+				if (!ft_strcmp(current->key, v))
+					return (replace_dollar(s, current->value, start, i));
+				current = current->next;
+    		}
+		}
+		i++;
+	}
+	return (s);
 }
 
 void    add_to_args(int start, int end, char *s, int i, t_sep *node)
 {
 	int		l;
     char	type;
-
+	
     type = s[start];
     l = end - start;
-    // printf ("\nstart : %d | end : %d\n", start, end);
-	
     if (type != '\'' && type != '\"')
 	{
-		node->cmd.args[i] = malloc(sizeof(char) * (l + 1));
+		// printf("s length = |%zu|\n", ft_strlen(s));	
+		// printf("s = |%s|\n", s);	
+		// printf("substr = |%s|\n", ft_substr(s, start, l));
+		// printf("\nstart = |%d| end = |%d| l = |%d|\n", start, end, l);
         node->cmd.args[i] = ft_substr(s, start, l);
 	}
     else
-	{
-		node->cmd.args[i] = malloc(sizeof(char) * (l));
 	    node->cmd.args[i] = ft_substr(s, start + 1, l - 1);
-	}
-    // printf ("\ns : |%s|\n", node->cmd.args[i]);
 	if (type != '\'')
 	{
-		node->cmd.args[i] = ft_strcpy(node->cmd.args[i], handling_bs(node->cmd.args[i]));
-        
-		// TODO : HANDLING DOLLAR
+		node->cmd.args[i] = handling_bs(node->cmd.args[i]);
+        node->cmd.args[i] = handling_dollar(node->cmd.args[i]);
 	}
 	printf ("\narg %d : |%s|\n", i, node->cmd.args[i]);
 }
@@ -295,10 +344,12 @@ void    get_args(char *s, int start, t_sep *node)
     int		end;
 
     i = 0;
+	node->cmd.args = NULL;
     while (s[start])
     {
         if (s[start] == '\'' || s[start] == '\"')
         {
+
             if (s[start - 1] == '\\')
                 continue;
             end = search_second_quote(s, start + 1, s[start]);
@@ -311,51 +362,95 @@ void    get_args(char *s, int start, t_sep *node)
         }
         else
         {
-            while (s[start] && s[start] == ' ')
-                start++;
-            if (s[start] == '\0')
-                break;
             end = start;
             while (s[end] && s[end] != ' ')
                 end++;
             if (end > start)
             {
+				
                 node->cmd.args = ft_realloc(node->cmd.args, i, (i + 1));
                 add_to_args(start, end, s, i, node);
                 i++;
             }
-            start = end + 1;
+            start = end;
         }
+		while (s[start] && s[start] == ' ')
+            start++;
     }
-    
-	// i = 0;
-	// while (node->cmd.args[i])
-	// {
-	// 	printf ("\n arg %d : |%s|\n", i, node->cmd.args[i]);
-	// 	i++;
-	// }
+	// print_args(node->cmd.args);
+    // print_args(node->cmd.args);
+	/*i = 0;
+	while (node->cmd.args[i])
+	{
+		printf ("\n arg %d : |%s|\n", i, node->cmd.args[i]);
+		i++;
+	}*/
 }
 
-// int		check_redirection(char *s, int i)
-// {
-// 	while (s[i])
-// 	{
-// 		if (s[])
-// 	}
-// }
+char		check_redirection(char *s, int i)
+{
+	while (s[i])
+	{
+		if (s[i] == '>')
+		{
+			if (s[i] && s[i + 1] == '>')
+				return ('a');
+			return ('o');
+		}
+		else if (s[i] == '<')
+		{
+			if (s[i] && s[i + 1] == '<')
+				error_msg("redirection not handled!!");
+			else
+				return ('i');
+		}
+	}
+	return (0);
+}
 
-// void	check_handle_redirections(char *s, int i, t_sep *node)
-// {
-// 	check_redirection(s, i);
-// }
+void	fill_node_red(char *s, t_red *newNode, char type)
+{
+	newNode->type = type;
+	printf ("\ns : %s", s);
+	printf ("\ntype : %c\n", newNode->type);
+}
+
+void	addlast_red(t_red **head, char *s, char type)
+{
+	int i;
+	
+	i = 0;
+    t_red *newNode = malloc(sizeof(t_red));
+    t_red *lastNode = *head;
+    fill_node_red(s, newNode, type);
+    newNode->next = NULL;
+    if (*head == NULL)
+         *head = newNode;
+    else
+    {
+        lastNode = *head;
+        while (lastNode->next != NULL)
+        {
+            lastNode = lastNode->next;
+        }
+        lastNode->next = newNode;
+    }
+}
+
+void	check_handle_redirections(char *s, int i, t_sep *node)
+{
+	char type;
+	
+	type = check_redirection(s, i);
+	addlast_red(&node->red, s, type);
+	
+}
 
 void    get_builtin(char *s, t_sep *node)
 {
     int     i;
 
-    i = 0;
-    while (s[i] && s[i] == ' ')
-        i++;
+    i = ft_strlen(s);
     node->cmd.builtin = malloc(sizeof(char) * (i + 1));
     node->cmd.upper_builtin = malloc(sizeof(char) * (i + 1));
     node->cmd.lower_builtin = malloc(sizeof(char) * (i + 1));
@@ -376,7 +471,7 @@ void    get_builtin(char *s, t_sep *node)
     // printf ("\n path : |%s| \n", node->path);
     while (s[i] && s[i] == ' ')
         i++;
-    // check_handle_redirections(s, i, node);
+    //check_handle_redirections(s, i, node);
     get_args(s, i, node);
 }
 
@@ -401,35 +496,82 @@ void    fill_node(char *s, t_sep *node, char type)
     // }
 }
 
-void addLast(t_sep **head, char *s, char type)
+
+void	addlast_sep(t_sep **head, char *s, char type)
 {
+	int i;
+	
+	i = 0;
     t_sep *newNode = malloc(sizeof(t_sep));
-    
+    t_sep *lastNode = *head;
     fill_node(s, newNode, type);
     newNode->next = NULL;
     if (*head == NULL)
          *head = newNode;
     else
     {
-        t_sep *lastNode = *head;
+        lastNode = *head;
         while (lastNode->next != NULL)
         {
             lastNode = lastNode->next;
         }
         lastNode->next = newNode;
     }
+	
 }
 
 void    print_mylist(t_sep *node)
 {
-    while (node)
-    {
-        printf("\nbuiltin : %s\n", node->cmd.builtin);
-        node = node->next;
+	int i;
+	
+	i = 0;
+	while (node != NULL)
+	{
+		printf ("\n path : %s", node->path);
+		printf ("\n type : %c", node->t_sp);
+		// printf ("\n arg : %s", node->cmd.args[0]);
+		
+		node = node->next;
+	}
+
+}
+
+void	free_mylist_red(t_red *head)
+{
+	t_red *tmp;
+	
+	while (head != NULL)
+	{
+       tmp = head;
+       head = head->next;
+       free(tmp);
     }
 }
 
-void    fill_list(char *str)
+void	free_mylist_sep(t_sep *head)
+{
+	t_sep *tmp;
+	
+	while (head != NULL)
+	{
+       tmp = head;
+       head = head->next;
+       free(tmp);
+    }
+}
+
+void	init_t_sep(t_sep *node)
+{
+	node->path = NULL;
+	node->t_sp = '\0';
+	node->cmd.args = NULL;
+	node->cmd.is_builtin = 0;
+	node->cmd.builtin = NULL;
+	node->cmd.upper_builtin = NULL;
+	node->cmd.lower_builtin = NULL;
+}
+
+void	fill_list(char *str)
 {
     int     i;
     int     start;
@@ -441,24 +583,40 @@ void    fill_list(char *str)
     start = 0;
     head = NULL;
     l = ft_strlen(str);
+	
     while (str[i])
     {
+		
         if ((str[i] == '|' && str[i - 1] != '\\') ||
         (str[i] == ';' && str[i - 1] != '\\') || str[i + 1] == '\0')
         {
-            if (str[i + 1] == '\0')
-                i++;
-            while (str[start] == ' ')
+			// init_t_sep(head);
+			while (str[start] && str[start] == ' ')
                 start++;
-            s = ft_substr(str, start, i - start);
+            // if (str[i + 1] == '\0')
+            //     i++;
+			
+			if (str[i + 1] == '\0')
+				s = ft_substr(str, start, i - start + 1);
+			else
+           		s = ft_substr(str, start, i - start);
             // printf ("\n s : |%s|\n", s);
-            addLast(&head, s, str[i]);
+            addlast_sep(&head, s, str[i]);
+			if (s)
+				free(s);
+			// free(temp->cmd.args);
+			// printf ("\n start : %d", start);
             start = i + 1;
         }
         i++;
     }
+	// print_mylist(head);
     // free(s);
-    //print_mylist(head);
+    // print_mylist(head);
+	// FUNCTIONS .....
+	// free_mylist_red(head->red);
+	// free_mylist_sep(head);
+	
 }
 
 void    fill_args(char *str)
@@ -467,10 +625,6 @@ void    fill_args(char *str)
     
     i = 0;
     fill_list(str);
-    // handling_bs_sq_args(); // handling backslash and single quotes
-    // printf("\n my arg = %s \n", g_inf.arg);
-    // printf("\n my arg2 = %s \n", g_inf.or_arg);
-
 }
 
 
@@ -479,11 +633,7 @@ void    print_list_env()
     t_env *current = g_env;
     while (current != NULL)
     {
-        
-        //printf("declare -x ");
         printf("%s\n",current->key);
-        //printf("=\"");
-        //printf("%s\"\n",current->value);
         current = current->next;
     }
 }
@@ -524,40 +674,43 @@ int     main(int argc, char **argv, char **env)
 {
     int i;
     char *str;
+	char *pwd = NULL;
     char c;
     int ret;
     
     (void)argc;
     (void)argv;
     g_env = fill_env(env);
-    print_list_env();
+    // print_list_env();
     i = 0;
     ret = 0;
     // str = NULL;
+	pwd = getcwd(pwd, 0);
+	
     while (1)
     {
+		str = NULL;
         // g_inf.arg = malloc(1);
-        str = NULL;
+        //str = ft_strdup(pwd);
         i = 0;
-        // handle echo -n case !!
-        ft_putstr(getcwd(str, sizeof(str)));
+        ft_putstr(pwd);
         ft_putstr("> ");
         // printf ("\n c = %zd \n", read(0, &c, 1));
         while (read(0, &c, 1) > 0)
         {
             if (c == '\n')
                 break;
-            str = ft_realloc(str, i, i + 1);
+            str = ft_realloc(str, i, i + 2);
             str[i] = c;
             i++;
+			str[i] = '\0';
         }
-        str[i] = '\0';
-        // printf("\narg : \"%s\" | len : %zu \n", g_inf.arg, ft_strlen(g_inf.arg));
-        if (!handling_errors_arg(str)) // handling | and ; errors 
+        
+        if (!handling_errors_arg(str))
             fill_args(str);
         printf ("\n\narg = %s\n", str);
-        free(str);
-        // free(g_inf.arg);
-        // free(g_inf.or_arg);
+		// if (str)
+        	free(str);
+		// system("leaks minishell");
     }
 }

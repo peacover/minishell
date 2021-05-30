@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/04/02 13:28:12 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/05/25 16:17:00 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/05/30 18:11:26 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,13 +59,23 @@ void	ft_putstr(char *s)
 void	*ft_realloc(void *ptr, size_t old_size, size_t new_size)
 {
 	void	*new;
+	// char	*p;
 
-	new = malloc(new_size);
+	// p = (char *)ptr;
+	if (new_size == 0)
+	{
+		free(ptr);
+		return (NULL);
+	}
+	new = malloc(new_size * sizeof(char*));
 	if (!new)
 		return (NULL);
-	if (ptr != NULL)
+	if (ptr != NULL || !old_size)
 	{
-		ft_memcpy(new, ptr, old_size);
+		if (old_size >= new_size)
+			ft_memcpy(new, ptr, new_size);
+		else
+			ft_memcpy(new, ptr, old_size);
 		free(ptr);
 	}
 	return (new);

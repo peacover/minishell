@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:09:15 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/05/25 15:33:50 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/05/30 15:37:28 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,8 +33,9 @@ typedef struct	s_env{
 typedef struct  s_red
 {
 	char	*cmd;
-	char    type; //input = i | output = o | append = a
+	char    type; //input = i < | output = o > | append = a >>
 	char    *file; // path file
+	char	**args;
 	struct s_red   *next;
 }               t_red;
 
@@ -73,3 +74,5 @@ char	*ft_strcpy(char *dest, char *src);
 //TODO2 : dollar/ path builtin
 //TODO3 : redirections
 //TODO4 : history
+
+// echo $(( $(getconf ARG_MAX) - $(env | wc -c) ))
