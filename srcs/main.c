@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/06/01 13:46:38 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/06/01 15:50:29 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -227,8 +227,6 @@ int    check_builtin(t_sep *node)
     || !ft_strcmp(node->cmd.upper_builtin, "UNSET") || !ft_strcmp(node->cmd.upper_builtin, "ENV")
     || !ft_strcmp(node->cmd.upper_builtin, "EXIT"))
     {
-		node->path = NULL;
-		// *t = 1;
       return (1);
     }
     return (0);
@@ -365,8 +363,6 @@ void    add_to_args(int start, int end, char *s, int i, t_sep *node)
 			node->cmd.args[i] = handling_bs(node->cmd.args[i]);
         node->cmd.args[i] = handling_dollar(node->cmd.args[i]);
 	}
-	// printf ("\n path : |%s| \n", node->path);
-	// printf("\n type : |%c| \n", node->t_sp);
 	printf ("\narg %d : |%s|\n", i, node->cmd.args[i]);
 }
 
@@ -460,9 +456,7 @@ void	addlast_red(t_red **head, char *s, char type)
     {
         lastNode = *head;
         while (lastNode->next != NULL)
-        {
             lastNode = lastNode->next;
-        }
         lastNode->next = newNode;
     }
 }
@@ -474,53 +468,64 @@ void	addlast_red(t_red **head, char *s, char type)
 	
 // }
 
-// char	red_get_type(char *s, int start)
-// {
-// 	int i;
+char	red_get_type(char *s, int start)
+{
+	int i;
 
-// 	i = 0;
-// 	while (s[start])
-// 	{
-// 		if (s[start] == '>')
-// 		{
-// 			if (s[start + 1] == '>')
-// 			{
-// 				if (s[start + 2] == '>')
-// 					error_msg("syntax error near unexpected token `>'");
-// 				return ('a');
-// 			}
-// 			return ('o');
-// 		}
-// 		if (s[start] == '<')
-// 		{
-// 			if (s[start + 1] == '<')
-// 			{
-// 				if ((s[start + 2] == '<' && s[start + 3] != '<') ||
-// 				(s[start + 2] == '<' && s[start + 3] == '<'))
-// 					error_msg("syntax error near unexpected token `<'");
-// 				error_msg("REDIRECTION NOT HANDLED!");
-// 			}
-// 			return ('i');
-// 		}
-// 		start++;
-// 	}
-// }
+	i = 0;
+	while (s[start])
+	{
+		if (s[start] == '>')
+		{
+			if (s[start + 1] == '>')
+			{
+				if (s[start + 2] == '>')
+					error_msg("syntax error near unexpected token `>'");
+				return ('a');
+			}
+			return ('o');
+		}
+		if (s[start] == '<')
+		{
+			if (s[start + 1] == '<')
+			{
+				if ((s[start + 2] == '<' && s[start + 3] != '<') ||
+				(s[start + 2] == '<' && s[start + 3] == '<'))
+					error_msg("syntax error near unexpected token `<'");
+				error_msg("REDIRECTION NOT HANDLED!");
+			}
+			return ('i');
+		}
+		start++;
+	}
+	return('\0');
+}
 
-// void	red_get_type_file(char *s, int start)
-// {
-// 	int		i;
-// 	char	*v;
-// 	char	type;
+void	red_get_type_file(char *s, int start)
+{
+	int		i;
+	char	*v;
+	char	type;
 
-// 	i = 0;
-// 	v = ft_strdup(s);
-// 	type = red_get_type(s, start);
-// 	while (s[start])
-// 	{
-// 		start++;
-// 	}
-// }
-
+	i = 0;
+	v = ft_strdup(s);
+	type = red_get_type(s, start);
+	printf("type : %c", type);
+	// while (s[start])
+	// {
+	// 	start++;
+	// }
+}
+void	init_t_sep(t_sep *node)
+{
+	node->path = NULL;
+	node->t_sp = '\0';
+	node->cmd.args = NULL;
+	node->cmd.is_builtin = 0;
+	node->cmd.builtin = NULL;
+	node->cmd.upper_builtin = NULL;
+	node->cmd.lower_builtin = NULL;
+}
 int		check_red(t_sep *node, char *s)
 {
 	int start;
@@ -545,7 +550,7 @@ int		check_red(t_sep *node, char *s)
 			(start > 0 && (s[start] == '>' || s[start] == '<') && s[start - 1] != '\\'))
 			{
 				node->is_red = 1;
-				// red_get_type_file(s, start, s[start]);
+				red_get_type_file(s, start);
 				return (1);
 			}
 		}
@@ -575,12 +580,8 @@ void    get_builtin(char *s, t_sep *node)
     node->cmd.builtin[i] = '\0';
     node->cmd.upper_builtin[i] = '\0';
     node->cmd.lower_builtin[i] = '\0';
-    if (!check_builtin(node) && !check_fill_path(node))
-	{
+    if (!check_builtin(node) && !check_fill_path(node) && !check_red(node, s))
         error_msg("COMMAND NOT FOUND!!");
-	}
-	// if (!t && !check_fill_path(node))
-	// 	error_msg("Ccccccccc!!");
     printf (" \npath : %s \n", node->path);
 	// if (!check_red)
 	// 	handle_redirections(s, node->red);
@@ -613,6 +614,7 @@ void	addlast_sep(t_sep **head, char *s, char type)
 	i = 0;
     t_sep *newNode = malloc(sizeof(t_sep));
     t_sep *lastNode = *head;
+	init_t_sep(newNode);
     fill_node(s, newNode, type);
 	// printf ("\ntype : %c \n", newNode->t_sp);
 	// printf ("\n path : %s", newNode->path);
@@ -674,16 +676,7 @@ void	free_mylist_sep(t_sep *head)
     }
 }
 
-void	init_t_sep(t_sep *node)
-{
-	node->path = NULL;
-	node->t_sp = '\0';
-	node->cmd.args = NULL;
-	node->cmd.is_builtin = 0;
-	node->cmd.builtin = NULL;
-	node->cmd.upper_builtin = NULL;
-	node->cmd.lower_builtin = NULL;
-}
+
 
 void	fill_list(char *str)
 {

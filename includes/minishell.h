@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:09:15 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/06/01 11:06:29 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/06/01 19:26:22 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,3 +83,5 @@ char	*ft_strcpy(char *dest, char *src);
 
 // bash-5.1$ >
 // bash: syntax error near unexpected token `newline'
+
+// export MallocStackLogging=1
