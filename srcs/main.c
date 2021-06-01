@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/05/30 19:17:45 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/06/01 13:46:38 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -183,7 +183,9 @@ int     check_fill_path(t_sep *node)
     
     i = 0;
     fd = 0;
+	s = NULL;
     t_env *current = g_env;
+	// node->path = NULL;
     while (current != NULL)
     {
         if (!ft_strcmp(current->key, "PATH"))
@@ -194,18 +196,24 @@ int     check_fill_path(t_sep *node)
                 s = ft_strjoin(w[i], "/");
                 s = ft_strjoin(s, node->cmd.lower_builtin);
                 fd = open(s, O_RDONLY);
-                if (fd >= 0)
+                if (fd > 0)
                 {
                     node->path = s;
+					close(fd);
+					// free(s);
 					// printf (" \npath : %s \n", node->path);
                     return (1);
                 }
 				close(fd);
+				free(s);
                 i++;
             }
         }
         current = current->next;
     }
+	// printf (" \npath : %s \n", node->path);
+	// free w
+	node->path = NULL;
     return (0);
 }
 
@@ -219,6 +227,8 @@ int    check_builtin(t_sep *node)
     || !ft_strcmp(node->cmd.upper_builtin, "UNSET") || !ft_strcmp(node->cmd.upper_builtin, "ENV")
     || !ft_strcmp(node->cmd.upper_builtin, "EXIT"))
     {
+		node->path = NULL;
+		// *t = 1;
       return (1);
     }
     return (0);
@@ -270,6 +280,28 @@ char	*handling_bs(char *s)
     return (s);
 }
 
+char	*handling_bs_dq(char *s)
+{
+	int i;
+
+	i = 0;
+	while (s[i])
+	{
+		if (s[i] == '\\')
+		{
+			if (!s[i + 1])
+			{
+				error_msg("error multiligne");
+                break;
+			}
+			if (s[i + 1] == '\\')
+				s = remove_char(s, i);
+		}
+		i++;
+	}
+    return (s);
+}
+
 char	*replace_dollar(char *s, char *v, int start, int end)
 {
 	char *s1;
@@ -313,6 +345,7 @@ char	*handling_dollar(char *s)
 	return (s);
 }
 
+
 void    add_to_args(int start, int end, char *s, int i, t_sep *node)
 {
 	int		l;
@@ -321,20 +354,19 @@ void    add_to_args(int start, int end, char *s, int i, t_sep *node)
     type = s[start];
     l = end - start;
     if (type != '\'' && type != '\"')
-	{
-		// printf("s length = |%zu|\n", ft_strlen(s));	
-		// printf("s = |%s|\n", s);	
-		// printf("substr = |%s|\n", ft_substr(s, start, l));
-		// printf("\nstart = |%d| end = |%d| l = |%d|\n", start, end, l);
         node->cmd.args[i] = ft_substr(s, start, l);
-	}
     else
 	    node->cmd.args[i] = ft_substr(s, start + 1, l - 1);
 	if (type != '\'')
 	{
-		node->cmd.args[i] = handling_bs(node->cmd.args[i]);
+		if (type == '\"')
+			node->cmd.args[i] = handling_bs_dq(node->cmd.args[i]);
+		else
+			node->cmd.args[i] = handling_bs(node->cmd.args[i]);
         node->cmd.args[i] = handling_dollar(node->cmd.args[i]);
 	}
+	// printf ("\n path : |%s| \n", node->path);
+	// printf("\n type : |%c| \n", node->t_sp);
 	printf ("\narg %d : |%s|\n", i, node->cmd.args[i]);
 }
 
@@ -349,7 +381,6 @@ void    get_args(char *s, int start, t_sep *node)
     {
         if (s[start] == '\'' || s[start] == '\"')
         {
-
             if (s[start - 1] == '\\')
                 continue;
             end = search_second_quote(s, start + 1, s[start]);
@@ -367,7 +398,6 @@ void    get_args(char *s, int start, t_sep *node)
                 end++;
             if (end > start)
             {
-				
                 node->cmd.args = ft_realloc(node->cmd.args, i, (i + 1));
                 add_to_args(start, end, s, i, node);
                 i++;
@@ -437,20 +467,100 @@ void	addlast_red(t_red **head, char *s, char type)
     }
 }
 
-void	check_handle_redirections(char *s, int i, t_sep *node)
+// void	handle_redirections(char *s, t_red *node)
+// {
+		
+// 	addlast_red(&node->red, s, type);
+	
+// }
+
+// char	red_get_type(char *s, int start)
+// {
+// 	int i;
+
+// 	i = 0;
+// 	while (s[start])
+// 	{
+// 		if (s[start] == '>')
+// 		{
+// 			if (s[start + 1] == '>')
+// 			{
+// 				if (s[start + 2] == '>')
+// 					error_msg("syntax error near unexpected token `>'");
+// 				return ('a');
+// 			}
+// 			return ('o');
+// 		}
+// 		if (s[start] == '<')
+// 		{
+// 			if (s[start + 1] == '<')
+// 			{
+// 				if ((s[start + 2] == '<' && s[start + 3] != '<') ||
+// 				(s[start + 2] == '<' && s[start + 3] == '<'))
+// 					error_msg("syntax error near unexpected token `<'");
+// 				error_msg("REDIRECTION NOT HANDLED!");
+// 			}
+// 			return ('i');
+// 		}
+// 		start++;
+// 	}
+// }
+
+// void	red_get_type_file(char *s, int start)
+// {
+// 	int		i;
+// 	char	*v;
+// 	char	type;
+
+// 	i = 0;
+// 	v = ft_strdup(s);
+// 	type = red_get_type(s, start);
+// 	while (s[start])
+// 	{
+// 		start++;
+// 	}
+// }
+
+int		check_red(t_sep *node, char *s)
 {
-	char type;
-	
-	type = check_redirection(s, i);
-	addlast_red(&node->red, s, type);
-	
+	int start;
+	int end;
+
+	start = 0;
+	end = 0;
+	while (s[start])
+	{
+		if (s[start] == '\'' || s[start] == '\"')
+        {
+            if (s[start - 1] == '\\')
+                continue;
+            end = search_second_quote(s, start + 1, s[start]);
+            if (!end)
+                error_msg("error multiligne");
+            start = end;
+        }
+		else
+		{
+			if ((start == 0 && (s[start] == '>' || s[start] == '<')) ||
+			(start > 0 && (s[start] == '>' || s[start] == '<') && s[start - 1] != '\\'))
+			{
+				node->is_red = 1;
+				// red_get_type_file(s, start, s[start]);
+				return (1);
+			}
+		}
+		start++;
+	}
+	return (0);
 }
 
 void    get_builtin(char *s, t_sep *node)
 {
     int     i;
+	int t;
 
     i = ft_strlen(s);
+	t = 0;
     node->cmd.builtin = malloc(sizeof(char) * (i + 1));
     node->cmd.upper_builtin = malloc(sizeof(char) * (i + 1));
     node->cmd.lower_builtin = malloc(sizeof(char) * (i + 1));
@@ -465,19 +575,25 @@ void    get_builtin(char *s, t_sep *node)
     node->cmd.builtin[i] = '\0';
     node->cmd.upper_builtin[i] = '\0';
     node->cmd.lower_builtin[i] = '\0';
-    
     if (!check_builtin(node) && !check_fill_path(node))
+	{
         error_msg("COMMAND NOT FOUND!!");
-    // printf ("\n path : |%s| \n", node->path);
-    while (s[i] && s[i] == ' ')
-        i++;
-    //check_handle_redirections(s, i, node);
-    get_args(s, i, node);
+	}
+	// if (!t && !check_fill_path(node))
+	// 	error_msg("Ccccccccc!!");
+    printf (" \npath : %s \n", node->path);
+	// if (!check_red)
+	// 	handle_redirections(s, node->red);
+	// else
+	// {
+	while (s[i] && s[i] == ' ')
+		i++;
+	get_args(s, i, node);
+	// }
 }
 
 void    fill_node(char *s, t_sep *node, char type)
 {
-    // handling_bs_sq_args();
     int i;
 
     i = 0;
@@ -487,13 +603,6 @@ void    fill_node(char *s, t_sep *node, char type)
     
     // if (!check_builtin(node))
     //     error_msg("there is no builtin or buitin not handled!!");
-
-    
-    // while (node->cmd.args[i])
-    // {
-    //     printf("\narg %d : |%s|\n", i, node->cmd.args[i]);
-    //     i++;
-    // }
 }
 
 
@@ -505,6 +614,10 @@ void	addlast_sep(t_sep **head, char *s, char type)
     t_sep *newNode = malloc(sizeof(t_sep));
     t_sep *lastNode = *head;
     fill_node(s, newNode, type);
+	// printf ("\ntype : %c \n", newNode->t_sp);
+	// printf ("\n path : %s", newNode->path);
+	
+//EXEC   
     newNode->next = NULL;
     if (*head == NULL)
          *head = newNode;
@@ -527,8 +640,9 @@ void    print_mylist(t_sep *node)
 	i = 0;
 	while (node != NULL)
 	{
-		printf ("\n path : %s", node->path);
+		// printf ("\n path : %s", node->path);
 		printf ("\n type : %c", node->t_sp);
+
 		// printf ("\n arg : %s", node->cmd.args[0]);
 		
 		node = node->next;
@@ -577,31 +691,43 @@ void	fill_list(char *str)
     int     start;
     char    *s;
     int     l;
+	int		end;
     t_sep *head;
 
     i = 1;
+	end = 0;
     start = 0;
     head = NULL;
     l = ft_strlen(str);
-	
+	if (l == 1)
+		error_msg("COMMAND NOT FOUND!");
     while (str[i])
     {
-		
+		if (str[i] == '\'' || str[i] == '\"')
+        {
+            if (str[i - 1] == '\\')
+                continue;
+            end = search_second_quote(str, i + 1, str[i]);
+            if (!end)
+                error_msg("error multiligne");
+            i = end;
+        }
         if ((str[i] == '|' && str[i - 1] != '\\') ||
         (str[i] == ';' && str[i - 1] != '\\') || str[i + 1] == '\0')
         {
 			// init_t_sep(head);
 			while (str[start] && str[start] == ' ')
                 start++;
-            // if (str[i + 1] == '\0')
-            //     i++;
-			
 			if (str[i + 1] == '\0')
 				s = ft_substr(str, start, i - start + 1);
 			else
            		s = ft_substr(str, start, i - start);
-            // printf ("\n s : |%s|\n", s);
             addlast_sep(&head, s, str[i]);
+			// printf("\n type : |%c| \n", head->t_sp);
+			// printf (" \npath : %s \n", head->path);
+			
+//EXEC !!
+			
 			if (s)
 				free(s);
 			// free(temp->cmd.args);
@@ -684,18 +810,13 @@ int     main(int argc, char **argv, char **env)
     // print_list_env();
     i = 0;
     ret = 0;
-    // str = NULL;
 	pwd = getcwd(pwd, 0);
-	
     while (1)
     {
 		str = NULL;
-        // g_inf.arg = malloc(1);
-        //str = ft_strdup(pwd);
         i = 0;
         ft_putstr(pwd);
         ft_putstr("> ");
-        // printf ("\n c = %zd \n", read(0, &c, 1));
         while (read(0, &c, 1) > 0)
         {
             if (c == '\n')
@@ -705,11 +826,10 @@ int     main(int argc, char **argv, char **env)
             i++;
 			str[i] = '\0';
         }
-        
         if (!handling_errors_arg(str))
             fill_args(str);
         printf ("\n\narg = %s\n", str);
-		// if (str)
+		if (str)
         	free(str);
 		// system("leaks minishell");
     }

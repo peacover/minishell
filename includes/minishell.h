@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:09:15 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/05/30 15:37:28 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/06/01 11:06:29 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,7 +51,8 @@ typedef struct s_cmd
 typedef struct  s_sep
 {
 	char    *path; // whereis echo for example
-	char    t_sp; // type of separator ; or | 
+	char    t_sp; // type of separator ; or |
+	int		is_red; // =1 if there is > or < or >>
 	t_red   *red; // redirection > or >> or <
 	t_cmd   cmd;
 	struct s_sep *next;
@@ -76,3 +77,9 @@ char	*ft_strcpy(char *dest, char *src);
 //TODO4 : history
 
 // echo $(( $(getconf ARG_MAX) - $(env | wc -c) ))
+
+// bash-5.1$ echo t >>>t | t>><< | t<> !!!! 
+// bash: syntax error near unexpected token `>'
+
+// bash-5.1$ >
+// bash: syntax error near unexpected token `newline'
