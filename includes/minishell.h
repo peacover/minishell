@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:09:15 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/06/01 19:26:22 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/06/03 13:37:16 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,11 +54,12 @@ typedef struct  s_sep
 	char    t_sp; // type of separator ; or |
 	int		is_red; // =1 if there is > or < or >>
 	t_red   *red; // redirection > or >> or <
+	t_env	*env;
 	t_cmd   cmd;
 	struct s_sep *next;
 }               t_sep;
 
-t_env *g_env;
+t_sep	g_sep;
 
 int		ft_strcmp(char *s1, char *s2);
 int		ft_strlen2(char **w);

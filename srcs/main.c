@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/06/01 15:50:29 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/06/03 14:21:36 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,42 +17,6 @@ void    error_msg(char *s)
     ft_putstr(s);
     ft_putchar('\n');
 }
-char    *split_char(char *s, int start, int end)
-{
-    int     i;
-    char    *str;
-    
-    i = 0;
-    if (start > end)
-        return (NULL);
-    str = (char *)malloc(sizeof(char) * (end - start + 1));
-    // printf ("\n\narg111 = %str\n", g_inf.arg);
-    // printf ("\n\nstart = %d\n", start);
-    while (s[start] && start <= end)
-    {
-        str[i] = s[start];
-		if (start == end)
-        {
-            str[i + 1] = '\0';
-			return (str);
-        }
-		i++;
-        start++;
-    }
-    return (NULL);
-}
-
-void	print_args(char **w)
-{
-	int i;
-
-	i = 0;
-	while (w[i])
-	{
-		printf("\narg %d : |%s|\n", i, w[i]);
-		i++;
-	}
-}
 
 char    *remove_char(char *s, int i)
 {
@@ -61,94 +25,14 @@ char    *remove_char(char *s, int i)
 	int		l;
 	
     l = (int)ft_strlen(s);
-	// s1 = malloc(sizeof(char) * (i + 1));
-	// s2 = malloc(sizeof(char) * (l - i + 1));
 	s1 = ft_substr(s, 0, i);
 	s2 = ft_substr(s, i + 1, l - i + 1);
-    
-    // printf ("\ns1 : |%s|\n", s1);
-    // printf ("\ns2 : |%s|\n", s2);
-    
-    // s1 = split_char(s, 0, i - 1);
-    // s2 = split_char(s, i + 1, l - 1);
-    // if (s2 == NULL)
-    //      s = ft_strcpy(s, s1);
-    // else
-	// {
 	free(s);
 	s = ft_strjoin(s1, s2);
-	// }
     free(s1);
     free(s2);
-	// printf ("\n s : |%s|", s);
     return (s);
 }
-
-// int     count_nb_quote(char c)
-// {
-//     int i;
-//     int n;
-
-//     i = 0;
-//     n = 0;
-//     while (g_inf.arg[i])
-//     {
-//         if (g_inf.arg[i] == c)
-//             n++;
-//         i++;
-//     }
-//     return (n);
-// }
-/*void    handling_bs_sq_args()
-{
-    int i;
-    int is_bs;
-    int l;
-
-    i = 0;
-    is_bs = 0;
-    l = (int)ft_strlen(g_inf.arg);
-    
-    if ((count_nb_quote('\'') % 2) != 0)
-        error_msg("error multiligne");
-    while (g_inf.arg[i])
-    {
-        if (g_inf.arg[i] == '\'')
-        {
-            if (i == 0 || (i > 0 && g_inf.arg[i - 1] != '\\'))
-            {
-                g_inf.arg = remove_char('\'', i);
-                l--;
-                if (l <= i)
-                    break;
-                i--;
-            } 
-        }
-        i++;
-    }
-
-    i = 0;
-    while (g_inf.arg[i])
-    {
-        if (g_inf.arg[i] == '\\') //&& ! (' || ") 
-        {
-            if (!g_inf.arg[i + 1])
-            {
-                error_msg("error multiligne");
-                break;
-            }
-            if (is_bs == 1)
-            {
-                is_bs = 0;
-                continue;
-            }
-            if (g_inf.arg[i + 1] == '\\')
-                is_bs = 1;
-            g_inf.arg = remove_char('\\', i);
-        }
-        i++;
-    }   
-}*/
 
 int    handling_errors_arg(char *str)
 {
@@ -184,8 +68,7 @@ int     check_fill_path(t_sep *node)
     i = 0;
     fd = 0;
 	s = NULL;
-    t_env *current = g_env;
-	// node->path = NULL;
+    t_env *current = g_sep.env;
     while (current != NULL)
     {
         if (!ft_strcmp(current->key, "PATH"))
@@ -200,8 +83,6 @@ int     check_fill_path(t_sep *node)
                 {
                     node->path = s;
 					close(fd);
-					// free(s);
-					// printf (" \npath : %s \n", node->path);
                     return (1);
                 }
 				close(fd);
@@ -211,8 +92,6 @@ int     check_fill_path(t_sep *node)
         }
         current = current->next;
     }
-	// printf (" \npath : %s \n", node->path);
-	// free w
 	node->path = NULL;
     return (0);
 }
@@ -319,7 +198,7 @@ char	*handling_dollar(char *s)
 	int		i;
 	int		start;
 	char	*v;
-	t_env	*current = g_env;
+	t_env	*current = g_sep.env;
    
 	i = 0;
 	start = 0;
@@ -403,14 +282,6 @@ void    get_args(char *s, int start, t_sep *node)
 		while (s[start] && s[start] == ' ')
             start++;
     }
-	// print_args(node->cmd.args);
-    // print_args(node->cmd.args);
-	/*i = 0;
-	while (node->cmd.args[i])
-	{
-		printf ("\n arg %d : |%s|\n", i, node->cmd.args[i]);
-		i++;
-	}*/
 }
 
 char		check_redirection(char *s, int i)
@@ -600,10 +471,6 @@ void    fill_node(char *s, t_sep *node, char type)
     i = 0;
     node->t_sp = type;
     get_builtin(s, node);
-    // printf ("\nlower : %s", node->cmd.lower_builtin);
-    
-    // if (!check_builtin(node))
-    //     error_msg("there is no builtin or buitin not handled!!");
 }
 
 
@@ -615,11 +482,7 @@ void	addlast_sep(t_sep **head, char *s, char type)
     t_sep *newNode = malloc(sizeof(t_sep));
     t_sep *lastNode = *head;
 	init_t_sep(newNode);
-    fill_node(s, newNode, type);
-	// printf ("\ntype : %c \n", newNode->t_sp);
-	// printf ("\n path : %s", newNode->path);
-	
-//EXEC   
+    fill_node(s, newNode, type); 
     newNode->next = NULL;
     if (*head == NULL)
          *head = newNode;
@@ -635,49 +498,6 @@ void	addlast_sep(t_sep **head, char *s, char type)
 	
 }
 
-void    print_mylist(t_sep *node)
-{
-	int i;
-	
-	i = 0;
-	while (node != NULL)
-	{
-		// printf ("\n path : %s", node->path);
-		printf ("\n type : %c", node->t_sp);
-
-		// printf ("\n arg : %s", node->cmd.args[0]);
-		
-		node = node->next;
-	}
-
-}
-
-void	free_mylist_red(t_red *head)
-{
-	t_red *tmp;
-	
-	while (head != NULL)
-	{
-       tmp = head;
-       head = head->next;
-       free(tmp);
-    }
-}
-
-void	free_mylist_sep(t_sep *head)
-{
-	t_sep *tmp;
-	
-	while (head != NULL)
-	{
-       tmp = head;
-       head = head->next;
-       free(tmp);
-    }
-}
-
-
-
 void	fill_list(char *str)
 {
     int     i;
@@ -685,7 +505,7 @@ void	fill_list(char *str)
     char    *s;
     int     l;
 	int		end;
-    t_sep *head;
+    t_sep	*head;
 
     i = 1;
 	end = 0;
@@ -708,7 +528,6 @@ void	fill_list(char *str)
         if ((str[i] == '|' && str[i - 1] != '\\') ||
         (str[i] == ';' && str[i - 1] != '\\') || str[i + 1] == '\0')
         {
-			// init_t_sep(head);
 			while (str[start] && str[start] == ' ')
                 start++;
 			if (str[i + 1] == '\0')
@@ -716,26 +535,15 @@ void	fill_list(char *str)
 			else
            		s = ft_substr(str, start, i - start);
             addlast_sep(&head, s, str[i]);
-			// printf("\n type : |%c| \n", head->t_sp);
-			// printf (" \npath : %s \n", head->path);
-			
-//EXEC !!
-			
 			if (s)
 				free(s);
-			// free(temp->cmd.args);
-			// printf ("\n start : %d", start);
             start = i + 1;
         }
         i++;
     }
-	// print_mylist(head);
-    // free(s);
-    // print_mylist(head);
-	// FUNCTIONS .....
-	// free_mylist_red(head->red);
-	// free_mylist_sep(head);
-	
+	g_sep = *head;
+	print_mylist(&g_sep);
+	//free lists
 }
 
 void    fill_args(char *str)
@@ -749,7 +557,7 @@ void    fill_args(char *str)
 
 void    print_list_env()
 {
-    t_env *current = g_env;
+    t_env *current = g_sep.env;
     while (current != NULL)
     {
         printf("%s\n",current->key);
@@ -786,7 +594,6 @@ t_env    *fill_env(char **env)
         i++;
     }
     return (head);
-    // print_list_env();
 }
 
 int     main(int argc, char **argv, char **env)
@@ -799,8 +606,8 @@ int     main(int argc, char **argv, char **env)
     
     (void)argc;
     (void)argv;
-    g_env = fill_env(env);
-    // print_list_env();
+    g_sep.env = fill_env(env);
+    print_list_env();
     i = 0;
     ret = 0;
 	pwd = getcwd(pwd, 0);
