@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/06/03 14:21:36 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/06/03 19:35:03 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,29 @@ void    error_msg(char *s)
     ft_putstr(s);
     ft_putchar('\n');
 }
+void    print_mylist(t_sep *node)
+{
+	int i;
+	// int l = sizeof(node->cmd.args)/sizeof(node->cmd.args[0]);
+	// printf ("\n l = %d \n", l);
+	i = 0;
+	while (node != NULL)
+	{
+		printf ("\n path : %s", node->path);
+		printf ("\n type : %c", node->t_sp);
+		printf ("\n type : %s", (node->cmd.args[0]));
+		// while (node->cmd.args[i])
+		// {
+		// 	printf("\nadjsbfkjabdsk;bads;kgjbk;asdjbg;kjsabdadk;bgdasjbgi = |%d|\n", i);
+		// 	printf ("\n arg : %s", node->cmd.args[i]);
+		// 	printf("\n################################################### = |%d|\n", i);
+		// 	i++;
+		// }
+		// printf ("\n arg : %s", node->cmd.args[0]);
+		node = node->next;
+	}
 
+}
 char    *remove_char(char *s, int i)
 {
     char    *s1;
@@ -68,7 +90,7 @@ int     check_fill_path(t_sep *node)
     i = 0;
     fd = 0;
 	s = NULL;
-    t_env *current = g_sep.env;
+    t_env *current = g_env;
     while (current != NULL)
     {
         if (!ft_strcmp(current->key, "PATH"))
@@ -92,6 +114,8 @@ int     check_fill_path(t_sep *node)
         }
         current = current->next;
     }
+	// printf (" \npath : %s \n", node->path);
+	// free w
 	node->path = NULL;
     return (0);
 }
@@ -198,7 +222,7 @@ char	*handling_dollar(char *s)
 	int		i;
 	int		start;
 	char	*v;
-	t_env	*current = g_sep.env;
+	t_env	*current = g_env;
    
 	i = 0;
 	start = 0;
@@ -230,6 +254,7 @@ void    add_to_args(int start, int end, char *s, int i, t_sep *node)
 	
     type = s[start];
     l = end - start;
+	node->cmd.args[i] = NULL;
     if (type != '\'' && type != '\"')
         node->cmd.args[i] = ft_substr(s, start, l);
     else
@@ -242,7 +267,7 @@ void    add_to_args(int start, int end, char *s, int i, t_sep *node)
 			node->cmd.args[i] = handling_bs(node->cmd.args[i]);
         node->cmd.args[i] = handling_dollar(node->cmd.args[i]);
 	}
-	printf ("\narg %d : |%s|\n", i, node->cmd.args[i]);
+	// printf ("\narg %d : |%s|\n", i, node->cmd.args[i]);
 }
 
 void    get_args(char *s, int start, t_sep *node)
@@ -282,6 +307,14 @@ void    get_args(char *s, int start, t_sep *node)
 		while (s[start] && s[start] == ' ')
             start++;
     }
+	// print_args(node->cmd.args);
+    // print_args(node->cmd.args);
+	/*i = 0;
+	while (node->cmd.args[i])
+	{
+		printf ("\n arg %d : |%s|\n", i, node->cmd.args[i]);
+		i++;
+	}*/
 }
 
 char		check_redirection(char *s, int i)
@@ -381,7 +414,7 @@ void	red_get_type_file(char *s, int start)
 	i = 0;
 	v = ft_strdup(s);
 	type = red_get_type(s, start);
-	printf("type : %c", type);
+	// printf("type : %c", type);
 	// while (s[start])
 	// {
 	// 	start++;
@@ -396,6 +429,7 @@ void	init_t_sep(t_sep *node)
 	node->cmd.builtin = NULL;
 	node->cmd.upper_builtin = NULL;
 	node->cmd.lower_builtin = NULL;
+	
 }
 int		check_red(t_sep *node, char *s)
 {
@@ -433,7 +467,7 @@ int		check_red(t_sep *node, char *s)
 void    get_builtin(char *s, t_sep *node)
 {
     int     i;
-	int t;
+	int		t;
 
     i = ft_strlen(s);
 	t = 0;
@@ -453,7 +487,7 @@ void    get_builtin(char *s, t_sep *node)
     node->cmd.lower_builtin[i] = '\0';
     if (!check_builtin(node) && !check_fill_path(node) && !check_red(node, s))
         error_msg("COMMAND NOT FOUND!!");
-    printf (" \npath : %s \n", node->path);
+    // printf (" \npath : %s \n", node->path);
 	// if (!check_red)
 	// 	handle_redirections(s, node->red);
 	// else
@@ -471,6 +505,10 @@ void    fill_node(char *s, t_sep *node, char type)
     i = 0;
     node->t_sp = type;
     get_builtin(s, node);
+    // printf ("\nlower : %s", node->cmd.lower_builtin);
+    
+    // if (!check_builtin(node))
+    //     error_msg("there is no builtin or buitin not handled!!");
 }
 
 
@@ -482,7 +520,10 @@ void	addlast_sep(t_sep **head, char *s, char type)
     t_sep *newNode = malloc(sizeof(t_sep));
     t_sep *lastNode = *head;
 	init_t_sep(newNode);
-    fill_node(s, newNode, type); 
+    fill_node(s, newNode, type);
+	// printf ("\ntype : %c \n", newNode->t_sp);
+	// printf ("\n path : %s", newNode->path);
+//EXEC   
     newNode->next = NULL;
     if (*head == NULL)
          *head = newNode;
@@ -496,6 +537,32 @@ void	addlast_sep(t_sep **head, char *s, char type)
         lastNode->next = newNode;
     }
 	
+}
+
+
+ 
+void	free_mylist_red(t_red *head)
+{
+	t_red *tmp;
+	
+	while (head != NULL)
+	{
+       tmp = head;
+       head = head->next;
+       free(tmp);
+    }
+}
+
+void	free_mylist_sep(t_sep *head)
+{
+	t_sep *tmp;
+	
+	while (head != NULL)
+	{
+       tmp = head;
+       head = head->next;
+       free(tmp);
+    }
 }
 
 void	fill_list(char *str)
@@ -528,6 +595,7 @@ void	fill_list(char *str)
         if ((str[i] == '|' && str[i - 1] != '\\') ||
         (str[i] == ';' && str[i - 1] != '\\') || str[i + 1] == '\0')
         {
+			// init_t_sep(head);
 			while (str[start] && str[start] == ' ')
                 start++;
 			if (str[i + 1] == '\0')
@@ -535,15 +603,26 @@ void	fill_list(char *str)
 			else
            		s = ft_substr(str, start, i - start);
             addlast_sep(&head, s, str[i]);
+			// printf("\n type : |%c| \n", head->t_sp);
+			// printf (" \npath : %s \n", head->path);
+			// print_mylist(head);
+//EXEC !!
+			
 			if (s)
 				free(s);
+			// free(temp->cmd.args);
+			// printf ("\n start : %d", start);
             start = i + 1;
         }
         i++;
     }
-	g_sep = *head;
-	print_mylist(&g_sep);
-	//free lists
+	print_mylist(head);
+    // free(s);
+    // print_mylist(head);
+	// FUNCTIONS .....
+	// free_mylist_red(head->red);
+	// free_mylist_sep(head);
+	
 }
 
 void    fill_args(char *str)
@@ -557,7 +636,7 @@ void    fill_args(char *str)
 
 void    print_list_env()
 {
-    t_env *current = g_sep.env;
+    t_env *current = g_env;
     while (current != NULL)
     {
         printf("%s\n",current->key);
@@ -606,7 +685,7 @@ int     main(int argc, char **argv, char **env)
     
     (void)argc;
     (void)argv;
-    g_sep.env = fill_env(env);
+    g_env = fill_env(env);
     print_list_env();
     i = 0;
     ret = 0;

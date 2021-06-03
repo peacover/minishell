@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:09:15 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/06/03 13:37:16 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/06/03 16:56:03 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,7 +59,7 @@ typedef struct  s_sep
 	struct s_sep *next;
 }               t_sep;
 
-t_sep	g_sep;
+t_env	*g_env;
 
 int		ft_strcmp(char *s1, char *s2);
 int		ft_strlen2(char **w);
