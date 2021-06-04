@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:09:15 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/06/03 16:56:03 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/06/04 11:38:21 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,23 +39,18 @@ typedef struct  s_red
 	struct s_red   *next;
 }               t_red;
 
-typedef struct s_cmd
-{
-	int     is_builtin; // = 1 if there is builtin for exapmle echo, pwd, ls...
-	char    *builtin; // name of command ex: echo, pwd ... 
-	char    *upper_builtin; // normalized builtin (UPPER)
-	char	*lower_builtin;
-	char    **args; // commands without builtin
-}               t_cmd;
-
 typedef struct  s_sep
 {
 	char    *path; // whereis echo for example
 	char    t_sp; // type of separator ; or |
 	int		is_red; // =1 if there is > or < or >>
+	int     is_builtin; // = 1 if there is builtin for exapmle echo, pwd, ls...
+	char    *builtin; // name of command ex: echo, pwd ... 
+	char    *upper_builtin; // normalized builtin (UPPER)
+	char	*lower_builtin;
+	char    **args; // commands without builtin
 	t_red   *red; // redirection > or >> or <
 	t_env	*env;
-	t_cmd   cmd;
 	struct s_sep *next;
 }               t_sep;
 
@@ -70,6 +65,8 @@ void	ft_putnbr(int n);
 char	**ft_split_edited(char const *s);
 void	free_t2(char **w);
 char	*ft_strcpy(char *dest, char *src);
+char	**ft_realloc_2(char **old, size_t old_size, size_t new_size);
+
 #endif
 
 //TODO  : single quotes/ double quotes/ backslash/ fill args

@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/06/03 19:35:03 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/06/04 11:49:23 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,22 +20,18 @@ void    error_msg(char *s)
 void    print_mylist(t_sep *node)
 {
 	int i;
-	// int l = sizeof(node->cmd.args)/sizeof(node->cmd.args[0]);
-	// printf ("\n l = %d \n", l);
+	
 	i = 0;
 	while (node != NULL)
 	{
 		printf ("\n path : %s", node->path);
 		printf ("\n type : %c", node->t_sp);
-		printf ("\n type : %s", (node->cmd.args[0]));
-		// while (node->cmd.args[i])
-		// {
-		// 	printf("\nadjsbfkjabdsk;bads;kgjbk;asdjbg;kjsabdadk;bgdasjbgi = |%d|\n", i);
-		// 	printf ("\n arg : %s", node->cmd.args[i]);
-		// 	printf("\n################################################### = |%d|\n", i);
-		// 	i++;
-		// }
-		// printf ("\n arg : %s", node->cmd.args[0]);
+		i = 0;
+		while (node->args && node->args[i])
+		{
+			printf ("\n arg : %s", node->args[i]);
+			i++;
+		}
 		node = node->next;
 	}
 
@@ -99,7 +95,7 @@ int     check_fill_path(t_sep *node)
             while (w[i])
             {
                 s = ft_strjoin(w[i], "/");
-                s = ft_strjoin(s, node->cmd.lower_builtin);
+                s = ft_strjoin(s, node->lower_builtin);
                 fd = open(s, O_RDONLY);
                 if (fd > 0)
                 {
@@ -125,10 +121,10 @@ int    check_builtin(t_sep *node)
     int i;
 
     i = 0;
-    if (!ft_strcmp(node->cmd.upper_builtin, "ECHO") || !ft_strcmp(node->cmd.upper_builtin, "CD")
-    || !ft_strcmp(node->cmd.upper_builtin, "PWD") || !ft_strcmp(node->cmd.upper_builtin, "EXPORT")
-    || !ft_strcmp(node->cmd.upper_builtin, "UNSET") || !ft_strcmp(node->cmd.upper_builtin, "ENV")
-    || !ft_strcmp(node->cmd.upper_builtin, "EXIT"))
+    if (!ft_strcmp(node->upper_builtin, "ECHO") || !ft_strcmp(node->upper_builtin, "CD")
+    || !ft_strcmp(node->upper_builtin, "PWD") || !ft_strcmp(node->upper_builtin, "EXPORT")
+    || !ft_strcmp(node->upper_builtin, "UNSET") || !ft_strcmp(node->upper_builtin, "ENV")
+    || !ft_strcmp(node->upper_builtin, "EXIT"))
     {
       return (1);
     }
@@ -254,20 +250,20 @@ void    add_to_args(int start, int end, char *s, int i, t_sep *node)
 	
     type = s[start];
     l = end - start;
-	node->cmd.args[i] = NULL;
+	node->args[i] = NULL;
     if (type != '\'' && type != '\"')
-        node->cmd.args[i] = ft_substr(s, start, l);
+        node->args[i] = ft_substr(s, start, l);
     else
-	    node->cmd.args[i] = ft_substr(s, start + 1, l - 1);
+	    node->args[i] = ft_substr(s, start + 1, l - 1);
 	if (type != '\'')
 	{
 		if (type == '\"')
-			node->cmd.args[i] = handling_bs_dq(node->cmd.args[i]);
+			node->args[i] = handling_bs_dq(node->args[i]);
 		else
-			node->cmd.args[i] = handling_bs(node->cmd.args[i]);
-        node->cmd.args[i] = handling_dollar(node->cmd.args[i]);
+			node->args[i] = handling_bs(node->args[i]);
+        node->args[i] = handling_dollar(node->args[i]);
 	}
-	// printf ("\narg %d : |%s|\n", i, node->cmd.args[i]);
+	node->args[i + 1] = NULL;
 }
 
 void    get_args(char *s, int start, t_sep *node)
@@ -276,7 +272,6 @@ void    get_args(char *s, int start, t_sep *node)
     int		end;
 
     i = 0;
-	node->cmd.args = NULL;
     while (s[start])
     {
         if (s[start] == '\'' || s[start] == '\"')
@@ -286,7 +281,7 @@ void    get_args(char *s, int start, t_sep *node)
             end = search_second_quote(s, start + 1, s[start]);
             if (!end)
                 error_msg("error multiligne");
-            node->cmd.args = ft_realloc(node->cmd.args, i, (i + 1));
+            node->args = ft_realloc(node->args, i, (i + 1));
             add_to_args(start, end, s, i, node);
             i++;
             start = end + 1;
@@ -298,23 +293,21 @@ void    get_args(char *s, int start, t_sep *node)
                 end++;
             if (end > start)
             {
-                node->cmd.args = ft_realloc(node->cmd.args, i, (i + 1));
+                //node->args = ft_realloc(node->args, i, (i + 1));
+                node->args = ft_realloc_2(node->args, i, (i + 1));
+			//	printf ("\n i = %d\n", i);
+				printf("check for %d %d\n", i, i + 1);
+
                 add_to_args(start, end, s, i, node);
                 i++;
+				// node->args[i] = NULL;
+
             }
             start = end;
         }
 		while (s[start] && s[start] == ' ')
             start++;
     }
-	// print_args(node->cmd.args);
-    // print_args(node->cmd.args);
-	/*i = 0;
-	while (node->cmd.args[i])
-	{
-		printf ("\n arg %d : |%s|\n", i, node->cmd.args[i]);
-		i++;
-	}*/
 }
 
 char		check_redirection(char *s, int i)
@@ -424,11 +417,11 @@ void	init_t_sep(t_sep *node)
 {
 	node->path = NULL;
 	node->t_sp = '\0';
-	node->cmd.args = NULL;
-	node->cmd.is_builtin = 0;
-	node->cmd.builtin = NULL;
-	node->cmd.upper_builtin = NULL;
-	node->cmd.lower_builtin = NULL;
+	node->args = NULL;
+	node->is_builtin = 0;
+	node->builtin = NULL;
+	node->upper_builtin = NULL;
+	node->lower_builtin = NULL;
 	
 }
 int		check_red(t_sep *node, char *s)
@@ -471,31 +464,25 @@ void    get_builtin(char *s, t_sep *node)
 
     i = ft_strlen(s);
 	t = 0;
-    node->cmd.builtin = malloc(sizeof(char) * (i + 1));
-    node->cmd.upper_builtin = malloc(sizeof(char) * (i + 1));
-    node->cmd.lower_builtin = malloc(sizeof(char) * (i + 1));
+    node->builtin = malloc(sizeof(char) * (i + 1));
+    node->upper_builtin = malloc(sizeof(char) * (i + 1));
+    node->lower_builtin = malloc(sizeof(char) * (i + 1));
     i = 0;
     while (s[i] && s[i] != ' ')
     {
-        node->cmd.builtin[i] = s[i];
-        node->cmd.upper_builtin[i] = ft_toupper(s[i]);
-        node->cmd.lower_builtin[i] = ft_tolower(s[i]);
+        node->builtin[i] = s[i];
+        node->upper_builtin[i] = ft_toupper(s[i]);
+        node->lower_builtin[i] = ft_tolower(s[i]);
         i++;
     }
-    node->cmd.builtin[i] = '\0';
-    node->cmd.upper_builtin[i] = '\0';
-    node->cmd.lower_builtin[i] = '\0';
+    node->builtin[i] = '\0';
+    node->upper_builtin[i] = '\0';
+    node->lower_builtin[i] = '\0';
     if (!check_builtin(node) && !check_fill_path(node) && !check_red(node, s))
         error_msg("COMMAND NOT FOUND!!");
-    // printf (" \npath : %s \n", node->path);
-	// if (!check_red)
-	// 	handle_redirections(s, node->red);
-	// else
-	// {
 	while (s[i] && s[i] == ' ')
 		i++;
 	get_args(s, i, node);
-	// }
 }
 
 void    fill_node(char *s, t_sep *node, char type)
@@ -521,9 +508,6 @@ void	addlast_sep(t_sep **head, char *s, char type)
     t_sep *lastNode = *head;
 	init_t_sep(newNode);
     fill_node(s, newNode, type);
-	// printf ("\ntype : %c \n", newNode->t_sp);
-	// printf ("\n path : %s", newNode->path);
-//EXEC   
     newNode->next = NULL;
     if (*head == NULL)
          *head = newNode;
@@ -538,7 +522,6 @@ void	addlast_sep(t_sep **head, char *s, char type)
     }
 	
 }
-
 
  
 void	free_mylist_red(t_red *head)
@@ -595,7 +578,6 @@ void	fill_list(char *str)
         if ((str[i] == '|' && str[i - 1] != '\\') ||
         (str[i] == ';' && str[i - 1] != '\\') || str[i + 1] == '\0')
         {
-			// init_t_sep(head);
 			while (str[start] && str[start] == ' ')
                 start++;
 			if (str[i + 1] == '\0')
@@ -603,15 +585,8 @@ void	fill_list(char *str)
 			else
            		s = ft_substr(str, start, i - start);
             addlast_sep(&head, s, str[i]);
-			// printf("\n type : |%c| \n", head->t_sp);
-			// printf (" \npath : %s \n", head->path);
-			// print_mylist(head);
-//EXEC !!
-			
 			if (s)
 				free(s);
-			// free(temp->cmd.args);
-			// printf ("\n start : %d", start);
             start = i + 1;
         }
         i++;
@@ -686,7 +661,7 @@ int     main(int argc, char **argv, char **env)
     (void)argc;
     (void)argv;
     g_env = fill_env(env);
-    print_list_env();
+    // print_list_env();
     i = 0;
     ret = 0;
 	pwd = getcwd(pwd, 0);

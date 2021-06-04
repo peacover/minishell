@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/04/02 13:28:12 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/06/03 19:06:54 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/06/04 11:48:47 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,15 +59,13 @@ void	ft_putstr(char *s)
 void	*ft_realloc(void *ptr, size_t old_size, size_t new_size)
 {
 	void	*new;
-	// char	*p;
-
-	// p = (char *)ptr;
+	
 	if (new_size == 0)
 	{
 		free(ptr);
 		return (NULL);
 	}
-	new = malloc(new_size * sizeof(char*));
+	new = malloc(new_size * sizeof(char));
 	if (!new)
 		return (NULL);
 	if (ptr != NULL || !old_size)
@@ -81,6 +79,20 @@ void	*ft_realloc(void *ptr, size_t old_size, size_t new_size)
 	return (new);
 }
 
+char	**ft_realloc_2(char **old, size_t old_size, size_t new_size)
+{
+	char **new;
+	int		i;
+	
+	new = malloc(sizeof(char *) * (new_size + 1));
+	i = 0;
+	while (i < (int)old_size)
+	{
+		new[i] = old[i];
+		i++;
+	}
+	return new;
+}
 void	ft_putnbr(int n)
 {
 	unsigned int nb;
@@ -99,68 +111,6 @@ void	ft_putnbr(int n)
 	else
 		ft_putchar(nb + '0');
 }
-
-// int		nb_w(char const *s)
-// {
-// 	int i;
-// 	int x;
-// 	int l;
-
-// 	i = 0;
-// 	x = 0;
-// 	l = 0;
-// 	while (s[i] != '\0')
-// 	{
-// 		if (s[i] == ' ' || s[i] == ';' || s[i] == '|')
-// 			x = 0;
-// 		else if (x == 0)
-// 		{
-// 			x = 1;
-// 			l++;
-// 		}
-// 		i++;
-// 	}
-// 	return (l);
-// }
-
-// int		nb_c(char const *s, int i)
-// {
-// 	int l;
-
-// 	l = 0;
-// 	while (s[i] != ' ' && s[i] != ';' && s[i] != '|' && s[i] != '\0')
-// 	{
-// 		l++;
-// 		i++;
-// 	}
-// 	return (l);
-// }
-
-// char	**ft_split_edited(char const *s)
-// {
-// 	char	**w;
-// 	int		i;
-// 	int		j;
-// 	int		k;
-
-// 	i = 0;
-// 	j = 0;
-// 	if (!(w = (char**)malloc(sizeof(char *) * (nb_w(s) + 1))) || !s)
-// 		return (NULL);
-// 	while (s[i] != '\0' && nb_w(s) > j)
-// 	{
-// 		k = 0;
-// 		while (s[i] == ' ' || s[i] == ';' || s[i] == '|')
-// 			i++;
-// 		w[j] = (char *)malloc(sizeof(char) * (nb_c(s, i) + 1));
-// 		while (s[i] != ' ' && s[i] != ';' && s[i] != '|' && s[i])
-// 			w[j][k++] = s[i++];
-// 		w[j][k] = '\0';
-// 		j++;
-// 	}
-// 	w[j] = 0;
-// 	return (w);
-// }
 
 void	free_t2(char **w)
 {
