@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:09:15 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/06/04 11:38:21 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/06/04 14:07:00 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,8 @@
 // #include <termcap.h>
 #include "../Libft/libft.h"
 
-typedef struct	s_env{
+typedef struct	s_env
+{
     char *val; // all line
     char *value; // after command
     char *key; // command
@@ -32,10 +33,9 @@ typedef struct	s_env{
 
 typedef struct  s_red
 {
-	char	*cmd;
 	char    type; //input = i < | output = o > | append = a >>
 	char    *file; // path file
-	char	**args;
+	char	**args;// args[0] is the command!!! 
 	struct s_red   *next;
 }               t_red;
 

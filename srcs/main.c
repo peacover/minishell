@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/06/04 11:49:23 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/06/04 14:23:17 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,6 @@ void    print_mylist(t_sep *node)
 		}
 		node = node->next;
 	}
-
 }
 char    *remove_char(char *s, int i)
 {
@@ -281,7 +280,7 @@ void    get_args(char *s, int start, t_sep *node)
             end = search_second_quote(s, start + 1, s[start]);
             if (!end)
                 error_msg("error multiligne");
-            node->args = ft_realloc(node->args, i, (i + 1));
+            node->args = ft_realloc_2(node->args, i, (i + 1));
             add_to_args(start, end, s, i, node);
             i++;
             start = end + 1;
@@ -293,15 +292,9 @@ void    get_args(char *s, int start, t_sep *node)
                 end++;
             if (end > start)
             {
-                //node->args = ft_realloc(node->args, i, (i + 1));
                 node->args = ft_realloc_2(node->args, i, (i + 1));
-			//	printf ("\n i = %d\n", i);
-				printf("check for %d %d\n", i, i + 1);
-
                 add_to_args(start, end, s, i, node);
                 i++;
-				// node->args[i] = NULL;
-
             }
             start = end;
         }
@@ -398,20 +391,59 @@ char	red_get_type(char *s, int start)
 	return('\0');
 }
 
-void	red_get_type_file(char *s, int start)
+void	red_get_type_file(t_sep *node, char *s, int start)
 {
 	int		i;
-	char	*v;
 	char	type;
+	char	*file;
+	int		end;
 
 	i = 0;
-	v = ft_strdup(s);
+	(void)node;
+	file = NULL;
+	end = 0;
 	type = red_get_type(s, start);
-	// printf("type : %c", type);
-	// while (s[start])
-	// {
-	// 	start++;
-	// }
+	printf("type red : %c", type);
+	if (type == 'i' || type == 'o' || type == 'a')
+	{
+		if (type == 'i' || type == 'o')
+			start++;
+		else
+			start += 2;
+		while (s[start] && s[start] == ' ')
+			start++;
+		while (s[start])
+		{
+			if (s[start] == '\'' || s[start] == '\"')
+			{
+				if (s[start - 1] == '\\')
+					continue;
+				end = search_second_quote(s, start + 1, s[start]);
+				if (!end)
+					error_msg("error multiligne");
+				file = ft_substr(s, start + 1, end - start - 1);
+				printf("\n FILE : |%s| \n", file);
+				// redimentionner s
+				
+				// exec_red(file, type);  REDIRECTION, YOUR PART START HERE!!
+				start = end + 1;
+			}
+			else
+			{
+				end = start;
+				while (s[end] && s[end] != ' ')
+					end++;
+				if (end > start)
+				{
+					file = ft_substr(s, start, end - start);
+					printf("\n FILE : |%s| \n", file);
+					
+					// exec_red(file, type);  REDIRECTION, YOUR PART START HERE!!
+				}
+				start = end;
+			}
+		}
+	}
 }
 void	init_t_sep(t_sep *node)
 {
@@ -448,7 +480,8 @@ int		check_red(t_sep *node, char *s)
 			(start > 0 && (s[start] == '>' || s[start] == '<') && s[start - 1] != '\\'))
 			{
 				node->is_red = 1;
-				red_get_type_file(s, start);
+				red_get_type_file(node, s, start);
+				// printf("\ntype red :  %c\n", s[start]);
 				return (1);
 			}
 		}
@@ -478,7 +511,7 @@ void    get_builtin(char *s, t_sep *node)
     node->builtin[i] = '\0';
     node->upper_builtin[i] = '\0';
     node->lower_builtin[i] = '\0';
-    if (!check_builtin(node) && !check_fill_path(node) && !check_red(node, s))
+    if (!check_red(node, s) && !check_builtin(node) && !check_fill_path(node))
         error_msg("COMMAND NOT FOUND!!");
 	while (s[i] && s[i] == ' ')
 		i++;
