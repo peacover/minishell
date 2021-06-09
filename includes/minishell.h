@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:09:15 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/06/04 14:07:00 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/06/09 11:04:20 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,13 +31,13 @@ typedef struct	s_env
     struct s_env * next;
 }				t_env;
 
-typedef struct  s_red
-{
-	char    type; //input = i < | output = o > | append = a >>
-	char    *file; // path file
-	char	**args;// args[0] is the command!!! 
-	struct s_red   *next;
-}               t_red;
+// typedef struct  s_red
+// {
+// 	char    type; //input = i < | output = o > | append = a >>
+// 	char    *file; // path file
+// 	char	**args;// args[0] is the command!!! 
+// 	struct s_red   *next;
+// }               t_red;
 
 typedef struct  s_sep
 {
@@ -49,7 +49,8 @@ typedef struct  s_sep
 	char    *upper_builtin; // normalized builtin (UPPER)
 	char	*lower_builtin;
 	char    **args; // commands without builtin
-	t_red   *red; // redirection > or >> or <
+	char	*red_args;
+	char	**r_args; // r_args[0] is the command and the others are arguments
 	t_env	*env;
 	struct s_sep *next;
 }               t_sep;
@@ -69,12 +70,15 @@ char	**ft_realloc_2(char **old, size_t old_size, size_t new_size);
 
 #endif
 
+
 //TODO  : single quotes/ double quotes/ backslash/ fill args
 //TODO2 : dollar/ path builtin
 //TODO3 : redirections
 //TODO4 : history
 
 // echo $(( $(getconf ARG_MAX) - $(env | wc -c) ))
+
+// echo " $WWWTTTTTTTTTTTTTTTTTT      '"
 
 // bash-5.1$ echo t >>>t | t>><< | t<> !!!! 
 // bash: syntax error near unexpected token `>'
