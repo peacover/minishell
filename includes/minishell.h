@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:09:15 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/06/09 11:04:20 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/06/10 15:16:51 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,8 +20,21 @@
 #include <sys/stat.h>
 #include <string.h>
 #include <fcntl.h>
-// #include <termcap.h>
+#include <termcap.h>
+#include <termios.h>
+#include <dirent.h>
+
 #include "../Libft/libft.h"
+
+# define HISTORY_MAX_SIZE 500
+# define KEY_UP 183
+# define KEY_DOWN 184
+# define KEY_LEFT  186
+# define KEY_RIGHT 185
+# define ENTER 10
+# define KEY_REMOVE 127
+# define KEY_TAB 9
+# define CTRL_D 4
 
 typedef struct	s_env
 {
@@ -31,13 +44,6 @@ typedef struct	s_env
     struct s_env * next;
 }				t_env;
 
-// typedef struct  s_red
-// {
-// 	char    type; //input = i < | output = o > | append = a >>
-// 	char    *file; // path file
-// 	char	**args;// args[0] is the command!!! 
-// 	struct s_red   *next;
-// }               t_red;
 
 typedef struct  s_sep
 {

@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/06/09 11:04:59 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/06/14 10:55:25 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -257,21 +257,50 @@ void    add_to_args(int start, int end, char *s, int i, t_sep *node)
 {
 	int		l;
     char	type;
+	char 	*str;
 	
-    type = s[start];
-    l = end - start;
 	node->args[i] = NULL;
-    if (type != '\'' && type != '\"')
-        node->args[i] = ft_substr(s, start, l);
-    else
-	    node->args[i] = ft_substr(s, start + 1, l - 1);
-	if (type != '\'')
+    type = s[start];
+	str = NULL;
+	while (s[start] && start < end)
 	{
-		if (type == '\"')
-			node->args[i] = handling_bs_dq(node->args[i]);
+		if (s[start] != '\'' && s[start] != '\"')
+		{
+			l = start;
+			while (s[l] && s[l] != '\'' && s[l] != '\"' && s[l] != ' ')
+				l++;
+			str = ft_substr(s, start, l - start);
+			start = l;
+		}
 		else
-			node->args[i] = handling_bs(node->args[i]);
-        node->args[i] = handling_dollar(node->args[i]);
+		{				
+			l = search_second_quote(s, start + 1, s[start]);
+            if (!l)
+                error_msg("error multiligne");
+			str = ft_substr(s, start + 1, l - start - 1);
+			start = l;
+		}
+		if (s[start] == '\"')
+			str = handling_bs_dq(str);
+		else if (s[start] != '\'')
+			str = handling_bs(str);
+		if (s[start] != '\'')
+			str = handling_dollar(str);
+		printf("\n\nSTR : %s \\\\ ARG %d : |%s|\n\n", str, i, node->args[i]);
+		if (!node->args[i])
+		{
+			node->args[i] = ft_strdup(str);
+			node->args[i] = ft_strcpy(node->args[i], str);
+		}
+		else
+		{
+			node->args[i] = ft_strjoin(node->args[i], str);
+		}
+		printf("\n\nARG %d : |%s|\n\n", i, node->args[i]);
+		free(str);
+		str = NULL;
+	if (s[start] == '\'' || s[start] == '\"')
+		start++;
 	}
 	node->args[i + 1] = NULL;
 }
@@ -284,6 +313,7 @@ void    get_args(char *s, int start, t_sep *node)
     i = 0;
     while (s[start])
     {
+		end = start;
         if (s[start] == '\'' || s[start] == '\"')
         {
             if (s[start - 1] == '\\')
@@ -291,14 +321,14 @@ void    get_args(char *s, int start, t_sep *node)
             end = search_second_quote(s, start + 1, s[start]);
             if (!end)
                 error_msg("error multiligne");
-            node->args = ft_realloc_2(node->args, i, (i + 1));
-            add_to_args(start, end, s, i, node);
-            i++;
-            start = end + 1;
+            // node->args = ft_realloc_2(node->args, i, (i + 1));
+            // add_to_args(start, end, s, i, node);
+            // i++;
+            // start = end;
         }
-        else
-        {
-            end = start;
+        // else
+        // {
+            // end = start;
             while (s[end] && s[end] != ' ')
                 end++;
             if (end > start)
@@ -308,7 +338,7 @@ void    get_args(char *s, int start, t_sep *node)
                 i++;
             }
             start = end;
-        }
+        // }
 		while (s[start] && s[start] == ' ')
             start++;
     }
@@ -334,15 +364,6 @@ char		check_redirection(char *s, int i)
 	}
 	return (0);
 }
-
-
-
-// void	handle_redirections(char *s, t_red *node)
-// {
-		
-// 	addlast_red(&node->red, s, type);
-	
-// }
 
 char	red_get_type(char *s, int start)
 {
@@ -574,7 +595,7 @@ void	red_get_type_file(t_sep *node, char *s, int start)
 		if (s[i + 1] == '\0')
 			{
 				red_get_cmd_args(node);
-				// printf("\n RED_ARGS : |%s| \n", node->red_args);
+				printf("\n RED_ARGS : |%s| \n", node->red_args);
 				break;
 			}
 		j = 0;
@@ -814,25 +835,84 @@ t_env    *fill_env(char **env)
     }
     return (head);
 }
+void	handling_history(char *s)
+{
+	int		i;
+	int		fd;
+	char	**history;
+	int		l_history;
+
+	i = 0;
+	history = NULL;
+	history = (char **)malloc(sizeof(char *) * 500);
+	while (history[i])
+		history[i++] = NULL;
+	
+	fd = open("./my_bash_history", O_RDWR | O_CREAT, 0644);
+	//FILL **HISTORY FROM THE FILE
+	l_history = ft_strlen2(history);
+	if (l_history < HISTORY_MAX_SIZE)
+        history[l_history++] = ft_strdup(s);
+    else
+	{
+        free(history[0]);
+		i = 1;
+		while (i < HISTORY_MAX_SIZE)
+		{
+			history[i - 1] = history[i];
+			i++;
+		}
+        history[HISTORY_MAX_SIZE - 1] = ft_strdup(s);
+    }
+	close(fd);
+}
+
+int             ft_puts(int d)
+{
+        return (write(1, &d, sizeof(int)));
+}
+
+int             get_char()
+{
+        char    c;
+        int     total;
+        struct termios term, init;
+        tcgetattr(0, &term);
+        tcgetattr(0, &init);
+        term.c_lflag &= ~(ICANON | ECHO);
+        term.c_cc[VMIN] = 0;
+        term.c_cc[VTIME] = 0;
+        tcsetattr(0, TCSANOW, &term); // ??
+        total = 0;
+        while (read(0, &c, 1) <= 0);
+        total += c;
+        while (read(0, &c, 1) > 0)
+                total += c;
+        tcsetattr(0, TCSANOW, &init); // ??
+        return (total);
+}
 
 int     main(int argc, char **argv, char **env)
 {
     int i;
+	int d;
     char *str;
-	char *pwd = NULL;
-    char c;
+	char *pwd;
     int ret;
-    
+	char c;
+
     (void)argc;
     (void)argv;
     g_env = fill_env(env);
     // print_list_env();
     i = 0;
     ret = 0;
+	d = 0;
+	str = NULL;
+	pwd = NULL;
 	pwd = getcwd(pwd, 0);
     while (1)
     {
-		str = NULL;
         i = 0;
         ft_putstr(pwd);
         ft_putstr("> ");
@@ -844,12 +924,15 @@ int     main(int argc, char **argv, char **env)
             str[i] = c;
             i++;
 			str[i] = '\0';
+			// handling_history(str);
         }
         if (!handling_errors_arg(str))
             fill_args(str);
         printf ("\n\narg = %s\n", str);
-		if (str)
-        	free(str);
+		// ft_putstr(str);
+		// printf ("\n\nc = %s\n", str);
+		// if (str)
+        // 	free(str);
 		// system("leaks minishell");
     }
 }
