@@ -5,12 +5,12 @@ INC = -I includes/
 SRCS =	./srcs/main.c \
 		./srcs/parsing/test.c \
 		./srcs/parsing/minishell_utils.c
-FLAGS = -Wall -Wextra -Werror -g -fsanitize=address -ltermcap
+FLAGS = -Wall -Wextra -Werror -g -lreadline
 # FLAGS =
 OBJS = $(SRC:.c=.o)
 all: $(NAME)
 $(NAME): $(OBJS) $(LIBFT)
-	@$(CC) $(FLAGS) $(INC) $(SRCS) -o  $(NAME) $(LIBFT)
+	@$(CC) $(FLAGS) $(INC) $(SRCS) -o $(NAME) $(LIBFT)
 $(LIBFT):
 	@make -C ./Libft
 clean:
