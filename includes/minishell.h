@@ -62,8 +62,6 @@ typedef struct  s_sep
 	char	*red_args;
 	char	**r_args; // r_args[0] is the command and the others are arguments
 	int		p_pip;
-	char	*str;
-	char 	*test;
 	t_env	*env;
 	struct s_sep *next;
 }               t_sep;
@@ -80,6 +78,10 @@ char	**ft_split_edited(char const *s);
 void	free_t2(char **w);
 char	*ft_strcpy(char *dest, char *src);
 char	**ft_realloc_2(char **old, size_t old_size, size_t new_size);
+void    ft_simplecmd(t_sep *node,char *str);
+void   ft_checkcmd1(t_sep *node, char *str, int count_pp);
+void    ft_exec(t_sep *node);
+char    **fill_paramlist(t_sep *node);
 
 #endif
 

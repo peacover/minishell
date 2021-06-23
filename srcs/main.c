@@ -24,37 +24,51 @@ int check_pipe(t_sep *node,char *str)
     {
         if (str[i] == '|')
             count++;
-        
     }
-    // printf("count == %d\n",count);
-    // return (count);
-    // printf("%s\n",node->str);
-    // ft_putstr(node->str);
-    printf("=========== %d ==========\n",count);
-
     return (count);
 }
+
+void    init_pipes(int pip, t_sep *node,char *str)
+{
+    int fd[2];
+    pip = 0;
+    pipe(fd);
+    int pid = fork();
+    if (pid == 0)
+    {
+        dup2(fd[1],1);
+        close(fd[0]);
+        close(fd[1]);
+        ft_simplecmd(node,str);
+        exit(0);
+    }
+    close(fd[1]);
+    int pid2 = fork();
+    if (pid2 == 0) {
+        dup2(fd[0], 0);
+        close(fd[0]);
+        close(fd[1]);
+        ft_simplecmd(node->next,str);
+        exit(0);
+    }
+    close(fd[1]);
+    close(fd[0]);
+    waitpid(pid2, NULL, 0);
+    waitpid(pid, NULL, 0);
+}
+
+void    pipeses(t_sep *node, char *str)
+{
+    int pip;
+    pip = 0;
+    init_pipes(pip, node,str);
+}
+
 
 
 
 ////////////////pipe end////////////////
 ////////////create node\\\\\\\\\\\\\\\/
-
-// int     count_pipe(char *str, int p)
-// {
-//     int i;
-//     int count;
-
-//     i = 0;
-//     count = 0;
-//     while (str[i] && str[i] != ';')
-//     {
-//         if (str[i] == '|')
-//             count++;
-//         i++;
-//     }
-//     return (count);
-// }
 
 t_env *add_content(char **content)
 {
@@ -100,10 +114,7 @@ void	ft_lstadd_back(t_env **alst, t_env *new)
 		}
 	}
 }
-
-
 ////////////unset FONCTION\\\\\\\\\\\\\\\/
-
 void       delet_v_env(t_sep *node,char *argv)
 {
     (void)node;
@@ -133,8 +144,6 @@ void       delet_v_env(t_sep *node,char *argv)
     }
 }
 
-
-
 void    ft_unset(t_sep *node)
 {
     int i = -1;
@@ -142,7 +151,6 @@ void    ft_unset(t_sep *node)
         while(node->args[++i])
             delet_v_env(node,node->args[i]);
 }
-
 //////////////UNSET END\\\\\\\\\\\\\\\\/
 
 ////////////EXPORT FONCTION\\\\\\\\\\\\\\\/
@@ -182,7 +190,6 @@ void    addto_list(char *args,t_sep *node)
         ft_lstadd_back(&g_env,add_content(s));
 }
 
-
 void ft_export(t_sep *node)
 {
     int i = -1;
@@ -192,8 +199,6 @@ void ft_export(t_sep *node)
     if(!node->args)
         print_list();
 }
-
-
 ////////////EXPORT END\\\\\\\\\\\\\\\\/
 
 void  ft_env()
@@ -231,6 +236,7 @@ void ft_echo(t_sep *node)
         i++;
         sp = 1;
     }
+    // printf ("\n argc = %d || count_row = %d\n", argc, node->nb_row);
     while(i < argc)
     {
         ft_putstr(args[i]);
@@ -242,9 +248,7 @@ void ft_echo(t_sep *node)
         ft_putstr("\n");
 }
 
-
 ///////////////////////////cd cmd\\\\\\\\\\\\\\\\\\\\\\\\\\\;
-
 
 char* searchch(char *word,char *changed)
 {
@@ -262,7 +266,6 @@ char* searchch(char *word,char *changed)
     return(current->value);
 }
 
-
 void    ft_cd(t_sep *node,char *path)
 {
     char *pwd = NULL;
@@ -276,8 +279,6 @@ void    ft_cd(t_sep *node,char *path)
     // ft_putstr("\n");
 }
 ///////////////////////////cd cmd end\\\\\\\\\\\\\\\\\\\\\\\\\\\;
-
-
 
 ///////////////////////////pwd cmd\\\\\\\\\\\\\\\\\\\\\\\\\\\;
 
@@ -309,8 +310,8 @@ void    ft_exec(t_sep *node)
 {
     int pid = fork();
     int status;
-    if (pid == -1)
-    {
+   if (pid == -1)
+   {
         ft_putstr("Error\n");
         exit(0);
     }
@@ -332,21 +333,12 @@ void    ft_exit(t_sep *node)
     if (node->args)
     {
         argc = ft_strlen2(node->args);
-        
         while(++i < argc)
         {
             if(node->args[i] > (char*)'9' || node->args[i] < (char*)'0')
                 printf("%s       \n","fniwrjfnejrgniejrngiejrngiejrng");
         }
     }
-    // if (argc == 1)
-    // {
-    //     ft_putstr("exit");
-    //     // exit(code);
-    // }
-
-
-
     if (argc >= 2)
     {
         ft_putstr("exit\n");
@@ -354,31 +346,44 @@ void    ft_exit(t_sep *node)
     }
 }
 
-void    ft_checkcmd(t_sep *node,char *str)
+void   ft_checkcmd1(t_sep *node, char *str, int count_pp)
+{
+    (void)count_pp;
+    // printf("\n argc = %d || count_row = %d\n", ft_strlen2(node->args), node->nb_row);
+    if (node->t_sp == '|')
+    {
+        // printf("\n count == %d \n",count_pp);
+        pipeses(node, str);
+    }
+    else
+        ft_simplecmd(node,str);
+    // (void)str;
+}
+
+
+void    ft_simplecmd(t_sep *node,char *str)
 {
 
-    // (void)node;
     // int pip;
-    // char *path = NULL;
-    // path = getcwd(path,4000);
-    // if (ft_strcmp("echo",node->lower_builtin) == 0)
-    //     ft_echo(node);
-    // else if(ft_strcmp("export",node->lower_builtin) == 0)
-    //     ft_export(node);
-    // else if (ft_strcmp("env", node->lower_builtin) == 0)
-    //     ft_env();
-    // else if(strcmp("unset",node->lower_builtin) == 0)
-    //     ft_unset(node);
-    // else if(strcmp("cd",node->lower_builtin) == 0)
-    //     ft_cd(node,path);
-    // else if(strcmp("pwd",node->lower_builtin) == 0)
-    //     ft_pwd();
-    // else if(strcmp("exit",node->lower_builtin) == 0)
-    //     ft_exit(node);
-    // else
-    //     ft_exec(node);
-
-    check_pipe(node,str);
+    (void)str;
+    char *path = NULL;
+    path = getcwd(path,4000);
+    if (ft_strcmp("echo",node->lower_builtin) == 0)
+        ft_echo(node);
+    else if(ft_strcmp("export",node->lower_builtin) == 0)
+        ft_export(node);
+    else if (ft_strcmp("env", node->lower_builtin) == 0)
+        ft_env();
+    else if(strcmp("unset",node->lower_builtin) == 0)
+        ft_unset(node);
+    else if(ft_strcmp("cd",node->lower_builtin) == 0)
+        ft_cd(node,path);
+    else if(ft_strcmp("pwd",node->lower_builtin) == 0)
+        ft_pwd();
+    else if(ft_strcmp("exit",node->lower_builtin) == 0)
+        ft_exit(node);
+    else
+        ft_exec(node);
 }
 
 void    error_msg(char *s)
@@ -390,14 +395,16 @@ void    error_msg(char *s)
 void    print_mylist(t_sep *node)
 {
 	int i;
+    int l;
 	
 	i = 0;
+    l = ft_strlen2(node->args);
 	while (node != NULL)
 	{
 		printf ("\n path : %s", node->path);
 		printf ("\n type : %c", node->t_sp);
-		i = 0;
-		while (node->args && node->args[i])
+		i = 0; 
+		while (l >= i)
 		{
 			printf ("\n arg : %s", node->args[i]);
 			i++;
@@ -675,6 +682,7 @@ void    add_to_args(int start, int end, char *s, int i, t_sep *node)
 		{
 			node->args[i] = ft_strjoin(node->args[i], str);
 		}
+        
 		// printf("\n\nARG %d : |%s|\n\n", i, node->args[i]);
 		free(str);
 		str = NULL;
@@ -713,6 +721,7 @@ void    get_args(char *s, int start, t_sep *node)
             if (end > start)
             {
                 node->args = ft_realloc_2(node->args, i, (i + 1));
+                node->nb_row++;
                 add_to_args(start, end, s, i, node);
                 i++;
             }
@@ -882,7 +891,6 @@ char	red_get_type(char *s, int start)
 			{
 				if (s[start + 2] == '>')
 					error_msg("syntax error near unexpected token `>'");
-					
 				return ('a');
 			}
 			return ('o');
@@ -896,7 +904,6 @@ char	red_get_type(char *s, int start)
 					error_msg("syntax error near unexpected token `<'");
 				error_msg("REDIRECTION NOT HANDLED!");
 			}
-			
 			return ('i');
 		}
 		start++;
@@ -970,6 +977,7 @@ void	init_t_sep(t_sep *node)
 	node->upper_builtin = NULL;
 	node->lower_builtin = NULL;
 	node->is_red = 0;
+    node->nb_row = 0;
 	
 }
 int		check_red(t_sep *node, char *s)
@@ -1013,6 +1021,7 @@ void    get_builtin(char *s, t_sep *node)
 
     i = ft_strlen(s);
 	t = 0;
+
     node->builtin = malloc(sizeof(char) * (i + 1));
     node->upper_builtin = malloc(sizeof(char) * (i + 1));
     node->lower_builtin = malloc(sizeof(char) * (i + 1));
@@ -1044,6 +1053,8 @@ void    fill_node(char *s, t_sep *node, char type)
 
     i = 0;
     node->t_sp = type;
+    // node->str = ft_strdup(str);
+
     get_builtin(s, node);
     // printf ("\nlower : %s", node->cmd.lower_builtin);
     
@@ -1057,13 +1068,21 @@ void	addlast_sep(t_sep **head, char *s, char type, char *str)
 	int i;
 	
 	i = 0;
+    (void)str;
     t_sep *newNode = malloc(sizeof(t_sep));
     t_sep *lastNode = *head;
 	init_t_sep(newNode);
     fill_node(s, newNode, type);
 
 //EXEC PART !!!!!!!!!!!!!!!
-    ft_checkcmd(newNode, str);
+// (void)str;
+    // ft_checkcmd2(newNode, str);
+    // ft_checkcmd1(newNode, str);
+    // int pide ;
+
+    // pide = check_pipe(newNode,str);
+
+    // printf("\n\n\ncount ====== %d\n\n\n",pide);
 ///////////////////
     newNode->next = NULL;
     if (*head == NULL)
@@ -1099,12 +1118,14 @@ void	fill_list(char *str)
     char    *s;
     int     l;
 	int		end;
+    int     count_pp;
     t_sep	*head;
 
     i = 1;
 	end = 0;
     start = 0;
     head = NULL;
+    count_pp = 0;
     l = ft_strlen(str);
     // head->str = ft_strdup(str);
     // head = malloc(sizeof(t_sep));
@@ -1124,8 +1145,10 @@ void	fill_list(char *str)
             i = end;
         }
         if ((str[i] == '|' && str[i - 1] != '\\') ||
-        (str[i] == ';' && str[i - 1] != '\\') || str[i + 1] == '\0')
+        (str[i] == ';' && str[i - 1] != '\\') || (str[i + 1] == '\0'))
         {
+            if (str[i] == '|' && str[i - 1] != '\\')
+                count_pp++;
 			while (str[start] && str[start] == ' ')
                 start++;
 			if (str[i + 1] == '\0')
@@ -1139,17 +1162,18 @@ void	fill_list(char *str)
         }
         i++;
     }
+    // ft_checkcmd1(head,  str, count_pp);
     // int pipe;
     // printf("amine amine");
     // ft_putstr(head->str);
 
 
-    head = malloc(sizeof(t_sep));
-    head->str = ft_strdup(str);
+    // head = malloc(sizeof(t_sep));
+    // head->str = ft_strdup(str);
     // pipe = check_pipe(head);
     // printf("\n\n%d           :samurai",pipe);
     // ft_checkcmd(head);
-	// print_mylist(head); 
+	print_mylist(head); 
     // free(s);
     // print_mylist(head);
 	// FUNCTIONS .....
@@ -1294,15 +1318,15 @@ int     main(int argc, char **argv, char **env)
         // while ((str = readline("S_SHELL$ ")))
         // {
         //     add_history(str);
-        //     if (!handling_errors_arg(str))
-        //         fill_args(str);
+            if (!handling_errors_arg(str))
+                fill_args(str);
         //     free(str);
         // }
 
 
         // printf ("\n\narg = %s\n", str);
-		// if (str)
-        // 	free(str);
+		if (str)
+        	free(str);
 		// system("leaks minishell");
     }
 }
