@@ -222,16 +222,16 @@ void ft_echo(t_sep *node)
     int argc;
 
     args = node->args;
-    if (!node->args)
-        argc = 0;
-    else
+    // if (!node->args)
+    //     argc = 0;
+    // else
         argc = ft_strlen2(args);
     int sp = 0;
     check_n = 0;
     // if (!argc)
     //     write(1,"\n",1);
     i = 0;
-    while(args && args[0] && args[i][0] == '-' && args[i][1] == 'n' && args[i][2] == '\0' && i < argc)
+    while(i <= argc && args[0] && args[i][0] == '-' && args[i][1] == 'n' && args[i][2] == '\0')
     {
         i++;
         sp = 1;
@@ -721,7 +721,6 @@ void    get_args(char *s, int start, t_sep *node)
             if (end > start)
             {
                 node->args = ft_realloc_2(node->args, i, (i + 1));
-                node->nb_row++;
                 add_to_args(start, end, s, i, node);
                 i++;
             }
@@ -977,7 +976,6 @@ void	init_t_sep(t_sep *node)
 	node->upper_builtin = NULL;
 	node->lower_builtin = NULL;
 	node->is_red = 0;
-    node->nb_row = 0;
 	
 }
 int		check_red(t_sep *node, char *s)
@@ -1162,7 +1160,7 @@ void	fill_list(char *str)
         }
         i++;
     }
-    // ft_checkcmd1(head,  str, count_pp);
+    ft_checkcmd1(head,  str, count_pp);
     // int pipe;
     // printf("amine amine");
     // ft_putstr(head->str);
@@ -1173,7 +1171,7 @@ void	fill_list(char *str)
     // pipe = check_pipe(head);
     // printf("\n\n%d           :samurai",pipe);
     // ft_checkcmd(head);
-	print_mylist(head); 
+	// print_mylist(head); 
     // free(s);
     // print_mylist(head);
 	// FUNCTIONS .....
