@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/06/04 14:23:17 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/06/25 11:24:28 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -1284,7 +1284,7 @@ int     main(int argc, char **argv, char **env)
     int i;
     char *str;
 	// char *pwd =NULL;
-    char c;
+    // char c;
     int ret;
     
     (void)argc;
@@ -1292,37 +1292,36 @@ int     main(int argc, char **argv, char **env)
     g_env = fill_env(env);
     i = 0;
     ret = 0;
-	// pwd = ;
     while (1)
     {
 		str = NULL;
-        i = 0;
+        // i = 0;
         // ft_putstr(pwd);
         // search_path();
 
-        ft_putstr("S_SHELL");
-        ft_putstr("$ ");
-        while (read(0, &c, 1) > 0)
-        {
-            if (c == '\n')
-                break;
-            str = ft_realloc(str, i, i + 2);
-            str[i] = c;
-            i++;
-			str[i] = '\0';
-        }
-
-
-        // while ((str = readline("S_SHELL$ ")))
+        // ft_putstr("S_SHELL");
+        // ft_putstr("$ ");
+        // while (read(0, &c, 1) > 0)
         // {
-        //     add_history(str);
-            if (!handling_errors_arg(str))
-                fill_args(str);
-        //     free(str);
+        //     if (c == '\n')
+        //         break;
+        //     str = ft_realloc(str, i, i + 2);
+        //     str[i] = c;
+        //     i++;
+		// 	str[i] = '\0';
         // }
 
 
-        // printf ("\n\narg = %s\n", str);
+        str = readline("S_SHELL$ ");
+		if (ft_strlen(str) < 1)
+		{
+			free(str);
+			continue;
+		}
+		// printf("\n str : |%s| \n", str);
+        add_history(str);
+        if (!handling_errors_arg(str))
+            fill_args(str);
 		if (str)
         	free(str);
 		// system("leaks minishell");
