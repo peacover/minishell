@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/06/25 11:24:28 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/06/25 14:01:50 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -1247,36 +1247,19 @@ void    search_path()
     }
 }
 
-void	handling_history(char *s)
+char    *my_getcwd()
 {
-	int		i;
-	int		fd;
-	char	**history;
-	int		l_history;
-
-	i = 0;
-	history = NULL;
-	history = (char **)malloc(sizeof(char *) * 500);
-	while (history[i])
-		history[i++] = NULL;
-	
-	fd = open("./my_bash_history", O_RDWR | O_CREAT, 0644);
-	//FILL **HISTORY FROM THE FILE
-	l_history = ft_strlen2(history);
-	if (l_history < HISTORY_MAX_SIZE)
-        history[l_history++] = ft_strdup(s);
-    else
-	{
-        free(history[0]);
-		i = 1;
-		while (i < HISTORY_MAX_SIZE)
-		{
-			history[i - 1] = history[i];
-			i++;
-		}
-        history[HISTORY_MAX_SIZE - 1] = ft_strdup(s);
+    t_env *current = g_env;
+    while(current != NULL)
+    {
+        if(ft_strcmp(current->key,"PWD") == 0)
+        {
+            return(ft_strjoin(current->value, "> "));
+            break;
+        }
+        current = current->next;
     }
-	close(fd);
+	return (NULL);
 }
 
 int     main(int argc, char **argv, char **env)
@@ -1312,7 +1295,7 @@ int     main(int argc, char **argv, char **env)
         // }
 
 
-        str = readline("S_SHELL$ ");
+        str = readline(my_getcwd());
 		if (ft_strlen(str) < 1)
 		{
 			free(str);
