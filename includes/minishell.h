@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
+/*   By: yer-raki <yer-raki@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:09:15 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/06/04 14:07:00 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/06/27 16:12:54 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,6 @@
 #include <sys/stat.h>
 #include <string.h>
 #include <fcntl.h>
-// #include <termcap.h>
 #include <readline/readline.h>
 #include <readline/history.h>
 #include "../Libft/libft.h"
@@ -62,6 +61,9 @@ typedef struct  s_sep
 	char	*red_args;
 	char	**r_args; // r_args[0] is the command and the others are arguments
 	int		p_pip;
+
+	char	*s_red; //string of redirection
+	
 	t_env	*env;
 	struct s_sep *next;
 }               t_sep;
@@ -79,7 +81,7 @@ void	free_t2(char **w);
 char	*ft_strcpy(char *dest, char *src);
 char	**ft_realloc_2(char **old, size_t old_size, size_t new_size);
 void    ft_simplecmd(t_sep *node,char *str);
-void   ft_checkcmd1(t_sep *node, char *str, int count_pp);
+void	ft_checkcmd1(t_sep *node, char *str, int count_pp);
 void    ft_exec(t_sep *node);
 char    **fill_paramlist(t_sep *node);
 
