@@ -6,7 +6,6 @@ SRCS =	./srcs/main.c \
 		./srcs/parsing/test.c \
 		./srcs/parsing/minishell_utils.c
 FLAGS = -Wall -Wextra -Werror -g -lreadline
-# FLAGS =
 OBJS = $(SRC:.c=.o)
 all: $(NAME)
 $(NAME): $(OBJS) $(LIBFT)

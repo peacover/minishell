@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
+/*   By: yer-raki <yer-raki@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/06/25 14:01:50 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/06/27 13:26:51 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -767,13 +767,13 @@ char	*red_get_file(t_sep *node, char *s, int start, char type)
 		i = start;
 		if (type == 'i' || type == 'o' )
 			start++;
-		else if (type == 'a')
+		else if (type == 'a' || type == 'h')
 			start += 2;
 		while (s[start] && s[start] == ' ')
 			start++;
 		if (s[start] == '\'' || s[start] == '\"')
         {
-            if (s[start - 1] == '\\')
+            if (i != 0 && s[start - 1] == '\\')
                 continue;
             end = search_second_quote(s, start + 1, s[start]);
             if (!end)
@@ -901,7 +901,7 @@ char	red_get_type(char *s, int start)
 				if ((s[start + 2] == '<' && s[start + 3] != '<') ||
 				(s[start + 2] == '<' && s[start + 3] == '<'))
 					error_msg("syntax error near unexpected token `<'");
-				error_msg("REDIRECTION NOT HANDLED!");
+				return ('h');
 			}
 			return ('i');
 		}
@@ -918,7 +918,7 @@ void	red_get_type_file(t_sep *node, char *s, int start)
 	int		end;
 	int		j;
 
-	i = 1;
+	i = 0;
 	(void)node;
 	file = NULL;
 	end = 0;
@@ -931,7 +931,7 @@ void	red_get_type_file(t_sep *node, char *s, int start)
 			i++;
 		if (s[i] == '\'' || s[i] == '\"')
         {
-            if (s[i - 1] == '\\')
+            if (i != 0 && s[i - 1] == '\\')
                 continue;
             end = search_second_quote(s, i + 1, s[i]);
             if (!end)
@@ -939,26 +939,28 @@ void	red_get_type_file(t_sep *node, char *s, int start)
             i = end;
         }
         if ((s[i] == '>' && s[i - 1] != '\\') ||
-        (s[i] == '<' && s[i - 1] != '\\') || s[i + 1] == '\0')
+        (s[i] == '<' && s[i - 1] != '\\') )
         {
-			j = i;
-			// while (s[start] && s[start] == ' ')
-            //     start++;
-			// printf ("\n FIRST S : |%s| / START : %d / I : %d\n", s, start, i);
-			
+			// j = i;
 			type = red_get_type(s, i);
 			file = red_get_file(node, s, i, type);
 			s = node->red_args;
 			// printf("\n REDIM : |%s| \n", node->red_args);
-			printf("\n FILE : |%s| \n", file);
-			// red_handling_bs_dollar();
-			// printf("\n S : |%s| \n", s);
-			i = j;
+			printf("\n FILE : |%s| // TYPE : |%c| \n", file, type);
+			// i = j;
         }
 		if (s[i + 1] == '\0')
 			{
 				red_get_cmd_args(node);
-				printf("\n RED_ARGS : |%s| \n", node->red_args);
+				// printf("\n RED_ARGS : |%s| \n", node->red_args);
+                j = ft_strlen2(node->r_args);
+                i = 0;
+                while (j > 0)
+                {
+                    printf("\narg %d : |%s|\n", i, node->r_args[i]);
+                    i++;
+                    j--; 
+                }
 				break;
 			}
 		j = 0;
@@ -1160,7 +1162,7 @@ void	fill_list(char *str)
         }
         i++;
     }
-    ft_checkcmd1(head,  str, count_pp);
+    // ft_checkcmd1(head,  str, count_pp);
     // int pipe;
     // printf("amine amine");
     // ft_putstr(head->str);
