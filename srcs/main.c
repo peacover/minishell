@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/06/27 19:12:33 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/06/27 19:53:50 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -1001,10 +1001,18 @@ int		check_red(t_sep *node, char *s)
 void    get_builtin(char *s, t_sep *node)
 {
 	int     i;
-	int		t;
+	int		l;
 
-	i = ft_strlen(s);
-	t = 0;
+	i = 0;
+	l = ft_strlen(s);
+	if (s[i] == '|')
+	{
+		i++;
+		while (s[i] && s[i] == ' ')
+			i++;
+		s = ft_substr(s, i, l - i);
+	}
+	i = l;
 
 	node->builtin = malloc(sizeof(char) * (i + 1));
 	node->upper_builtin = malloc(sizeof(char) * (i + 1));
@@ -1024,12 +1032,13 @@ void    get_builtin(char *s, t_sep *node)
 	if (!check_builtin(node) && !check_fill_path(node))
 		error_msg("COMMAND NOT FOUND!!");
 	// printf("\n\nred return : %d", node-> is_red);
-	if (node-> is_red != 1)
-	{
+	// if (node-> is_red != 1)
+	// {
 		while (s[i] && s[i] == ' ')
 			i++;
 		get_args(s, i, node);
-	}
+	printf("\ncmd : |%s|\n", node->builtin);
+	// }
 }
 void	parsing_red(t_sep *node, char *s)
 {
@@ -1068,8 +1077,8 @@ void    fill_node(char *s, t_sep *node, int end, char *str)
 	i = 0;
 	node->t_sp = str[end];
 	// if (str[start] == '>' || str[start] == '<')
-	if (s[i] == '|')
-		s = ft_substr(s, i + 1, ft_strlen(s) - 1);
+	// if (s[i] == '|')
+	// 	s = ft_substr(s, i + 1, ft_strlen(s) - 1);
 	// printf("\n s end : |%s|\n", s);
 	// parsing_red(node, s);
 	if (s[i] != '>' && s[i] != '<' && (str[ft_strlen(s)]!= '>' || str[ft_strlen(s)]!= '>'))
@@ -1155,10 +1164,10 @@ void	fill_list(char *str)
 				count_pp++;
 			while (str[start] && str[start] == ' ')
 				start++;
-			// if (str[i + 1] == '\0')
-			// 	s = ft_substr(str, start, i - start + 1);
+			if (str[i + 1] == '\0')
+				s = ft_substr(str, start, i - start + 1);
 			
-			// else
+			else
 		   		s = ft_substr(str, start, i - start);
 
 			printf ("\n s start : |%s|\n", s);

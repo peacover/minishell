@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:09:15 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/06/27 16:12:54 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/06/27 19:56:22 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,3 +101,6 @@ char    **fill_paramlist(t_sep *node);
 // bash: syntax error near unexpected token `newline'
 
 // export MallocStackLogging=1
+
+
+// << dsf sdf > sdfsdf>>fsdf sdf | sdf > sdf | echo tt
