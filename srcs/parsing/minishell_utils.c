@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minishell_utils.c                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
+/*   By: yer-raki <yer-raki@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/04/02 13:28:12 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/06/04 11:48:47 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/06/28 10:09:47 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,8 @@ int		ft_strlen2(char **w)
 	int i;
 
 	i = 0;
+	if (!w)
+		return (0);
 	while (w[i])
 		i++;
 	return (i);

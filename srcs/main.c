@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/06/27 19:53:50 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/06/28 10:11:26 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -398,17 +398,20 @@ void    print_mylist(t_sep *node)
 	int l;
 	
 	i = 0;
-	l = ft_strlen2(node->args);
 	while (node != NULL)
 	{
+		l = ft_strlen2(node->args);
+		printf("\n------------------------------------------\n");
 		printf ("\n path : %s", node->path);
-		printf ("\n type : %c", node->t_sp);
+		printf ("\n cmd : %s", node->builtin);
+		printf ("\n s_red : %s", node->s_red);
 		i = 0; 
-		while (l >= i)
+		while (l > i)
 		{
-			printf ("\n arg : %s", node->args[i]);
+			printf ("\n arg %d : %s", i, node->args[i]);
 			i++;
 		}
+		printf("\n------------------------------------------\n");
 		node = node->next;
 	}
 }
@@ -962,6 +965,7 @@ void	init_t_sep(t_sep *node)
 	node->upper_builtin = NULL;
 	node->lower_builtin = NULL;
 	node->is_red = 0;
+	node->s_red = NULL;
 	
 }
 int		check_red(t_sep *node, char *s)
@@ -1037,7 +1041,7 @@ void    get_builtin(char *s, t_sep *node)
 		while (s[i] && s[i] == ' ')
 			i++;
 		get_args(s, i, node);
-	printf("\ncmd : |%s|\n", node->builtin);
+	// printf("\ncmd : |%s|\n", node->builtin);
 	// }
 }
 void	parsing_red(t_sep *node, char *s)
@@ -1081,8 +1085,13 @@ void    fill_node(char *s, t_sep *node, int end, char *str)
 	// 	s = ft_substr(s, i + 1, ft_strlen(s) - 1);
 	// printf("\n s end : |%s|\n", s);
 	// parsing_red(node, s);
+	node->s_red = ft_strdup(s);
 	if (s[i] != '>' && s[i] != '<' && (str[ft_strlen(s)]!= '>' || str[ft_strlen(s)]!= '>'))
+	{
+		// s = ft_substr(s, i + 1, ft_strlen(s) - 1);
 		get_builtin(s, node);
+	}
+	printf ("\n\n string red : |%s|", node->s_red);
 	// printf ("\nlower : %s", node->cmd.lower_builtin);
 	
 	// if (!check_builtin(node))
@@ -1170,7 +1179,7 @@ void	fill_list(char *str)
 			else
 		   		s = ft_substr(str, start, i - start);
 
-			printf ("\n s start : |%s|\n", s);
+			// printf ("\n s start : |%s|\n", s);
 			addlast_sep(&head, s, i , str);
 			if (s)
 				free(s);
@@ -1179,11 +1188,9 @@ void	fill_list(char *str)
 			// 	start = i + 1;	
 			// }
 			// else
-				start = i;
+			start = i;
 			if ((str[i] == '>' && str[i + 1] == '>') || (str[i] == '<' && str[i + 1] == '<'))
-			{
 				i++;	
-			}
 		}
 		i++;
 	}
@@ -1198,7 +1205,7 @@ void	fill_list(char *str)
 	// pipe = check_pipe(head);
 	// printf("\n\n%d           :samurai",pipe);
 	// ft_checkcmd(head);
-	// print_mylist(head); 
+	print_mylist(head); 
 	// free(s);
 	// print_mylist(head);
 	// FUNCTIONS .....
