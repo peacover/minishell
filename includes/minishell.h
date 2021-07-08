@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:09:15 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/06/27 19:56:22 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/07/08 15:59:17 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,6 +69,7 @@ typedef struct  s_sep
 }               t_sep;
 
 t_env	*g_env;
+char **g_envp;
 
 int		ft_strcmp(char *s1, char *s2);
 int		ft_strlen2(char **w);
@@ -84,6 +85,7 @@ void    ft_simplecmd(t_sep *node,char *str);
 void	ft_checkcmd1(t_sep *node, char *str, int count_pp);
 void    ft_exec(t_sep *node);
 char    **fill_paramlist(t_sep *node);
+void    run_cmdline(t_sep *node);
 
 #endif
 

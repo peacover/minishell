@@ -3,6 +3,7 @@ LIBFT =	Libft/libft.a
 CC = gcc
 INC = -I includes/
 SRCS =	./srcs/main.c \
+		./srcs/run_cmdline.c \
 		./srcs/parsing/minishell_utils.c
 FLAGS = -Wall -Wextra -Werror -g -lreadline
 all: $(NAME)

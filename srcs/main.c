@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/07/08 13:27:43 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/07/08 16:08:07 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -1097,7 +1097,7 @@ void    fill_node(char *s, t_sep *node, int end, char *str)
 		// s = ft_substr(s, i + 1, ft_strlen(s) - 1);
 		get_builtin(s, node);
 	}
-	printf ("\n\n string red : |%s|", node->s_red);
+	// printf ("\n\n string red : |%s|", node->s_red);
 	// printf ("\nlower : %s", node->cmd.lower_builtin);
 	
 	// if (!check_builtin(node))
@@ -1211,7 +1211,8 @@ void	fill_list(char *str)
 	// pipe = check_pipe(head);
 	// printf("\n\n%d           :samurai",pipe);
 	// ft_checkcmd(head);
-	print_mylist(head); 
+	// print_mylist(head); 
+	run_cmdline(head);
 	// free(s);
 	// print_mylist(head);
 	// FUNCTIONS .....
@@ -1310,6 +1311,7 @@ int     main(int argc, char **argv, char **env)
 	
 	(void)argc;
 	(void)argv;
+	g_envp = env;
 	g_env = fill_env(env);
 	i = 0;
 	ret = 0;
