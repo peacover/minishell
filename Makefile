@@ -6,9 +6,8 @@ SRCS =	./srcs/main.c \
 		./srcs/parsing/test.c \
 		./srcs/parsing/minishell_utils.c
 FLAGS = -Wall -Wextra -Werror -g -lreadline
-OBJS = $(SRC:.c=.o)
 all: $(NAME)
-$(NAME): $(OBJS) $(LIBFT)
+$(NAME): $(LIBFT)
 	@$(CC) $(FLAGS) $(INC) $(SRCS) -o $(NAME) $(LIBFT)
 $(LIBFT):
 	@make -C ./Libft
@@ -18,4 +17,5 @@ clean:
 fclean: clean
 	@rm -f $(NAME)
 	@make fclean -C ./libft
+	@rm -rf *.dSYM
 re : fclean $(NAME)
