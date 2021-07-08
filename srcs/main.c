@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/07/08 16:08:07 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/07/08 16:50:31 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -1318,7 +1318,8 @@ int     main(int argc, char **argv, char **env)
 	while (1)
 	{
 		str = NULL;
-		str = readline(my_getcwd());
+		// str = readline(my_getcwd());
+		str = readline("$> ");
 		if (ft_strlen(str) < 1)
 		{
 			free(str);

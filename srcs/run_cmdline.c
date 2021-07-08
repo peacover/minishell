@@ -6,11 +6,83 @@
 /*   By: mhaddi <mhaddi@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/08 15:34:01 by mhaddi            #+#    #+#             */
-/*   Updated: 2021/07/08 16:07:48 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/07/08 17:06:18 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/minishell.h"
+#include <errno.h>
+
+int is_builtin(char *cmd)
+{
+	if (strcmp(cmd, "echo") == 0
+	|| strcmp(cmd, "cd") == 0
+	|| strcmp(cmd, "pwd") == 0
+	|| strcmp(cmd, "export") == 0
+	|| strcmp(cmd, "unset") == 0
+	|| strcmp(cmd, "env") == 0
+	|| strcmp(cmd, "exit") == 0)
+		return (1);
+	return (0);
+}
+
+int echo(char **args)
+{
+	int no_newline;
+	int i;
+
+	if (!args)
+	{
+		printf("\n");
+		return (0);
+	}
+
+	no_newline = 0;
+	if (strcmp(args[0], "-n") == 0)
+		no_newline = 1;
+
+	i = no_newline;
+	while (args[i]) // should end with null
+	{
+		printf("%s", args[i]);
+		i++;
+		if (args[i])
+			printf(" ");
+	}
+	if (no_newline == 0)
+		printf("\n");
+
+	return (0);
+}
+
+void cd(char **args)
+{
+	if (!args || strcmp(args[0], "~") == 0)
+	{
+		if (chdir(getenv("HOME")) == -1)
+			printf("%s\n", strerror(errno)); // to free
+	}
+	else
+	{
+		if (chdir(args[0]) == -1)
+			printf("%s\n", strerror(errno));
+	}
+}
+
+void pwd(void) {
+    char* buffer;
+
+	buffer = getcwd(NULL, 0);
+	if (!buffer)
+	{
+		printf("Failed to get current directory.\n");
+	}
+	else
+	{
+		printf("%s\n", buffer);
+		free(buffer);
+	}
+}
 
 void    run_cmdline(t_sep *node)
 {
@@ -18,9 +90,25 @@ void    run_cmdline(t_sep *node)
 	if (node->next == NULL) // no pipes or redirections
 	{
 		// printf("true, next is null.\n");
-		if (node->is_builtin)
+		if (is_builtin(node->builtin))
 		{
 			// printf("whoops, node is builtin?\n");
+			if (strcmp(node->builtin, "echo") == 0)
+				echo(node->args);
+			if (strcmp(node->builtin, "cd") == 0)
+				cd(node->args);
+			if (strcmp(node->builtin, "pwd") == 0)
+				pwd();
+			/*
+			if (strcmp(node->builtin, "export") == 0)
+				export(node->args);
+			if (strcmp(node->builtin, "unset") == 0)
+				unset(node->args);
+			if (strcmp(node->builtin, "env") == 0)
+				env(node->args);
+			if (strcmp(node->builtin, "exit") == 0)
+				ft_exit(node->args);
+				*/
 		}
 		else
 		{
