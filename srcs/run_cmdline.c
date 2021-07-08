@@ -6,7 +6,7 @@
 /*   By: mhaddi <mhaddi@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/08 15:34:01 by mhaddi            #+#    #+#             */
-/*   Updated: 2021/07/08 17:06:18 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/07/08 17:09:14 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -106,9 +106,12 @@ void    run_cmdline(t_sep *node)
 				unset(node->args);
 			if (strcmp(node->builtin, "env") == 0)
 				env(node->args);
-			if (strcmp(node->builtin, "exit") == 0)
-				ft_exit(node->args);
 				*/
+			if (strcmp(node->builtin, "exit") == 0)
+			{
+				printf("exit\n");
+				exit(0);
+			}
 		}
 		else
 		{
