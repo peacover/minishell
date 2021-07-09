@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/06/28 10:11:26 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/07/08 16:50:31 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -392,15 +392,19 @@ void    error_msg(char *s)
 	ft_putchar('\n');
 	exit(0);
 }
+
 void    print_mylist(t_sep *node)
 {
 	int i;
 	int l;
+	int node_num;
 	
 	i = 0;
+	l = ft_strlen2(node->args);
+	node_num = 0;
 	while (node != NULL)
 	{
-		l = ft_strlen2(node->args);
+		printf("\n\nNode: %d\n", node_num);
 		printf("\n------------------------------------------\n");
 		printf ("\n path : %s", node->path);
 		printf ("\n cmd : %s", node->builtin);
@@ -412,9 +416,11 @@ void    print_mylist(t_sep *node)
 			i++;
 		}
 		printf("\n------------------------------------------\n");
+		node_num++;
 		node = node->next;
 	}
 }
+
 char    *remove_char(char *s, int i)
 {
 	char    *s1;
@@ -1091,7 +1097,7 @@ void    fill_node(char *s, t_sep *node, int end, char *str)
 		// s = ft_substr(s, i + 1, ft_strlen(s) - 1);
 		get_builtin(s, node);
 	}
-	printf ("\n\n string red : |%s|", node->s_red);
+	// printf ("\n\n string red : |%s|", node->s_red);
 	// printf ("\nlower : %s", node->cmd.lower_builtin);
 	
 	// if (!check_builtin(node))
@@ -1205,7 +1211,8 @@ void	fill_list(char *str)
 	// pipe = check_pipe(head);
 	// printf("\n\n%d           :samurai",pipe);
 	// ft_checkcmd(head);
-	print_mylist(head); 
+	// print_mylist(head); 
+	run_cmdline(head);
 	// free(s);
 	// print_mylist(head);
 	// FUNCTIONS .....
@@ -1304,13 +1311,15 @@ int     main(int argc, char **argv, char **env)
 	
 	(void)argc;
 	(void)argv;
+	g_envp = env;
 	g_env = fill_env(env);
 	i = 0;
 	ret = 0;
 	while (1)
 	{
 		str = NULL;
-		str = readline(my_getcwd());
+		// str = readline(my_getcwd());
+		str = readline("$> ");
 		if (ft_strlen(str) < 1)
 		{
 			free(str);
