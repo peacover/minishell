@@ -6,7 +6,7 @@
 /*   By: mhaddi <mhaddi@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/08 15:34:01 by mhaddi            #+#    #+#             */
-/*   Updated: 2021/07/08 17:09:14 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/07/09 15:30:31 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -93,21 +93,21 @@ void    run_cmdline(t_sep *node)
 		if (is_builtin(node->builtin))
 		{
 			// printf("whoops, node is builtin?\n");
-			if (strcmp(node->builtin, "echo") == 0)
+			if (strcmp(node->lower_builtin, "echo") == 0)
 				echo(node->args);
-			if (strcmp(node->builtin, "cd") == 0)
+			if (strcmp(node->lower_builtin, "cd") == 0)
 				cd(node->args);
-			if (strcmp(node->builtin, "pwd") == 0)
+			if (strcmp(node->lower_builtin, "pwd") == 0)
 				pwd();
 			/*
-			if (strcmp(node->builtin, "export") == 0)
+			if (strcmp(node->lower_builtin, "export") == 0)
 				export(node->args);
-			if (strcmp(node->builtin, "unset") == 0)
+			if (strcmp(node->lower_builtin, "unset") == 0)
 				unset(node->args);
-			if (strcmp(node->builtin, "env") == 0)
+			if (strcmp(node->lower_builtin, "env") == 0)
 				env(node->args);
 				*/
-			if (strcmp(node->builtin, "exit") == 0)
+			if (strcmp(node->lower_builtin, "exit") == 0)
 			{
 				printf("exit\n");
 				exit(0);
