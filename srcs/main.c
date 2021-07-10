@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/07/08 16:50:31 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/07/10 19:44:46 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,7 @@ int check_pipe(t_sep *node,char *str)
 	return (count);
 }
 
+/*
 void    init_pipes(int pip, t_sep *node,char *str)
 {
 	int fd[2];
@@ -39,7 +40,7 @@ void    init_pipes(int pip, t_sep *node,char *str)
 		dup2(fd[1],1);
 		close(fd[0]);
 		close(fd[1]);
-		ft_simplecmd(node,str);
+		// ft_simplecmd(node,str);
 		exit(0);
 	}
 	close(fd[1]);
@@ -48,7 +49,7 @@ void    init_pipes(int pip, t_sep *node,char *str)
 		dup2(fd[0], 0);
 		close(fd[0]);
 		close(fd[1]);
-		ft_simplecmd(node->next,str);
+		// ft_simplecmd(node->next,str);
 		exit(0);
 	}
 	close(fd[1]);
@@ -56,13 +57,16 @@ void    init_pipes(int pip, t_sep *node,char *str)
 	waitpid(pid2, NULL, 0);
 	waitpid(pid, NULL, 0);
 }
+*/
 
+/*
 void    pipeses(t_sep *node, char *str)
 {
 	int pip;
 	pip = 0;
 	init_pipes(pip, node,str);
 }
+*/
 
 
 
@@ -97,6 +101,7 @@ t_env add_end_the_list(t_env **old,t_env *new)
 	return (*new);
 }
 
+/*
 void	ft_lstadd_back(t_env **alst, t_env *new)
 {
 	t_env		*begin;
@@ -114,6 +119,8 @@ void	ft_lstadd_back(t_env **alst, t_env *new)
 		}
 	}
 }
+*/
+
 ////////////unset FONCTION\\\\\\\\\\\\\\\/
 void       delet_v_env(t_sep *node,char *argv)
 {
@@ -169,6 +176,7 @@ void    print_list()
 	}
 }
 
+/*
 void    addto_list(char *args,t_sep *node)
 {
 	(void)args;
@@ -189,7 +197,9 @@ void    addto_list(char *args,t_sep *node)
 	if(!b)
 		ft_lstadd_back(&g_env,add_content(s));
 }
+*/
 
+/*
 void ft_export(t_sep *node)
 {
 	int i = -1;
@@ -199,6 +209,8 @@ void ft_export(t_sep *node)
 	if(!node->args)
 		print_list();
 }
+*/
+
 ////////////EXPORT END\\\\\\\\\\\\\\\\/
 
 void  ft_env()
@@ -346,6 +358,7 @@ void    ft_exit(t_sep *node)
 	}
 }
 
+/*
 void   ft_checkcmd1(t_sep *node, char *str, int count_pp)
 {
 	(void)count_pp;
@@ -359,8 +372,10 @@ void   ft_checkcmd1(t_sep *node, char *str, int count_pp)
 		ft_simplecmd(node,str);
 	// (void)str;
 }
+*/
 
 
+/*
 void    ft_simplecmd(t_sep *node,char *str)
 {
 
@@ -385,6 +400,7 @@ void    ft_simplecmd(t_sep *node,char *str)
 	else
 		ft_exec(node);
 }
+*/
 
 void    error_msg(char *s)
 {
