@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/07/11 17:18:18 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/07/11 19:19:15 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -425,6 +425,7 @@ void    print_mylist(t_sep *node)
 		printf ("\n path : %s", node->path);
 		printf ("\n cmd : %s", node->builtin);
 		printf ("\n s_red : %s", node->s_red);
+		printf ("\n sep : %c", node->t_sp);
 		i = 0; 
 		while (l > i)
 		{
@@ -1227,8 +1228,8 @@ void	fill_list(char *str)
 	// pipe = check_pipe(head);
 	// printf("\n\n%d           :samurai",pipe);
 	// ft_checkcmd(head);
-	// print_mylist(head); 
-	run_cmdline(head);
+	print_mylist(head); 
+	// run_cmdline(head);
 	// free(s);
 	// print_mylist(head);
 	// FUNCTIONS .....

@@ -6,7 +6,7 @@
 /*   By: mhaddi <mhaddi@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/08 15:34:01 by mhaddi            #+#    #+#             */
-/*   Updated: 2021/07/11 19:11:36 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/07/11 19:30:33 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -380,6 +380,21 @@ void    run_cmdline(t_sep *node)
 				execve(argv[0], argv, g_envp);
 				// execve(node->path, node->args, g_envp); // TO-DO: make path first elem in args
 			waitpid(fs, NULL, 0); // TO-DO: handle exit codes in execve and builtins and others
+		}
+	}
+	else // pipes and redirections
+	{
+		while (node->next != NULL)
+		{
+			if (node->t_sp == '|')	// if sep is a pipe (e.g.: `ls | cat`, current node's cmd
+									// is `ls` and next node's cmd is `cat`, their sep is `|`)
+				; // do piping
+			// else if (sep is some type of redirection)
+			// 		; do stuff 	// TO-DO: try out all possible usages of all the redirection
+			// 					// operators (especially the various positions they can take),
+			// 					// this might affect the parsing methods regarding the
+			// 					// redirection operators.
+			node = node->next;
 		}
 	}
 
