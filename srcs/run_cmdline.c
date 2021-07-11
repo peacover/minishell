@@ -6,7 +6,7 @@
 /*   By: mhaddi <mhaddi@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/08 15:34:01 by mhaddi            #+#    #+#             */
-/*   Updated: 2021/07/11 19:30:33 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/07/11 23:54:57 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -236,29 +236,35 @@ void pwd(void) {
 void    ft_putenv(char *env_var)
 {
    t_env *current = g_env;
-   char **env_var_pair = ft_split(env_var, '=');
-   int key_exists = 0;
-   while (current != NULL)
-   {
-	   if (ft_strcmp(current->key, env_var_pair[0]) == 0)
-	   {
-		   current->value = env_var_pair[1];
-		   key_exists = 1;
-		   break ;
-	   }
-	   current = current->next;
-   }
-
    int is_valid_identifier = 1;
-   int i = 0;
-   while (env_var_pair[0][i])
+   int key_exists = 0;
+
+   char **env_var_pair = ft_split(env_var, '=');
+   if (!*env_var_pair || ft_isdigit(env_var_pair[0][0]))
+	   is_valid_identifier = 0;
+   else
    {
-	   if (!ft_isalnum(env_var_pair[0][i]) && env_var_pair[0][i] != '_')
+	   while (env_var_pair && current != NULL)
 	   {
-			is_valid_identifier = 0;
-			break ;
+		   if (ft_strcmp(current->key, env_var_pair[0]) == 0)
+		   {
+			   current->value = env_var_pair[1];
+			   key_exists = 1;
+			   break ;
+		   }
+		   current = current->next;
 	   }
-	   i++;
+
+	   int i = 0;
+	   while (env_var_pair[0][i])
+	   {
+		   if (!ft_isalnum(env_var_pair[0][i]) && env_var_pair[0][i] != '_')
+		   {
+			   is_valid_identifier = 0;
+			   break ;
+		   }
+		   i++;
+	   }
    }
 
    if (!key_exists && is_valid_identifier)
@@ -274,7 +280,7 @@ void    ft_putenv(char *env_var)
 
    if (!is_valid_identifier)
 	   printf("minishell: export: `%s': not a valid identifier\n",
-				env_var_pair[0]);
+				env_var);
 }
 
 // export():
