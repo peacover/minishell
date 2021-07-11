@@ -6,7 +6,7 @@
 /*   By: mhaddi <mhaddi@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/08 15:34:01 by mhaddi            #+#    #+#             */
-/*   Updated: 2021/07/10 20:37:37 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/07/11 17:25:21 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,6 +84,19 @@ void    ft_lstadd_back(t_env **alst, t_env *new)
     }
 }
 
+char    *ft_getenv(char *key)
+{
+   t_env *current = g_env;
+
+   while (current != NULL)
+   {
+	   if (ft_strcmp(current->key, key) == 0)
+		   return current->value;
+	   current = current->next;
+   }
+   return NULL;
+}
+
 void    ft_setenv(char *key, char *value)
 {
    t_env *current = g_env;
@@ -129,13 +142,28 @@ void    ft_setenv(char *key, char *value)
 	   printf("minishell: export: `%s': not a valid identifier\n", key);
 }
 
+char *ft_tolower_str(char *str)
+{
+	int i;
+
+	i = 0;
+	while (str[i])
+	{
+		str[i] = ft_tolower(str[i]);
+		i++;
+	}
+	return str;
+}
+
 void cd(char **args)
 {
-	ft_setenv("OLDPWD", getcwd(NULL, 0)); // TO-DO: only change its value
-										  // when directory is actually
-										  // changed (not cd to the same cwd)
-
 	// TO-DO: cd -
+	
+	if ((args
+		&& ft_strcmp(args[0], "-")
+		&& ft_strcmp(ft_tolower_str(args[0]), getcwd(NULL, 0)))
+		|| (!args && ft_strcmp(getenv("HOME"), getcwd(NULL, 0))))
+		ft_setenv("OLDPWD", getcwd(NULL, 0));
 	
 	if (!args || strcmp(args[0], "~") == 0)
 	{
@@ -146,7 +174,15 @@ void cd(char **args)
 	}
 	else
 	{
-		if (chdir(args[0]) == -1)
+		if (strcmp(args[0], "-") == 0)
+		{
+			char *oldpwd = ft_getenv("OLDPWD");
+			if (!oldpwd)
+   				printf("minishell: cd: OLDPWD not set\n");
+			else
+				cd((char *[]){oldpwd, NULL});
+		}
+		else if (chdir(args[0]) == -1)
 			printf("%s\n", strerror(errno));
 		else
 			ft_setenv("PWD", getcwd(NULL, 0));
