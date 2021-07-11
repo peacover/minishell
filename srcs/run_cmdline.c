@@ -6,7 +6,7 @@
 /*   By: mhaddi <mhaddi@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/08 15:34:01 by mhaddi            #+#    #+#             */
-/*   Updated: 2021/07/11 19:02:52 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/07/11 19:07:24 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -333,6 +333,17 @@ void unset(char **args)
 	}
 }
 
+void env()
+{
+	t_env *current = g_env;
+	while (current != NULL)
+	{
+		if (current->value)
+			printf("%s=%s\n", current->key, current->value);
+		current = current->next;
+	}
+}
+
 void    run_cmdline(t_sep *node)
 {
 	
@@ -352,10 +363,8 @@ void    run_cmdline(t_sep *node)
 				export(node->args);
 			if (strcmp(node->lower_builtin, "unset") == 0)
 				unset(node->args);
-			/*
 			if (strcmp(node->lower_builtin, "env") == 0)
-				env(node->args);
-				*/
+				env();
 			if (strcmp(node->lower_builtin, "exit") == 0)
 			{
 				printf("exit\n");
