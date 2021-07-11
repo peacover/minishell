@@ -6,7 +6,7 @@
 /*   By: mhaddi <mhaddi@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/08 15:34:01 by mhaddi            #+#    #+#             */
-/*   Updated: 2021/07/11 19:07:24 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/07/11 19:11:36 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -378,8 +378,8 @@ void    run_cmdline(t_sep *node)
 			int fs = fork();
 			if (fs == 0)
 				execve(argv[0], argv, g_envp);
-				// execve(node->path, node->args, g_envp);
-			waitpid(fs, NULL, 0);
+				// execve(node->path, node->args, g_envp); // TO-DO: make path first elem in args
+			waitpid(fs, NULL, 0); // TO-DO: handle exit codes in execve and builtins and others
 		}
 	}
 
