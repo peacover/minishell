@@ -6,7 +6,7 @@
 /*   By: mhaddi <mhaddi@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/08 15:34:01 by mhaddi            #+#    #+#             */
-/*   Updated: 2021/07/11 17:25:21 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/07/11 19:02:52 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -142,6 +142,44 @@ void    ft_setenv(char *key, char *value)
 	   printf("minishell: export: `%s': not a valid identifier\n", key);
 }
 
+int    ft_unsetenv(char *key)
+{
+   int i = 0;
+   t_env *current = g_env;
+   t_env *tmp;
+   t_env *prev;
+
+   while (key[i])
+   {
+	   if (!ft_isalnum(key[i]) && key[i] != '_')
+	   {
+		   printf("minishell: export: `%s': not a valid identifier\n", key);
+		   return (1);
+	   }
+	   i++;
+   }
+
+   i = 0;
+   while (current != NULL)
+   {
+	   if (ft_strcmp(current->key, key) == 0)
+	   {
+		   tmp = current->next;
+		   if (i)
+			   prev->next = tmp;
+		   else
+			   g_env = tmp;
+		   free(current);
+		   return (0);
+	   }
+	   prev = current;
+	   current = current->next;
+	   i++;
+   }
+
+   return (0);
+}
+
 char *ft_tolower_str(char *str)
 {
 	int i;
@@ -157,8 +195,6 @@ char *ft_tolower_str(char *str)
 
 void cd(char **args)
 {
-	// TO-DO: cd -
-	
 	if ((args
 		&& ft_strcmp(args[0], "-")
 		&& ft_strcmp(ft_tolower_str(args[0]), getcwd(NULL, 0)))
@@ -241,6 +277,7 @@ void    ft_putenv(char *env_var)
 				env_var_pair[0]);
 }
 
+// export():
 // - it takes multiple arguments
 // - assign value for each 
 // - if it has no =, value is null, and key
@@ -249,21 +286,22 @@ void    ft_putenv(char *env_var)
 // you continue with other valid identifiers
 // and print an error at the end.
 //
-// - VALID IDENTIFIERS:
+// - WHAT ARE VALID IDENTIFIERS:
 // name is a word consisting only of alphanumeric
 // characters and under‐scores, and beginning
 // with an alphabetic character or an
 // under‐score.  Also referred to as an
 // identifier.
-void export(t_sep *node)
+//
+void export(char **args)
 {
 	int i = 0;
 
-	if (node->args)
+	if (args)
 	{
-		while (node->args[i])
+		while (args[i])
 		{
-			ft_putenv(node->args[i]);
+			ft_putenv(args[i]);
 			i++;
 		}
 	}
@@ -277,6 +315,20 @@ void export(t_sep *node)
 				printf("=\"%s\"", current->value);
 			printf("\n");
 			current = current->next;
+		}
+	}
+}
+
+void unset(char **args)
+{
+	int i = 0;
+
+	if (args)
+	{
+		while (args[i])
+		{
+			ft_unsetenv(args[i]);
+			i++;
 		}
 	}
 }
@@ -297,10 +349,10 @@ void    run_cmdline(t_sep *node)
 			if (strcmp(node->lower_builtin, "pwd") == 0)
 				pwd();
 			if (strcmp(node->lower_builtin, "export") == 0)
-				export(node);
-			/*
+				export(node->args);
 			if (strcmp(node->lower_builtin, "unset") == 0)
 				unset(node->args);
+			/*
 			if (strcmp(node->lower_builtin, "env") == 0)
 				env(node->args);
 				*/
