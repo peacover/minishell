@@ -6,7 +6,7 @@
 /*   By: mhaddi <mhaddi@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/08 15:34:01 by mhaddi            #+#    #+#             */
-/*   Updated: 2021/07/12 16:45:44 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/07/12 17:33:34 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -370,7 +370,8 @@ void    run_cmdline(t_sep *node, int pipes_num)
 			// char *argv[] = {"/bin/sh", "-c", node->s_red, NULL};
 			int fs = fork();
 			if (fs == 0)
-				execve(node->path, node->args, g_envp);
+				if (execve(node->path, node->args, g_envp) == -1)
+					printf("minishell: %s: command not found\n", node->builtin);
 				// execve(argv[0], argv, g_envp);
 			waitpid(fs, NULL, 0); // TO-DO: handle exit codes in execve and builtins and others
 		}
