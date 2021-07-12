@@ -6,12 +6,14 @@
 /*   By: mhaddi <mhaddi@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/08 15:34:01 by mhaddi            #+#    #+#             */
-/*   Updated: 2021/07/12 17:59:29 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/07/12 18:15:40 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/minishell.h"
 #include <errno.h>
+#include <sys/types.h>
+#include <dirent.h>
 
 int echo(char **args)
 {
@@ -184,7 +186,8 @@ void cd(char **args)
 {
 	if ((args
 		&& ft_strcmp(args[0], "-")
-		&& ft_strcmp(ft_tolower_str(args[0]), getcwd(NULL, 0)))
+		&& ft_strcmp(ft_tolower_str(args[0]), getcwd(NULL, 0))
+		&& opendir(args[0]))
 		|| (!args && ft_strcmp(getenv("HOME"), getcwd(NULL, 0))))
 		ft_setenv("OLDPWD", getcwd(NULL, 0));
 	
@@ -209,7 +212,7 @@ void cd(char **args)
 			}
 		}
 		else if (chdir(args[0]) == -1)
-			printf("%s\n", strerror(errno));
+			printf("minishell: cd: %s: %s\n", args[0], strerror(errno));
 		else
 			ft_setenv("PWD", getcwd(NULL, 0));
 	}
