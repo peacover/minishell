@@ -6,13 +6,14 @@
 /*   By: mhaddi <mhaddi@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/08 15:34:01 by mhaddi            #+#    #+#             */
-/*   Updated: 2021/07/11 23:54:57 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/07/12 15:41:51 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/minishell.h"
 #include <errno.h>
 
+/*
 int is_builtin(char *cmd)
 {
 	if (strcmp(cmd, "echo") == 0
@@ -25,6 +26,7 @@ int is_builtin(char *cmd)
 		return (1);
 	return (0);
 }
+*/
 
 int echo(char **args)
 {
@@ -350,13 +352,13 @@ void env()
 	}
 }
 
-void    run_cmdline(t_sep *node)
+void    run_cmdline(t_sep *node, int pipes_num)
 {
 	
 	if (node->next == NULL) // no pipes or redirections
 	{
 		// printf("true, next is null.\n");
-		if (is_builtin(node->builtin))
+		if (node->is_builtin)
 		{
 			// printf("whoops, node is builtin?\n");
 			if (strcmp(node->lower_builtin, "echo") == 0)
@@ -390,11 +392,14 @@ void    run_cmdline(t_sep *node)
 	}
 	else // pipes and redirections
 	{
+		pid_t *pids = malloc(sizeof(*pids) * pipes_num + 1);
 		while (node->next != NULL)
 		{
 			if (node->t_sp == '|')	// if sep is a pipe (e.g.: `ls | cat`, current node's cmd
 									// is `ls` and next node's cmd is `cat`, their sep is `|`)
+			{
 				; // do piping
+			}	
 			// else if (sep is some type of redirection)
 			// 		; do stuff 	// TO-DO: try out all possible usages of all the redirection
 			// 					// operators (especially the various positions they can take),

@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/07/12 10:16:47 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/07/12 15:45:11 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -423,6 +423,7 @@ void    print_mylist(t_sep *node)
 		printf("\n------------------------------------------\n");
 		printf ("\n path : %s", node->path);
 		printf ("\n cmd : %s", node->builtin);
+		printf ("\n is_builtin : %d", node->is_builtin);
 		printf ("\n s_red : %s", node->s_red);
 		printf ("\n sep : %c", node->t_sp);
 		i = 0; 
@@ -528,7 +529,8 @@ int    check_builtin(t_sep *node)
 	|| !ft_strcmp(node->upper_builtin, "UNSET") || !ft_strcmp(node->upper_builtin, "ENV")
 	|| !ft_strcmp(node->upper_builtin, "EXIT"))
 	{
-	  return (1);
+		node->is_builtin = 1;
+		return (1);
 	}
 	return (0);
 }
@@ -1177,14 +1179,14 @@ void	fill_list(char *str)
 	int     start;
 	char    *s;
 	int		end;
-	int     count_pp;
+	int     pipes_num;
 	t_sep	*head;
 
 	i = 0;
 	end = 0;
 	start = 0;
 	head = NULL;
-	count_pp = 0;
+	pipes_num = 0;
 	while (str[i])
 	{
 		if (str[i] == '\'' || str[i] == '\"')
@@ -1202,6 +1204,7 @@ void	fill_list(char *str)
 		|| (str[i] == '<')
 		|| (!str[i + 1]))
 		{
+			pipes_num += (str[i] == '|');
 			if (i && str[i - 1] == '\\')
 				error_msg("error multiligne");
 			while (str[start] && str[start] == ' ')
@@ -1221,7 +1224,7 @@ void	fill_list(char *str)
 		i++;
 	}
 	print_mylist(head); 
-	//run_cmdline(head);
+	// run_cmdline(head, pipes_num);
 	free_mylist_sep(head);
 	
 }
