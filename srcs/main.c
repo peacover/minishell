@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/07/12 16:13:03 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/07/12 17:03:47 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -409,7 +409,7 @@ void    error_msg(char *s)
 	exit(0);
 }
 
-void    print_mylist(t_sep *node)
+void    print_mylist(t_sep *node, int pipes_num)
 {
 	int i;
 	int l;
@@ -427,6 +427,7 @@ void    print_mylist(t_sep *node)
 		printf ("\n s_red : %s", node->s_red);
 		printf ("\n sep : %c", node->t_sp);
 		printf ("\n is_builtin : %d", node->is_builtin);
+		printf ("\n pipes_num : %d", pipes_num);
 		i = 0; 
 		l = ft_strlen2(node->args);
 		while (l > i)
@@ -724,7 +725,7 @@ void    get_args(char *s, int start, t_sep *node)
 	int		end;
 
 	i = 0;
-	if (!node->is_builtin)
+	if (!node->is_builtin && node->path)
 	{
 		node->args = ft_realloc_2(node->args, i, (i + 1));
 		node->args[i] = ft_strdup(node->path);
@@ -1223,8 +1224,8 @@ void	fill_list(char *str)
 		}
 		i++;
 	}
-	print_mylist(head); 
-	// run_cmdline(head, pipes_num);
+	// print_mylist(head, pipes_num); 
+	run_cmdline(head, pipes_num);
 	free_mylist_sep(head);
 	
 }

@@ -6,27 +6,12 @@
 /*   By: mhaddi <mhaddi@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/08 15:34:01 by mhaddi            #+#    #+#             */
-/*   Updated: 2021/07/12 15:41:51 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/07/12 16:45:44 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/minishell.h"
 #include <errno.h>
-
-/*
-int is_builtin(char *cmd)
-{
-	if (strcmp(cmd, "echo") == 0
-	|| strcmp(cmd, "cd") == 0
-	|| strcmp(cmd, "pwd") == 0
-	|| strcmp(cmd, "export") == 0
-	|| strcmp(cmd, "unset") == 0
-	|| strcmp(cmd, "env") == 0
-	|| strcmp(cmd, "exit") == 0)
-		return (1);
-	return (0);
-}
-*/
 
 int echo(char **args)
 {
@@ -382,11 +367,11 @@ void    run_cmdline(t_sep *node, int pipes_num)
 		else
 		{
 			// printf("ok, we exec now:\n");
-			char *argv[] = {"/bin/sh", "-c", node->s_red, NULL};
+			// char *argv[] = {"/bin/sh", "-c", node->s_red, NULL};
 			int fs = fork();
 			if (fs == 0)
-				execve(argv[0], argv, g_envp);
-				// execve(node->path, node->args, g_envp); // TO-DO: make path first elem in args
+				execve(node->path, node->args, g_envp);
+				// execve(argv[0], argv, g_envp);
 			waitpid(fs, NULL, 0); // TO-DO: handle exit codes in execve and builtins and others
 		}
 	}
