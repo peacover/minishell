@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/07/12 10:16:47 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/07/12 15:57:11 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -425,6 +425,7 @@ void    print_mylist(t_sep *node)
 		printf ("\n cmd : %s", node->builtin);
 		printf ("\n s_red : %s", node->s_red);
 		printf ("\n sep : %c", node->t_sp);
+		printf ("\n is_builtin : %d", node->is_builtin);
 		i = 0; 
 		l = ft_strlen2(node->args);
 		while (l > i)
@@ -478,7 +479,7 @@ int    handling_errors_arg(char *str)
 	return (0);
 }
 
-int     check_fill_path(t_sep *node)
+void	check_fill_path(t_sep *node)
 {
 	int     i;
 	char    **w;
@@ -503,7 +504,7 @@ int     check_fill_path(t_sep *node)
 				{
 					node->path = s;
 					close(fd);
-					return (1);
+					return ;
 				}
 				close(fd);
 				free(s);
@@ -515,10 +516,9 @@ int     check_fill_path(t_sep *node)
 	// printf (" \npath : %s \n", node->path);
 	// free w
 	node->path = NULL;
-	return (0);
 }
 
-int    check_builtin(t_sep *node)
+void	check_builtin(t_sep *node)
 {
 	int i;
 
@@ -528,9 +528,8 @@ int    check_builtin(t_sep *node)
 	|| !ft_strcmp(node->upper_builtin, "UNSET") || !ft_strcmp(node->upper_builtin, "ENV")
 	|| !ft_strcmp(node->upper_builtin, "EXIT"))
 	{
-	  return (1);
+		node->is_builtin = 1;
 	}
-	return (0);
 }
 
 int     search_second_quote(char *s, int start, char type)
@@ -724,10 +723,13 @@ void    get_args(char *s, int start, t_sep *node)
 	int		end;
 
 	i = 0;
-	node->args = ft_realloc_2(node->args, i, (i + 1));
-	node->args[i] = ft_strdup(node->path);
-	node->args[i + 1] = NULL;
-	i++;
+	if (!node->is_builtin)
+	{
+		node->args = ft_realloc_2(node->args, i, (i + 1));
+		node->args[i] = ft_strdup(node->path);
+		node->args[i + 1] = NULL;
+		i++;
+	}
 	while (s[start])
 	{
 		end = start;
@@ -1060,8 +1062,9 @@ void    get_builtin(char *s, t_sep *node)
 	node->upper_builtin[i] = '\0';
 	node->lower_builtin[i] = '\0';
 	// if (!check_red(node, s) && !check_builtin(node) && !check_fill_path(node))
-	if (!check_fill_path(node) && !check_builtin(node))
-		error_msg("COMMAND NOT FOUND!!");
+	check_fill_path(node);
+	check_builtin(node);
+		// error_msg("COMMAND NOT FOUND!!");
 	// printf("\n\nred return : %d", node-> is_red);
 	// if (node-> is_red != 1)
 	// {
@@ -1177,7 +1180,7 @@ void	fill_list(char *str)
 	int     start;
 	char    *s;
 	int		end;
-	int     count_pp;
+	int		count_pp;
 	t_sep	*head;
 
 	i = 0;
@@ -1202,6 +1205,7 @@ void	fill_list(char *str)
 		|| (str[i] == '<')
 		|| (!str[i + 1]))
 		{
+			// count_pp += str[i] = '|';
 			if (i && str[i - 1] == '\\')
 				error_msg("error multiligne");
 			while (str[start] && str[start] == ' ')

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: yer-raki <yer-raki@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:09:15 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/07/08 15:59:17 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/07/12 15:42:59 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,7 +61,7 @@ typedef struct  s_sep
 	char	*red_args;
 	char	**r_args; // r_args[0] is the command and the others are arguments
 	int		p_pip;
-
+	
 	char	*s_red; //string of redirection
 	
 	t_env	*env;
