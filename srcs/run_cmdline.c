@@ -6,7 +6,7 @@
 /*   By: mhaddi <mhaddi@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/08 15:34:01 by mhaddi            #+#    #+#             */
-/*   Updated: 2021/07/12 17:33:34 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/07/12 17:59:29 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -203,7 +203,10 @@ void cd(char **args)
 			if (!oldpwd)
    				printf("minishell: cd: OLDPWD not set\n");
 			else
+			{
 				cd((char *[]){oldpwd, NULL});
+				printf("%s\n", getcwd(NULL, 0));
+			}
 		}
 		else if (chdir(args[0]) == -1)
 			printf("%s\n", strerror(errno));
