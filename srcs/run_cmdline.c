@@ -6,7 +6,7 @@
 /*   By: mhaddi <mhaddi@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/08 15:34:01 by mhaddi            #+#    #+#             */
-/*   Updated: 2021/07/12 18:15:40 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/07/12 19:43:29 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -226,14 +226,49 @@ void pwd(void) {
 	free(cwd);
 }
 
+char **split_identifier(char *env_var)
+{
+	int i = 0;
+
+	if (env_var)
+	{
+		while (env_var[i])
+		{
+			if (env_var[i] == '=')	
+				break ;
+			i++;
+		}
+	}
+
+	char *key = malloc(sizeof(*key) * (i + 1));
+	ft_strlcpy(key, env_var, i + 1);
+	char *value = NULL;
+	if ((int)ft_strlen(env_var) > i)
+	{
+		value = malloc(sizeof(*value) * (ft_strlen(env_var) - i));
+		ft_strlcpy(value, env_var + i + 1, ft_strlen(env_var) - i);
+	}
+	else if (env_var[i] == '=')
+	{
+		char *value = malloc(sizeof(*value));
+		*value = '\0';
+	}
+	char **pair = malloc(sizeof(*pair) * 3);
+	pair[0] = key;
+	pair[1] = value;
+	pair[2] = NULL;
+
+	return pair;
+}
+
 void    ft_putenv(char *env_var)
 {
    t_env *current = g_env;
    int is_valid_identifier = 1;
    int key_exists = 0;
 
-   char **env_var_pair = ft_split(env_var, '=');
-   if (!*env_var_pair || ft_isdigit(env_var_pair[0][0]))
+   char **env_var_pair = split_identifier(env_var);
+   if (env_var_pair[0][0] == '\0' || ft_isdigit(env_var_pair[0][0]))
 	   is_valid_identifier = 0;
    else
    {
@@ -296,7 +331,7 @@ void export(char **args)
 {
 	int i = 0;
 
-	if (args)
+	if (args && args[0][0] != '\0')
 	{
 		while (args[i])
 		{
