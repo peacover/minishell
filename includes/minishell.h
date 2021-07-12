@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:09:15 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/07/12 15:42:59 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/07/12 16:03:01 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,7 +85,7 @@ void    ft_simplecmd(t_sep *node,char *str);
 void	ft_checkcmd1(t_sep *node, char *str, int count_pp);
 void    ft_exec(t_sep *node);
 char    **fill_paramlist(t_sep *node);
-void    run_cmdline(t_sep *node);
+void    run_cmdline(t_sep *node, int pipes_num);
 
 #endif
 

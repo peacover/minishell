@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/07/12 15:57:11 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/07/12 16:13:03 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -423,6 +423,7 @@ void    print_mylist(t_sep *node)
 		printf("\n------------------------------------------\n");
 		printf ("\n path : %s", node->path);
 		printf ("\n cmd : %s", node->builtin);
+		printf ("\n is_builtin : %d", node->is_builtin);
 		printf ("\n s_red : %s", node->s_red);
 		printf ("\n sep : %c", node->t_sp);
 		printf ("\n is_builtin : %d", node->is_builtin);
@@ -1111,8 +1112,8 @@ void    fill_node(char *s, t_sep *node, int start, char *str)
 
 	i = 0;
 	l = ft_strlen(s);
-	if (str[l + 1] && (str[l] == '|' || str[l] == ';'))
-		node->t_sp = str[l];
+	if (str[start + l] && (str[start + l] == '|' || str[start + l] == ';'))
+		node->t_sp = str[start + l];
 	// if (str[start] == '>' || str[start] == '<')
 	// if (s[i] == '|')
 	// 	s = ft_substr(s, i + 1, ft_strlen(s) - 1);
@@ -1145,8 +1146,6 @@ void	addlast_sep(t_sep **head, char *s, int start, char *str)
 	t_sep *lastNode = *head;
 	init_t_sep(newNode);
 	fill_node(s, newNode, start, str);
-	// (void)start;
-	// (void)s;
 	newNode->next = NULL;
 	if (*head == NULL)
 		 *head = newNode;
@@ -1180,14 +1179,14 @@ void	fill_list(char *str)
 	int     start;
 	char    *s;
 	int		end;
-	int		count_pp;
+	int     pipes_num;
 	t_sep	*head;
 
 	i = 0;
 	end = 0;
 	start = 0;
 	head = NULL;
-	count_pp = 0;
+	pipes_num = 0;
 	while (str[i])
 	{
 		if (str[i] == '\'' || str[i] == '\"')
@@ -1205,7 +1204,7 @@ void	fill_list(char *str)
 		|| (str[i] == '<')
 		|| (!str[i + 1]))
 		{
-			// count_pp += str[i] = '|';
+			pipes_num += (str[i] == '|');
 			if (i && str[i - 1] == '\\')
 				error_msg("error multiligne");
 			while (str[start] && str[start] == ' ')
@@ -1225,7 +1224,7 @@ void	fill_list(char *str)
 		i++;
 	}
 	print_mylist(head); 
-	//run_cmdline(head);
+	// run_cmdline(head, pipes_num);
 	free_mylist_sep(head);
 	
 }
