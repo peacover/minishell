@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: yer-raki <yer-raki@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/07/11 23:41:27 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/07/12 10:16:47 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -416,7 +416,6 @@ void    print_mylist(t_sep *node)
 	int node_num;
 	
 	i = 0;
-	l = ft_strlen2(node->args);
 	node_num = 0;
 	while (node != NULL)
 	{
@@ -427,6 +426,7 @@ void    print_mylist(t_sep *node)
 		printf ("\n s_red : %s", node->s_red);
 		printf ("\n sep : %c", node->t_sp);
 		i = 0; 
+		l = ft_strlen2(node->args);
 		while (l > i)
 		{
 			printf ("\n arg %d : %s", i, node->args[i]);
@@ -702,7 +702,7 @@ void    add_to_args(int start, int end, char *s, int i, t_sep *node)
 		if (!node->args[i])
 		{
 			node->args[i] = ft_strdup(str);
-			node->args[i] = ft_strcpy(node->args[i], str);
+			// node->args[i] = ft_strcpy(node->args[i], str);
 		}
 		else
 		{
@@ -724,6 +724,10 @@ void    get_args(char *s, int start, t_sep *node)
 	int		end;
 
 	i = 0;
+	node->args = ft_realloc_2(node->args, i, (i + 1));
+	node->args[i] = ft_strdup(node->path);
+	node->args[i + 1] = NULL;
+	i++;
 	while (s[start])
 	{
 		end = start;
@@ -1056,7 +1060,7 @@ void    get_builtin(char *s, t_sep *node)
 	node->upper_builtin[i] = '\0';
 	node->lower_builtin[i] = '\0';
 	// if (!check_red(node, s) && !check_builtin(node) && !check_fill_path(node))
-	if (!check_builtin(node) && !check_fill_path(node))
+	if (!check_fill_path(node) && !check_builtin(node))
 		error_msg("COMMAND NOT FOUND!!");
 	// printf("\n\nred return : %d", node-> is_red);
 	// if (node-> is_red != 1)
@@ -1097,21 +1101,27 @@ void	parsing_red(t_sep *node, char *s)
 		i++;
 	}
 }
-void    fill_node(char *s, t_sep *node, int end, char *str)
+void    fill_node(char *s, t_sep *node, int start, char *str)
 {
 	int i;
+	int l;
 
 	i = 0;
-	node->t_sp = str[end];
+	l = ft_strlen(s);
+	if (str[l + 1] && (str[l] == '|' || str[l] == ';'))
+		node->t_sp = str[l];
 	// if (str[start] == '>' || str[start] == '<')
 	// if (s[i] == '|')
 	// 	s = ft_substr(s, i + 1, ft_strlen(s) - 1);
 	// printf("\n s end : |%s|\n", s);
 	// parsing_red(node, s);
 	node->s_red = ft_strdup(s);
-	if (s[i] != '>' && s[i] != '<' && (str[ft_strlen(s)]!= '>' || str[ft_strlen(s)]!= '>'))
+	// if (((str[i] != '>' && str[i] != '<') && (s[i] != '>' && s[i] != '<')) && (str[ft_strlen(s)]!= '>' || str[ft_strlen(s)]!= '>')
+	// && (str[ft_strlen(s) + 1]!= '>' || str[ft_strlen(s) + 1]!= '>'))
+	if (s[0] != '<' && s[0] != '>' && str[start + l] != '<' && str[start + l] != '>')
 	{
-		// s = ft_substr(s, i + 1, ft_strlen(s) - 1);
+		if (start > 0 && (str[start - 1] == '>' && str[start - 1] == '>'))
+			return ;
 		get_builtin(s, node);
 	}
 	// printf ("\n\n string red : |%s|", node->s_red);
@@ -1186,54 +1196,32 @@ void	fill_list(char *str)
 				error_msg("error multiligne");
 			i = end;
 		}
-		if ((str[i] == '|' && str[i - 1] != '\\')
-		|| (str[i] == ';' && str[i - 1] != '\\')
-		|| (str[i] == '>' && str[i - 1] != '\\')
-		|| (str[i] == '<' && str[i - 1] != '\\')
-		|| (str[i + 1] == '\0'))
+		if ((str[i] == '|')
+		|| (str[i] == ';')
+		|| (str[i] == '>')
+		|| (str[i] == '<')
+		|| (!str[i + 1]))
 		{
-			if (str[i] == '|' && (i != 0 && str[i - 1] != '\\'))
-				count_pp++;
+			if (i && str[i - 1] == '\\')
+				error_msg("error multiligne");
 			while (str[start] && str[start] == ' ')
 				start++;
-			if (str[i + 1] == '\0')
+			if (!str[i + 1])
 				s = ft_substr(str, start, i - start + 1);
-			
 			else
 		   		s = ft_substr(str, start, i - start);
-
-			// printf ("\n s start : |%s|\n", s);
-			addlast_sep(&head, s, i , str);
+			if (ft_strlen(s) > 0)
+				addlast_sep(&head, s, start , str);
 			if (s)
 				free(s);
-			// if ((str[i] == '>' && str[i + 1] == '>') || (str[i] == '<' && str[i + 1] == '<'))
-			// {
-			// 	start = i + 1;	
-			// }
-			// else
 			start = i;
 			if ((str[i] == '>' && str[i + 1] == '>') || (str[i] == '<' && str[i + 1] == '<'))
-				i++;	
+				i++;
 		}
 		i++;
 	}
-	// ft_checkcmd1(head,  str, count_pp);
-	// int pipe;
-	// printf("amine amine");
-	// ft_putstr(head->str);
-
-	
-	// head = malloc(sizeof(t_sep));
-	// head->str = ft_strdup(str);
-	// pipe = check_pipe(head);
-	// printf("\n\n%d           :samurai",pipe);
-	// ft_checkcmd(head);
-	// print_mylist(head); 
-	run_cmdline(head);
-	// free(s);
-	// print_mylist(head);
-	// FUNCTIONS .....
-	// free_mylist_red(head->red);
+	print_mylist(head); 
+	//run_cmdline(head);
 	free_mylist_sep(head);
 	
 }
@@ -1291,9 +1279,9 @@ t_env    *fill_env(char **env)
 void    search_path()
 {
 	t_env *current = g_env;
-	while(current != NULL)
+	while (current != NULL)
 	{
-		if(ft_strcmp(current->key,"PWD") == 0)
+		if (ft_strcmp(current->key,"PWD") == 0)
 		{
 			// ft_putstr("\n");
 			ft_putstr(current->value);
