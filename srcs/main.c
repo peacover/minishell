@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/07/14 16:13:27 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/07/14 16:28:35 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -419,9 +419,9 @@ void    print_mylist(t_sep *node, int pipes_num)
 	node_num = 0;
 	while (node != NULL)
 	{
-		printf("\n\nNode: %d\n", node_num);
+		printf(" \nNode: %d\n", node_num);
 		printf("\n------------------------------------------\n");
-		printf ("\n path : %s", node->path);
+		printf (" path : %s", node->path);
 		printf ("\n cmd : %s", node->builtin);
 		printf ("\n is_builtin : %d", node->is_builtin);
 		printf ("\n s_red : %s", node->s_red);
@@ -435,7 +435,7 @@ void    print_mylist(t_sep *node, int pipes_num)
 			printf ("\n arg %d : |%s|", i, node->args[i]);
 			i++;
 		}
-		printf("\n------------------------------------------\n");
+		printf("\n------------------------------------------\n\n");
 		node_num++;
 		node = node->next;
 	}
