@@ -6,11 +6,20 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/07/14 16:28:35 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/07/14 16:32:16 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/minishell.h"
+
+#define KNRM  "\x1B[0m"
+#define KRED  "\x1B[31m"
+#define KGRN  "\x1B[32m"
+#define KYEL  "\x1B[33m"
+#define KBLU  "\x1B[34m"
+#define KMAG  "\x1B[35m"
+#define KCYN  "\x1B[36m"
+#define KWHT  "\x1B[37m"
 
 ////////////////pipe start////////////////
 
@@ -1349,7 +1358,7 @@ int     main(int argc, char **argv, char **env)
 	{
 		str = NULL;
 		// str = readline(my_getcwd());
-		str = readline("$> ");
+		str = readline("\x1B[32m$> \e[0m");
 		if (ft_strlen(str) < 1)
 		{
 			free(str);
