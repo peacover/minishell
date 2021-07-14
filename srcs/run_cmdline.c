@@ -6,7 +6,7 @@
 /*   By: mhaddi <mhaddi@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/08 15:34:01 by mhaddi            #+#    #+#             */
-/*   Updated: 2021/07/12 19:43:29 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/07/14 17:08:16 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -276,7 +276,9 @@ void    ft_putenv(char *env_var)
 	   {
 		   if (ft_strcmp(current->key, env_var_pair[0]) == 0)
 		   {
-			   current->value = env_var_pair[1];
+			   if (env_var_pair[1]) // if key exists and the new value
+				   					// isn't a null value
+				   current->value = env_var_pair[1];
 			   key_exists = 1;
 			   break ;
 		   }
@@ -331,7 +333,7 @@ void export(char **args)
 {
 	int i = 0;
 
-	if (args && args[0][0] != '\0')
+	if (args && *args && args[0][0] != '\0')
 	{
 		while (args[i])
 		{

@@ -1,4 +1,10 @@
 minishell
+.DS_Store
+srcs/.DS_Store
+Libft/.DS_Store
+Libft/*.o
+Libft/*.tmp
+Libft/*.a
 
 # Prerequisites
 *.d
