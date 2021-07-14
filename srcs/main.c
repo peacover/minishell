@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/07/14 16:32:16 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/07/14 16:36:48 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -635,8 +635,8 @@ int		equal_export(char *s)
 {
 	int i;
 
-	i = -1;
-	while (s[++i] && s[i] != '=')
+	i = 0;
+	while (s[i] && s[i] != '=')
 		i++;
 	return (i);
 }
@@ -666,7 +666,7 @@ char	*handling_dollar(char *s, t_sep *node)
 				i++;
 			v = ft_substr(s, start, i - start);
 			if (end)
-				v = ft_substr(s, start, i - end);
+				v = ft_substr(s, start, end - start);
 			// printf ("\n s : |%s|\n", s);
 			while (current != NULL)
 			{
@@ -1255,7 +1255,7 @@ void	fill_list(char *str)
 		i++;
 	}
 	print_mylist(head, pipes_num); 
-	run_cmdline(head, pipes_num);
+	// run_cmdline(head, pipes_num);
 	free_mylist_sep(head);
 	
 }
