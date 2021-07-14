@@ -6,12 +6,13 @@
 /*   By: mhaddi <mhaddi@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/08 15:34:01 by mhaddi            #+#    #+#             */
-/*   Updated: 2021/07/14 17:08:16 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/07/14 19:32:36 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/minishell.h"
 #include <errno.h>
+#include <string.h>
 #include <sys/types.h>
 #include <dirent.h>
 
@@ -20,7 +21,7 @@ int echo(char **args)
 	int no_newline;
 	int i;
 
-	if (!args)
+	if (!args || !*args || **args == '\0')
 	{
 		printf("\n");
 		return (0);
@@ -138,6 +139,12 @@ int    ft_unsetenv(char *key)
    t_env *tmp;
    t_env *prev;
 
+   if (*key == '\0')
+   {
+	   printf("minishell: export: `%s': not a valid identifier\n", key);
+	   return (1);
+   }
+
    while (key[i])
    {
 	   if (!ft_isalnum(key[i]) && key[i] != '_')
@@ -182,24 +189,46 @@ char *ft_tolower_str(char *str)
 	return str;
 }
 
+int	is_cwd(char *path)
+{
+	char *cwd = getcwd(NULL, 0);
+	chdir(path);
+	char *new_d = getcwd(NULL, 0);
+	chdir(cwd);
+	if (strcmp(cwd, new_d))
+		return 0;
+	return 1;
+}
+
+char *replace_tilde_with_home_path(char *path)
+{
+	char *homedir = ft_getenv("HOME");
+	char *new_path = ft_strjoin(homedir, path + 1);
+	free(path);
+	return new_path;
+}
+
 void cd(char **args)
 {
-	if ((args
-		&& ft_strcmp(args[0], "-")
-		&& ft_strcmp(ft_tolower_str(args[0]), getcwd(NULL, 0))
-		&& opendir(args[0]))
-		|| (!args && ft_strcmp(getenv("HOME"), getcwd(NULL, 0))))
-		ft_setenv("OLDPWD", getcwd(NULL, 0));
-	
-	if (!args || strcmp(args[0], "~") == 0)
+	if (args && *args && **args == '~')
+		args[0] = replace_tilde_with_home_path(args[0]);
+
+	// set OLDPWD only if cmd's path:
+	// - is not null
+	// - is not `-`
+	// - is a valid directory
+	// - is not current directory
+	// OR:
+	// - is null (so `cd`)
+	// - current directory is not home directory
+
+	if (args && *args && **args != '\0')
 	{
-		if (chdir(getenv("HOME")) == -1)
-			printf("%s\n", strerror(errno));
-		else
-			ft_setenv("PWD", getcwd(NULL, 0));
-	}
-	else
-	{
+		if (ft_strcmp(args[0], "-")
+			&& opendir(args[0])
+			&& !is_cwd(args[0]))
+			ft_setenv("OLDPWD", getcwd(NULL, 0));
+
 		if (strcmp(args[0], "-") == 0)
 		{
 			char *oldpwd = ft_getenv("OLDPWD");
@@ -213,6 +242,15 @@ void cd(char **args)
 		}
 		else if (chdir(args[0]) == -1)
 			printf("minishell: cd: %s: %s\n", args[0], strerror(errno));
+		else
+			ft_setenv("PWD", getcwd(NULL, 0));
+	}
+	else if (!args || !*args || **args == '\0')
+	{
+		if (ft_strcmp(getenv("HOME"), getcwd(NULL, 0)))
+			ft_setenv("OLDPWD", getcwd(NULL, 0));
+		if (chdir(getenv("HOME")) == -1)
+			printf("%s\n", strerror(errno));
 		else
 			ft_setenv("PWD", getcwd(NULL, 0));
 	}
