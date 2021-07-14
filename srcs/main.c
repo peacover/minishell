@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/07/12 19:34:51 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/07/14 09:39:58 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -432,7 +432,7 @@ void    print_mylist(t_sep *node, int pipes_num)
 		l = ft_strlen2(node->args);
 		while (l > i)
 		{
-			printf ("\n arg %d : %s", i, node->args[i]);
+			printf ("\n arg %d : |%s|", i, node->args[i]);
 			i++;
 		}
 		printf("\n------------------------------------------\n");
@@ -602,10 +602,11 @@ char	*handling_bs_dq(char *s)
 	return (s);
 }
 
-char	*replace_dollar(char *s, char *v, int start, char *key)
+char	*replace_dollar(char *s, char *v, int start, char *key, int end)
 {
 	char *s1;
 	char *s2;
+	char *s3;
 	int l_key;
 	int l_s;
 	char *w;
@@ -613,18 +614,28 @@ char	*replace_dollar(char *s, char *v, int start, char *key)
 	w = NULL;
 	l_key = ft_strlen(key);
 	l_s = ft_strlen(s);
+	if (end)
+		s3 = ft_substr(s, end, l_s - end);
 	s1 = ft_substr(s, 0, start - 1);
 	s2 = ft_substr(s, start + l_key, l_s - start - l_key);
 	w = ft_strjoin(s1, v);
 	w = ft_strjoin(w, s2);
 	return (w);
 }
+int		equal_export(char *s)
+{
+	int i;
 
-char	*handling_dollar(char *s)
+	i = -1;
+	while (s[++i] && s[i] != '=')
+		i++;
+	return (i);
+}
+char	*handling_dollar(char *s, t_sep *node)
 {
 	int		i;
+	int		end;
 	int		start;
-	int     end;
 	char    *s1;
 	char    *s2;
 	char	*v;
@@ -634,31 +645,38 @@ char	*handling_dollar(char *s)
 	start = 0;
 	s1 = NULL;
 	s2 = NULL;
+	end = 0;
 	while (s[i])
 	{
 		if (s[i] == '$')
 		{
+			if (!ft_strcmp(node->lower_builtin, "export") && s[equal_export(s)] == '=')
+				end = equal_export(s);
 			start = ++i;
 			while (s[i] && s[i] != ' ')
 				i++;
-			end = i;
 			v = ft_substr(s, start, i - start);
+			if (end)
+				v = ft_substr(s, start, i - end);
 			// printf ("\n s : |%s|\n", s);
 			while (current != NULL)
 			{
 				if (!ft_strcmp(current->key, v) || (!ft_strncmp(current->key, v, ft_strlen(current->key))
 				&& v[ft_strlen(current->key)] == '\''))
 				{
-					return (replace_dollar(s, current->value, start, current->key));
+					// printf ("\n value : |%s|\n", current->value);
+					return (replace_dollar(s, current->value, start, current->key, end));
 				}
 				current = current->next;
 			}
-			s1 = ft_substr(s, 0, start - 1);
-			s2 = ft_substr(s, end, ft_strlen(s) - i);
-			s = ft_strjoin(s1, s2);
+			// s1 = ft_substr(s, 0, start - 1);
+			// s2 = ft_substr(s, end, ft_strlen(s) - i);
+			// s = ft_strjoin(s1, s2);
+			
 			// s = ft_substr(s, i, ft_strlen(s) - i);
 			// printf ("\n last s : |%s|\n", s);
-			return (s);
+			free(s);
+			return (NULL);
 		}
 		i++;
 	}
@@ -683,7 +701,7 @@ void    add_to_args(int start, int end, char *s, int i, t_sep *node)
 			while (s[l] && s[l] != '\'' && s[l] != '\"' && s[l] != ' ')
 				l++;
 			str = ft_substr(s, start, l - start);
-			start = l;
+			// start = l;
 		}
 		else
 		{				
@@ -691,21 +709,21 @@ void    add_to_args(int start, int end, char *s, int i, t_sep *node)
 			if (!l)
 				error_msg("error multiligne");
 			str = ft_substr(s, start + 1, l - start - 1);
-			start = l;
+			// start = l;
 		}
 		if (s[start] == '\"')
 			str = handling_bs_dq(str);
 		else if (s[start] != '\'')
 			str = handling_bs(str);
 		if (s[start] != '\'')
-			str = handling_dollar(str);
+			str = handling_dollar(str, node);
 		// printf("\n\nSTR : %s \\\\ ARG %d : |%s|\n\n", str, i, node->args[i]);
-		if (!node->args[i])
+		if (!node->args[i] && str)
 		{
 			node->args[i] = ft_strdup(str);
 			// node->args[i] = ft_strcpy(node->args[i], str);
 		}
-		else
+		else if (str)
 		{
 			node->args[i] = ft_strjoin(node->args[i], str);
 		}
@@ -713,8 +731,11 @@ void    add_to_args(int start, int end, char *s, int i, t_sep *node)
 		// printf("\n\nARG %d : |%s|\n\n", i, node->args[i]);
 		free(str);
 		str = NULL;
+		// start = l;
 	if (s[start] == '\'' || s[start] == '\"')
-		start++;
+		start = l + 1;
+	else
+		start = l;
 	}
 	node->args[i + 1] = NULL;
 }
@@ -757,7 +778,7 @@ void    get_args(char *s, int start, t_sep *node)
 	}
 }
 
-char	*red_redim_s(char *s, int start, int end)
+/*char	*red_redim_s(char *s, int start, int end)
 {
 	char	*s1;
 	char	*s2;
@@ -984,7 +1005,7 @@ void	red_get_type_file(t_sep *node, char *s, int start)
 		j = 0;
 		i++;
 	}
-}
+}*/
 
 void	init_t_sep(t_sep *node)
 {
@@ -999,7 +1020,7 @@ void	init_t_sep(t_sep *node)
 	node->s_red = NULL;
 	
 }
-int		check_red(t_sep *node, char *s)
+/*int		check_red(t_sep *node, char *s)
 {
 	int start;
 	int end;
@@ -1031,7 +1052,7 @@ int		check_red(t_sep *node, char *s)
 		start++;
 	}
 	return (0);
-}
+}*/
 
 void    get_builtin(char *s, t_sep *node)
 {
@@ -1224,8 +1245,8 @@ void	fill_list(char *str)
 		}
 		i++;
 	}
-	// print_mylist(head, pipes_num); 
-	run_cmdline(head, pipes_num);
+	print_mylist(head, pipes_num); 
+	//run_cmdline(head, pipes_num);
 	free_mylist_sep(head);
 	
 }
