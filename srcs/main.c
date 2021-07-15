@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/07/15 07:57:49 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/07/15 16:25:03 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,396 +20,6 @@
 #define KMAG  "\x1B[35m"
 #define KCYN  "\x1B[36m"
 #define KWHT  "\x1B[37m"
-
-////////////////pipe start////////////////
-
-int check_pipe(t_sep *node,char *str)
-{
-
-	int i = -1;
-	int count = 0;
-	(void)node;
-	while(str[++i])
-	{
-		if (str[i] == '|')
-			count++;
-	}
-	return (count);
-}
-
-/*
-void    init_pipes(int pip, t_sep *node,char *str)
-{
-	int fd[2];
-	pip = 0;
-	pipe(fd);
-	int pid = fork();
-	if (pid == 0)
-	{
-		dup2(fd[1],1);
-		close(fd[0]);
-		close(fd[1]);
-		// ft_simplecmd(node,str);
-		exit(0);
-	}
-	close(fd[1]);
-	int pid2 = fork();
-	if (pid2 == 0) {
-		dup2(fd[0], 0);
-		close(fd[0]);
-		close(fd[1]);
-		// ft_simplecmd(node->next,str);
-		exit(0);
-	}
-	close(fd[1]);
-	close(fd[0]);
-	waitpid(pid2, NULL, 0);
-	waitpid(pid, NULL, 0);
-}
-*/
-
-/*
-void    pipeses(t_sep *node, char *str)
-{
-	int pip;
-	pip = 0;
-	init_pipes(pip, node,str);
-}
-*/
-
-
-
-
-////////////////pipe end////////////////
-////////////create node\\\\\\\\\\\\\\\/
-
-t_env *add_content(char **content)
-{
-	t_env *lst;
-	if(!(lst = malloc(sizeof(t_env))))
-		return (NULL);
-	lst->key = content[0];
-	lst->value = content[1];
-	lst->next = NULL;
-
-	return(lst);
-}
-
-t_env add_end_the_list(t_env **old,t_env *new)
-{
-	t_env *p = NULL;
-
-	if(!p)
-		*old =new;
-	else
-	{
-		while(p->next)
-		   p =p->next;
-		p->next = new;
-	}
-	return (*new);
-}
-
-/*
-void	ft_lstadd_back(t_env **alst, t_env *new)
-{
-	t_env		*begin;
-
-	if (alst && (*alst) && new)
-	{
-		begin = (*alst);
-		if (begin == NULL)
-			(*alst) = new;
-		else
-		{
-			while (begin->next)
-				begin = begin->next;
-			begin->next = new;
-		}
-	}
-}
-*/
-
-////////////unset FONCTION\\\\\\\\\\\\\\\/
-void       delet_v_env(t_sep *node,char *argv)
-{
-	(void)node;
-	t_env *current = g_env;
-	t_env *temp, *prev;
-	char **s = ft_split(argv,'=');
-	if ((ft_strcmp(current->key, s[0]) == 0) && current != NULL)
-	{
-		temp = current->next;
-		free(current);
-		current = NULL;
-		g_env = temp;
-		write(1, "--\n", 3);
-		return ;
-	}
-	while(current != NULL)
-	{
-		if(ft_strcmp(current->key,s[0]) == 0)
-		{
-			temp = current->next;
-			prev->next = temp;
-			free(current);
-			break ;
-		}
-		prev = current;
-		current = current->next;
-	}
-}
-
-void    ft_unset(t_sep *node)
-{
-	int i = -1;
-	if(node->args)
-		while(node->args[++i])
-			delet_v_env(node,node->args[i]);
-}
-//////////////UNSET END\\\\\\\\\\\\\\\\/
-
-////////////EXPORT FONCTION\\\\\\\\\\\\\\\/
-void    print_list()
-{
-	t_env *current = g_env;
-	while(current != NULL)
-	{
-		ft_putstr("declare -x ");
-		ft_putstr(current->key);
-		ft_putstr("=\"");
-		ft_putstr(current->value);
-		ft_putstr("\"\n");
-
-		current = current->next;
-	}
-}
-
-/*
-void    addto_list(char *args,t_sep *node)
-{
-	(void)args;
-	(void)node;
-   t_env *current = g_env;
-   char **s = ft_split(args,'=');
-   int b = 0;
-	while(current != NULL)
-	{
-		if(ft_strcmp(current->key,s[0]) == 0)
-		{
-			current->value = s[1];
-			b=1;
-			break;
-		}
-		current = current->next;
-	}
-	if(!b)
-		ft_lstadd_back(&g_env,add_content(s));
-}
-*/
-
-/*
-void ft_export(t_sep *node)
-{
-	int i = -1;
-	if(node->args)
-		while(node->args[++i])
-			addto_list(node->args[i],node);
-	if(!node->args)
-		print_list();
-}
-*/
-
-////////////EXPORT END\\\\\\\\\\\\\\\\/
-
-void  ft_env()
-{
-	t_env *current = g_env;
-	while(current != NULL)
-	{
-		ft_putstr(current->key);
-		ft_putstr("=");
-		ft_putstr(current->value);
-		ft_putstr("\n");
-		current = current->next;
-	}
-}
-
-void ft_echo(t_sep *node)
-{
-	int i;
-	int check_n;
-	char **args;
-	int argc;
-
-	args = node->args;
-	// if (!node->args)
-	//     argc = 0;
-	// else
-		argc = ft_strlen2(args);
-	int sp = 0;
-	check_n = 0;
-	// if (!argc)
-	//     write(1,"\n",1);
-	i = 0;
-	while(i <= argc && args[0] && args[i][0] == '-' && args[i][1] == 'n' && args[i][2] == '\0')
-	{
-		i++;
-		sp = 1;
-	}
-	// printf ("\n argc = %d || count_row = %d\n", argc, node->nb_row);
-	while(i < argc)
-	{
-		ft_putstr(args[i]);
-		i++;
-		if(args[i])
-			ft_putstr(" ");
-	}
-	if(sp == 0)
-		ft_putstr("\n");
-}
-
-///////////////////////////cd cmd\\\\\\\\\\\\\\\\\\\\\\\\\\\;
-
-char* searchch(char *word,char *changed)
-{
-	t_env *current = g_env;
-	while(current != NULL)
-	{
-		if(ft_strcmp(current->key,word) == 0)
-		{
-			current->value = changed;
-			break;
-		}
-		current = current->next;
-	}
-
-	return(current->value);
-}
-
-void    ft_cd(t_sep *node,char *path)
-{
-	char *pwd = NULL;
-
-	if(chdir(node->args[0])!= 0)
-		ft_putstr("\nError");
-	pwd = getcwd(pwd,0);
-	searchch("PWD",pwd);
-	// ft_putstr("\n");
-	searchch("OLDPWD",path);
-	// ft_putstr("\n");
-}
-///////////////////////////cd cmd end\\\\\\\\\\\\\\\\\\\\\\\\\\\;
-
-///////////////////////////pwd cmd\\\\\\\\\\\\\\\\\\\\\\\\\\\;
-
-void ft_pwd()
-{
-	char *r = NULL;
-	ft_putstr(getcwd(r,1));
-	ft_putstr("\n");
-}
-
-///////////////////////////pwd cmd end\\\\\\\\\\\\\\\\\\\\\\\\\\\;
-
-char    **fill_paramlist(t_sep *node)
-{
-	int     i;
-	char    **w;
-
-	i = 0;
-	w = malloc(sizeof(char *) * 3);
-	w[0] = ft_strdup(node->path);
-	if (node->args)
-		w[1] = ft_strdup(node->args[0]);
-	else
-		w[1] = NULL;
-	return (w);
-}
-
-void    ft_exec(t_sep *node)
-{
-	int pid = fork();
-	int status;
-   if (pid == -1)
-   {
-		ft_putstr("Error\n");
-		exit(0);
-	}
-	if(pid == 0)
-	{
-		execve(node->path,fill_paramlist(node), NULL);
-		sleep(2);
-		exit(EXIT_SUCCESS);
-	}
-	// waitpid(pid, &status, 0);
-	wait(&status);
-}
-void    ft_exit(t_sep *node)
-{
-	// char *code =NULL;
-	int argc = 0;
-	int i = -1;
-
-	if (node->args)
-	{
-		argc = ft_strlen2(node->args);
-		while(++i < argc)
-		{
-			if(node->args[i] > (char*)'9' || node->args[i] < (char*)'0')
-				printf("%s       \n","fniwrjfnejrgniejrngiejrngiejrng");
-		}
-	}
-	if (argc >= 2)
-	{
-		ft_putstr("exit\n");
-		ft_putstr("exit: too many arguments\n");
-	}
-}
-
-/*
-void   ft_checkcmd1(t_sep *node, char *str, int count_pp)
-{
-	(void)count_pp;
-	// printf("\n argc = %d || count_row = %d\n", ft_strlen2(node->args), node->nb_row);
-	if (node->t_sp == '|')
-	{
-		// printf("\n count == %d \n",count_pp);
-		pipeses(node, str);
-	}
-	else
-		ft_simplecmd(node,str);
-	// (void)str;
-}
-*/
-
-
-/*
-void    ft_simplecmd(t_sep *node,char *str)
-{
-
-	// int pip;
-	(void)str;
-	char *path = NULL;
-	path = getcwd(path,4000);
-	if (ft_strcmp("echo",node->lower_builtin) == 0)
-		ft_echo(node);
-	else if(ft_strcmp("export",node->lower_builtin) == 0)
-		ft_export(node);
-	else if (ft_strcmp("env", node->lower_builtin) == 0)
-		ft_env();
-	else if(strcmp("unset",node->lower_builtin) == 0)
-		ft_unset(node);
-	else if(ft_strcmp("cd",node->lower_builtin) == 0)
-		ft_cd(node,path);
-	else if(ft_strcmp("pwd",node->lower_builtin) == 0)
-		ft_pwd();
-	else if(ft_strcmp("exit",node->lower_builtin) == 0)
-		ft_exit(node);
-	else
-		ft_exec(node);
-}
-*/
 
 void    error_msg(char *s)
 {
@@ -433,9 +43,9 @@ void    print_mylist(t_sep *node, int pipes_num)
 		printf (" path : %s", node->path);
 		printf ("\n cmd : %s", node->builtin);
 		printf ("\n is_builtin : %d", node->is_builtin);
+		printf ("\n builtin : %s", node->builtin);
 		printf ("\n s_red : %s", node->s_red);
 		printf ("\n sep : %c", node->t_sp);
-		printf ("\n is_builtin : %d", node->is_builtin);
 		printf ("\n pipes_num : %d", pipes_num);
 		i = 0; 
 		l = ft_strlen2(node->args);
@@ -738,8 +348,10 @@ char	*handling_dollar(char *s, t_sep *node)
 		}
 		i++;
 	}
-	free(s);
-	return (w);
+	if (w)
+		return (w);
+	else
+		return (s);
 }
 
 
@@ -1304,8 +916,8 @@ void	fill_list(char *str)
 		}
 		i++;
 	}
-	print_mylist(head, pipes_num); 
-	//run_cmdline(head, pipes_num);
+	// print_mylist(head, pipes_num); 
+	run_cmdline(head, pipes_num);
 	free_mylist_sep(head);
 	
 }

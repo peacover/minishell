@@ -6,7 +6,7 @@
 /*   By: mhaddi <mhaddi@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/08 15:34:01 by mhaddi            #+#    #+#             */
-/*   Updated: 2021/07/14 19:32:36 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/07/15 16:38:07 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -459,14 +459,38 @@ void    run_cmdline(t_sep *node, int pipes_num)
 	}
 	else // pipes and redirections
 	{
-		pid_t *pids = malloc(sizeof(*pids) * pipes_num + 1);
+		pid_t *pids = malloc(sizeof(*pids) * (pipes_num + 1));
+		int pipe_fd[2];
+		pipe(pipe_fd);
+		int num_cmd = 0;
 		while (node->next != NULL)
 		{
-			if (node->t_sp == '|')	// if sep is a pipe (e.g.: `ls | cat`, current node's cmd
-									// is `ls` and next node's cmd is `cat`, their sep is `|`)
+			// if sep is a pipe (e.g.: `ls | cat`, current node's cmd
+			// is `ls` and next node's cmd is `cat`, their sep is `|`)
+			// or if cmd is last cmd in the pipeline
+			if (node->t_sp == '|' || num_cmd == pipes_num)
 			{
-				; // do piping
-			}	
+				if (num_cmd > 0)
+				{
+					dup2(pipe_fd[0], 0);
+					pipe(pipe_fd);
+				}
+				pids[num_cmd] = fork();
+				if (pids[num_cmd] == 0)
+				{
+					if (num_cmd < pipes_num)
+						dup2(pipe_fd[1], 1);
+					if (execve(node->path, node->args, g_envp) == -1)
+					{
+						printf("minishell: %s: command not found\n", node->builtin);
+						close(pipe_fd[1]);
+						break ;
+					}
+				}
+				waitpid(pids[num_cmd], NULL, 0);
+				close(pipe_fd[1]);
+				num_cmd++;
+			}
 			// else if (sep is some type of redirection)
 			// 		; do stuff 	// TO-DO: try out all possible usages of all the redirection
 			// 					// operators (especially the various positions they can take),
