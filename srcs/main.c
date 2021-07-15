@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/07/14 19:49:11 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/07/15 07:57:49 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -631,15 +631,34 @@ char	*replace_dollar(char *s, char *v, int start, char *key, int end)
 	w = ft_strjoin(w, s2);
 	return (w);
 }
-int		equal_export(char *s)
+int		equal_export(char *s, int i)
 {
-	int i;
-
-	i = 0;
-	while (s[i] && s[i] != '=')
+	i++;
+	while (s[i] && s[i] != '$' && s[i] != '=' && s[i] != '/')
 		i++;
 	return (i);
 }
+
+char	*str_export_split(char *s, int end, int count_dollar)
+{
+	int i;
+	int l;
+
+	i = end - 1;
+	l = 0;
+	if (count_dollar == 1)
+		return (ft_substr(s, 0, end));
+	else
+	{
+		while (i > 0 && s[i] != '$')
+		{
+			l++;
+			i--;
+		}
+		return (ft_substr(s, i + 1, l));
+	}
+}
+
 char	*handling_dollar(char *s, t_sep *node)
 {
 	int		i;
@@ -647,7 +666,10 @@ char	*handling_dollar(char *s, t_sep *node)
 	int		start;
 	char    *s1;
 	char    *s2;
+	char	*ret;
+	int		count_dollar;
 	char	*v;
+	char	*w;
 	t_env	*current = g_env;
    
 	i = 0;
@@ -655,41 +677,69 @@ char	*handling_dollar(char *s, t_sep *node)
 	s1 = NULL;
 	s2 = NULL;
 	end = 0;
+	w = NULL;
+	count_dollar = 0;
 	while (s[i])
 	{
+		// start = 0;
+		ret = NULL;
+		if (ft_strlen(s) == 1 && s[0] == '$')
+			return (ft_strdup("$"));
 		if (s[i] == '$')
 		{
-			if (!ft_strcmp(node->lower_builtin, "export") && s[equal_export(s)] == '=')
-				end = equal_export(s);
+			count_dollar++;
+			if (!ft_strcmp(node->lower_builtin, "export") && (s[equal_export(s, i)] == '=' || s[equal_export(s, i)] == '/'))
+				end = equal_export(s, i);
 			start = ++i;
-			while (s[i] && s[i] != ' ')
+			while (s[i] && s[i] != ' ' && s[i] != '$')
 				i++;
 			v = ft_substr(s, start, i - start);
 			if (end)
 				v = ft_substr(s, start, end - start);
 			// printf ("\n s : |%s|\n", s);
+			while (s[i] && s[i] != '$')
+				i++;
+			s1 = str_export_split(s, i, count_dollar);
 			while (current != NULL)
 			{
 				if (!ft_strcmp(current->key, v) || (!ft_strncmp(current->key, v, ft_strlen(current->key))
 				&& v[ft_strlen(current->key)] == '\''))
 				{
+					// printf ("\n key : |%s|\n", current->key);
 					// printf ("\n value : |%s|\n", current->value);
-					return (replace_dollar(s, current->value, start, current->key, end));
+					if (count_dollar > 1)
+						start = 1;
+					ret = replace_dollar(s1, current->value, start, current->key, end);
+					break;
 				}
 				current = current->next;
 			}
+			s1 = NULL;
+			// while (s[i] && s[i] == ' ')
+			// 	i++;
 			// s1 = ft_substr(s, 0, start - 1);
 			// s2 = ft_substr(s, end, ft_strlen(s) - i);
 			// s = ft_strjoin(s1, s2);
-			
+			if (!w && ret)
+				w = ft_strdup(ret);
+			else if (ret)
+				w = ft_strjoin(w, ret);
+			if (ret)
+				free(ret);
+			if (s1)
+				free(s1);
+			free(v);
+			i--;
+			current = g_env;
 			// s = ft_substr(s, i, ft_strlen(s) - i);
 			// printf ("\n last s : |%s|\n", s);
-			free(s);
-			return (NULL);
+			// free(s);
+			// return (NULL);
 		}
 		i++;
 	}
-	return (s);
+	free(s);
+	return (w);
 }
 
 
@@ -1255,7 +1305,7 @@ void	fill_list(char *str)
 		i++;
 	}
 	print_mylist(head, pipes_num); 
-	run_cmdline(head, pipes_num);
+	//run_cmdline(head, pipes_num);
 	free_mylist_sep(head);
 	
 }
