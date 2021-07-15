@@ -6,11 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
-<<<<<<< HEAD
-/*   Updated: 2021/07/15 16:25:03 by mhaddi           ###   ########.fr       */
-=======
-/*   Updated: 2021/07/15 16:33:46 by yer-raki         ###   ########.fr       */
->>>>>>> 6e27a614e5e7b5ff79d2240d8892f984614b6966
+/*   Updated: 2021/07/15 16:48:55 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -352,12 +348,8 @@ char	*handling_dollar(char *s, t_sep *node)
 		}
 		i++;
 	}
-<<<<<<< HEAD
-	if (w)
-=======
 	//free(s);
 	if (w || count_dollar)
->>>>>>> 6e27a614e5e7b5ff79d2240d8892f984614b6966
 		return (w);
 	else
 		return (s);
