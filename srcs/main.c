@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/07/15 07:57:49 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/07/15 16:33:46 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -655,7 +655,7 @@ char	*str_export_split(char *s, int end, int count_dollar)
 			l++;
 			i--;
 		}
-		return (ft_substr(s, i + 1, l));
+		return (ft_substr(s, i, l + 1));
 	}
 }
 
@@ -688,7 +688,7 @@ char	*handling_dollar(char *s, t_sep *node)
 		if (s[i] == '$')
 		{
 			count_dollar++;
-			if (!ft_strcmp(node->lower_builtin, "export") && (s[equal_export(s, i)] == '=' || s[equal_export(s, i)] == '/'))
+			if (node->is_builtin && (s[equal_export(s, i)] == '=' || s[equal_export(s, i)] == '/'))
 				end = equal_export(s, i);
 			start = ++i;
 			while (s[i] && s[i] != ' ' && s[i] != '$')
@@ -738,8 +738,11 @@ char	*handling_dollar(char *s, t_sep *node)
 		}
 		i++;
 	}
-	free(s);
-	return (w);
+	//free(s);
+	if (w || count_dollar)
+		return (w);
+	else
+		return (s);
 }
 
 
