@@ -6,7 +6,11 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
+<<<<<<< HEAD
 /*   Updated: 2021/07/15 16:25:03 by mhaddi           ###   ########.fr       */
+=======
+/*   Updated: 2021/07/15 16:33:46 by yer-raki         ###   ########.fr       */
+>>>>>>> 6e27a614e5e7b5ff79d2240d8892f984614b6966
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -265,7 +269,7 @@ char	*str_export_split(char *s, int end, int count_dollar)
 			l++;
 			i--;
 		}
-		return (ft_substr(s, i + 1, l));
+		return (ft_substr(s, i, l + 1));
 	}
 }
 
@@ -298,7 +302,7 @@ char	*handling_dollar(char *s, t_sep *node)
 		if (s[i] == '$')
 		{
 			count_dollar++;
-			if (!ft_strcmp(node->lower_builtin, "export") && (s[equal_export(s, i)] == '=' || s[equal_export(s, i)] == '/'))
+			if (node->is_builtin && (s[equal_export(s, i)] == '=' || s[equal_export(s, i)] == '/'))
 				end = equal_export(s, i);
 			start = ++i;
 			while (s[i] && s[i] != ' ' && s[i] != '$')
@@ -348,7 +352,12 @@ char	*handling_dollar(char *s, t_sep *node)
 		}
 		i++;
 	}
+<<<<<<< HEAD
 	if (w)
+=======
+	//free(s);
+	if (w || count_dollar)
+>>>>>>> 6e27a614e5e7b5ff79d2240d8892f984614b6966
 		return (w);
 	else
 		return (s);
