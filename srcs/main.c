@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/07/15 16:48:55 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/07/16 16:22:36 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,7 +54,7 @@ void    print_mylist(t_sep *node, int pipes_num)
 			printf ("\n arg %d : |%s|", i, node->args[i]);
 			i++;
 		}
-		printf("\n------------------------------------------\n\n");
+		printf("\n------------------------------------------\n");
 		node_num++;
 		node = node->next;
 	}
