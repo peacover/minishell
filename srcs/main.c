@@ -1022,6 +1022,11 @@ int     main(int argc, char **argv, char **env)
 		str = NULL;
 		// str = readline(my_getcwd());
 		str = readline("\x1B[32m$> \e[0m");
+		if (!str)
+		{
+			printf("bruh\n");
+			return (1);
+		}
 		if (ft_strlen(str) < 1)
 		{
 			free(str);

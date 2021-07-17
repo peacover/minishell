@@ -463,7 +463,7 @@ void    run_cmdline(t_sep *node, int pipes_num)
 		int pipe_fd[2];
 		pipe(pipe_fd);
 		int num_cmd = 0;
-		while (node->next != NULL)
+		while (node != NULL)
 		{
 			// if sep is a pipe (e.g.: `ls | cat`, current node's cmd
 			// is `ls` and next node's cmd is `cat`, their sep is `|`)
