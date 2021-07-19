@@ -6,7 +6,7 @@
 /*   By: mhaddi <mhaddi@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/08 15:34:01 by mhaddi            #+#    #+#             */
-/*   Updated: 2021/07/16 16:25:41 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/07/15 16:38:07 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -217,7 +217,7 @@ void cd(char **args)
 	// - is not null
 	// - is not `-`
 	// - is a valid directory
-	// - is not current directory // SIKE ?!!
+	// - is not current directory
 	// OR:
 	// - is null (so `cd`)
 	// - current directory is not home directory
@@ -225,8 +225,8 @@ void cd(char **args)
 	if (args && *args && **args != '\0')
 	{
 		if (ft_strcmp(args[0], "-")
-			&& opendir(args[0]))
-			// && !is_cwd(args[0]))
+			&& opendir(args[0])
+			&& !is_cwd(args[0]))
 			ft_setenv("OLDPWD", getcwd(NULL, 0));
 
 		if (strcmp(args[0], "-") == 0)
@@ -247,8 +247,8 @@ void cd(char **args)
 	}
 	else if (!args || !*args || **args == '\0')
 	{
-		// if (ft_strcmp(getenv("HOME"), getcwd(NULL, 0)))
-		ft_setenv("OLDPWD", getcwd(NULL, 0));
+		if (ft_strcmp(getenv("HOME"), getcwd(NULL, 0)))
+			ft_setenv("OLDPWD", getcwd(NULL, 0));
 		if (chdir(getenv("HOME")) == -1)
 			printf("%s\n", strerror(errno));
 		else
@@ -449,21 +449,21 @@ void    run_cmdline(t_sep *node, int pipes_num)
 		{
 			// printf("ok, we exec now:\n");
 			// char *argv[] = {"/bin/sh", "-c", node->s_red, NULL};
-			pid_t fork_pid = fork();
-			if (fork_pid == 0)
+			int fs = fork();
+			if (fs == 0)
 				if (execve(node->path, node->args, g_envp) == -1)
 					printf("minishell: %s: command not found\n", node->builtin);
 				// execve(argv[0], argv, g_envp);
-			waitpid(fork_pid, NULL, 0); // TO-DO: handle exit codes in execve and builtins and others
+			waitpid(fs, NULL, 0); // TO-DO: handle exit codes in execve and builtins and others
 		}
 	}
 	else // pipes and redirections
 	{
-		pid_t *pids = malloc(sizeof(pid_t) * (pipes_num + 1));
+		pid_t *pids = malloc(sizeof(*pids) * (pipes_num + 1));
 		int pipe_fd[2];
 		pipe(pipe_fd);
 		int num_cmd = 0;
-		while (node != NULL)
+		while (node->next != NULL)
 		{
 			// if sep is a pipe (e.g.: `ls | cat`, current node's cmd
 			// is `ls` and next node's cmd is `cat`, their sep is `|`)

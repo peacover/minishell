@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:09:15 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/07/12 16:03:01 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/07/19 08:35:00 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,6 +54,7 @@ typedef struct  s_sep
 	char    t_sp; // type of separator ; or |
 	int		is_red; // =1 if there is > or < or >>
 	int     is_builtin; // = 1 if there is builtin for exapmle echo, pwd, ls...
+	int 	is_path_in_arg;
 	char    *builtin; // name of command ex: echo, pwd ... 
 	char    *upper_builtin; // normalized builtin (UPPER)
 	char	*lower_builtin;
@@ -85,6 +86,7 @@ void    ft_simplecmd(t_sep *node,char *str);
 void	ft_checkcmd1(t_sep *node, char *str, int count_pp);
 void    ft_exec(t_sep *node);
 char    **fill_paramlist(t_sep *node);
+void	handling_builtins(t_sep *node, char *s, int start);
 void    run_cmdline(t_sep *node, int pipes_num);
 
 #endif
