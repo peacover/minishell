@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/07/15 16:48:55 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/07/19 18:58:48 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -225,6 +225,191 @@ char	*replace_dollar(char *s, char *v, int start, char *key, int end)
 {
 	char *s1;
 	char *s2;
+	// char *s3;
+	int l_key;
+	int l_s;
+	char *w;
+
+	w = NULL;
+	(void)end;
+	return (v);
+	l_key = ft_strlen(key);
+	l_s = ft_strlen(s);
+	// if (end)
+	// 	s3 = ft_substr(s, end, l_s - end);
+	s1 = ft_substr(s, 0, start - 1);
+	s2 = ft_substr(s, start + l_key, l_s - start - l_key);
+	w = ft_strjoin(s1, v);
+	w = ft_strjoin(w, s2);
+	return (w);
+}
+int		equal_export(char *s, int i)
+{
+	i++;
+	while (s[i] && s[i] != '$' && (ft_isalpha(s[i]) || s[i] == '_'))
+		i++;
+	return (i);
+}
+
+char	*str_export_split(char *s, int start, int is_dollar)
+{
+	int i;
+	// int l;
+
+	// i = end - 1;
+	// l = 0;
+	// if (count_dollar == 1)
+	// 	return (ft_substr(s, 0, end));
+	// else
+	// {
+	// 	while (i > 0 && s[i] != '$')
+	// 	{
+	// 		l++;
+	// 		i--;
+	// 	}
+	// 	return (ft_substr(s, i, l + 1));
+	// }
+	i = start;
+	if (is_dollar)
+	{
+		while (s[i] && s[i] != '$' && (ft_isalpha(s[i]) || s[i] == '_'))
+			i++;
+		return (ft_substr(s, start, i - start));
+	}
+	else
+	{
+		while (s[i] && s[i] != '$')
+			i++;
+		return (ft_substr(s, start, i - start));
+	}
+}
+int		check_dollar(char *s)
+{
+	int i;
+
+	i = 0;
+	while (s[i])
+	{
+		if (s[i] == '$')
+			return (1);
+		i++;
+	}
+	return (0);
+}
+char	*handling_dollar(char *s, t_sep *node)
+{
+	int		i;
+	int		end;
+	int		start;
+	char    *s1;
+	char    *s2;
+	char	*ret;
+	int		count_dollar;
+	int		is_dollar;
+	char	*v;
+	char	*w;
+	t_env	*current = g_env;
+   
+	i = 0;
+	start = 0;
+	s1 = NULL;
+	s2 = NULL;
+	end = 0;
+	w = NULL;
+	count_dollar = 0;
+	is_dollar = 0;
+	(void)node;
+	while (s[i] && check_dollar(s))
+	{
+		// start = 0;
+		ret = NULL;
+		if (ft_strlen(s) == 1 && s[0] == '$')
+			return (ft_strdup("$"));
+		if (s[i] == '$')
+		{
+			count_dollar++;
+			is_dollar = 1;
+			//node->is_builtin &&
+			// if ( (s[equal_export(s, i)] == '=' || s[equal_export(s, i)] == '/'))
+				end = equal_export(s, i);
+			start = ++i;
+			// while (s[i] && s[i] != ' ' && s[i] != '$')
+			// 	i++;
+			v = ft_substr(s, start, i - start);
+			if (end)
+				v = ft_substr(s, start, end - start);
+			// printf ("\n s : |%s|\n", s);
+			// while (s[i] && s[i] != '$')
+			// 	i++;
+			s1 = str_export_split(s, start, 1);
+			while (current != NULL)
+			{
+				if (!ft_strcmp(current->key, v) || (!ft_strncmp(current->key, v, ft_strlen(current->key))
+				))
+				{
+					// printf ("\n key : |%s|\n", current->key);
+					// printf ("\n value : |%s|\n", current->value);
+					if (count_dollar > 1)
+						start = 1;
+					ret = ft_strdup(current->value);
+					break;
+				}
+				current = current->next;
+			}
+			// while (s[i] && s[i] == ' ')
+			// 	i++;
+			// s1 = ft_substr(s, 0, start - 1);
+			// s2 = ft_substr(s, end, ft_strlen(s) - i);
+			// s = ft_strjoin(s1, s2);
+			if (!w && ret)
+				w = ft_strdup(ret);
+			// else if (!w && is_dollar)
+			// 	w = ft_strdup(s1);
+			else if (ret)
+				w = ft_strjoin(w, ret);
+			// else if (w && is_dollar)
+			// 	w = ft_strdup(s1);
+			i += ft_strlen(s1);
+			if (ret)
+				free(ret);
+			if (s1)
+				free(s1);
+			// s1 = NULL;
+			if (v)
+				free(v);
+			// i--;
+			
+			
+			// s = ft_substr(s, i, ft_strlen(s) - i);
+			// printf ("\n last s : |%s|\n", s);
+			// free(s);
+			// return (NULL);
+		}
+		else
+		{
+			s1 = str_export_split(s, i, 0);
+			if (!w && s1)
+				w = ft_strdup(s1);
+			else if (s1)
+				w = ft_strjoin(w, s1);
+			i += ft_strlen(s1);
+		}
+		s1 = NULL;
+		is_dollar = 0;
+		current = g_env;
+	}
+	//free(s);
+	if (w)
+		return (w);
+	else
+		return (s);
+}
+
+
+/*char	*replace_dollar(char *s, char *v, int start, char *key, int end)
+{
+	char *s1;
+	char *s2;
 	char *s3;
 	int l_key;
 	int l_s;
@@ -295,20 +480,21 @@ char	*handling_dollar(char *s, t_sep *node)
 		ret = NULL;
 		if (ft_strlen(s) == 1 && s[0] == '$')
 			return (ft_strdup("$"));
-		if (s[i] == '$')
+		if (s[i] == '$' || count_dollar > 0)
 		{
 			count_dollar++;
 			if (node->is_builtin && (s[equal_export(s, i)] == '=' || s[equal_export(s, i)] == '/'))
 				end = equal_export(s, i);
-			start = ++i;
+			if (s[i] == '$')
+				start = ++i;
 			while (s[i] && s[i] != ' ' && s[i] != '$')
 				i++;
 			v = ft_substr(s, start, i - start);
 			if (end)
 				v = ft_substr(s, start, end - start);
 			// printf ("\n s : |%s|\n", s);
-			while (s[i] && s[i] != '$')
-				i++;
+			// while (s[i] && s[i] != '$')
+			// 	i++;
 			s1 = str_export_split(s, i, count_dollar);
 			while (current != NULL)
 			{
@@ -339,7 +525,7 @@ char	*handling_dollar(char *s, t_sep *node)
 			if (s1)
 				free(s1);
 			free(v);
-			i--;
+			// i--;
 			current = g_env;
 			// s = ft_substr(s, i, ft_strlen(s) - i);
 			// printf ("\n last s : |%s|\n", s);
@@ -353,18 +539,59 @@ char	*handling_dollar(char *s, t_sep *node)
 		return (w);
 	else
 		return (s);
+	// echo $PATH$
+	// unset $key2 (dont send args ex: unset $key where key="" or key)
+	// echo $tttt test
+}*/
+
+char	*str_upper(char *s)
+{
+	int i;
+
+	i = 0;
+	while (s[i])
+	{
+		s[i] = ft_toupper(s[i]);
+		i++;
+	}
+	return(s);
 }
 
+char	*str_lower(char *s)
+{
+	int i;
+
+	i = 0;
+	while (s[i])
+	{
+		s[i] = ft_tolower(s[i]);
+		i++;
+	}
+	return(s);
+}
 
 void    add_to_args(int start, int end, char *s, int i, t_sep *node)
 {
 	int		l;
 	char	type;
 	char 	*str;
+	int j;
 	
-	node->args[i] = NULL;
+	
 	type = s[start];
 	str = NULL;
+	// while (s[start] && s[start] == ' ')
+	// 	start++;
+	if (i > 0)
+	{
+		if (node->is_path_in_arg)
+				j = i;
+			else
+				j = i - 1;
+			// if (j > 0)
+		node->args = ft_realloc_2(node->args, j, (j + 1));
+		node->args[j] = NULL;
+	}
 	while (s[start] && start < end)
 	{
 		if (s[start] != '\'' && s[start] != '\"')
@@ -381,70 +608,144 @@ void    add_to_args(int start, int end, char *s, int i, t_sep *node)
 			if (!l)
 				error_msg("error multiligne");
 			str = ft_substr(s, start + 1, l - start - 1);
-			// start = l;
 		}
-		if (s[start] == '\"')
-			str = handling_bs_dq(str);
-		else if (s[start] != '\'')
-			str = handling_bs(str);
+		// if (s[start] == '\"')
+		// 	str = handling_bs_dq(str);
+		// else if (s[start] != '\'')
+		// 	str = handling_bs(str);
 		if (s[start] != '\'')
 			str = handling_dollar(str, node);
-		// printf("\n\nSTR : %s \\\\ ARG %d : |%s|\n\n", str, i, node->args[i]);
-		if (!node->args[i] && str)
+		if (i == 0)
 		{
-			node->args[i] = ft_strdup(str);
-			// node->args[i] = ft_strcpy(node->args[i], str);
+			handling_builtins(node, str, 0);
+			// if (!node->builtin)
+			// {
+				// s = ft_strdup(handling_dollar(s, node));
+				if (!node->is_builtin && node->path)
+				{
+					node->args = ft_realloc_2(node->args, i, (i + 1));
+					node->args[i] = ft_strdup(node->path);
+					node->args[i + 1] = NULL;
+					node->is_path_in_arg = 1;
+					// i++;
+				}
+			// }
+			return ;
 		}
-		else if (str)
+		else
 		{
-			node->args[i] = ft_strjoin(node->args[i], str);
+			if (!ft_strcmp(node->lower_builtin, "unset") && !ft_strcmp(str, ""))
+				free (str);
+			if (!node->args[j] && str)
+				node->args[j] = ft_strdup(str);
+			else if (str)
+				node->args[j] = ft_strjoin(node->args[j], str);		
+			// printf ("\n\nARG[J] = |%s| \n\n", node->args[j]);
+			if (str)
+				free(str);
+			str = NULL;
+			// start = l;
+			if (s[start] == '\'' || s[start] == '\"')
+				start = l + 1;
+			else
+				start = l;
+			// if (j > 0)
+				
 		}
 		
-		// printf("\n\nARG %d : |%s|\n\n", i, node->args[i]);
-		free(str);
-		str = NULL;
-		// start = l;
-	if (s[start] == '\'' || s[start] == '\"')
-		start = l + 1;
-	else
-		start = l;
 	}
-	node->args[i + 1] = NULL;
+	node->args[j + 1] = NULL;
+}
+
+void	handling_builtins(t_sep *node, char *s, int start)
+{
+	int l;
+	char *str;
+
+	l = 0;
+	str = NULL;
+	if (s[start] != '\'' && s[start] != '\"')
+	{
+		l = start;
+		while (s[l] && s[l] != '\'' && s[l] != '\"' && s[l] != ' ')
+			l++;
+		str = ft_substr(s, start, l - start);
+		// start = l;
+	}
+	else
+	{				
+		l = search_second_quote(s, start + 1, s[start]);
+		if (!l)
+			error_msg("error multiligne");
+		str = ft_substr(s, start + 1, l - start - 1);
+	}
+	node->builtin = ft_strdup(str);
+	node->upper_builtin = ft_strdup(str_upper(str));
+	node->lower_builtin = ft_strdup(str_lower(str));
+	// if (!check_red(node, s) && !check_builtin(node) && !check_fill_path(node))
+	check_fill_path(node);
+	check_builtin(node);
 }
 
 void    get_args(char *s, int start, t_sep *node)
 {
 	int     i;
 	int		end;
+	int		t;
+	int		j;
 
 	i = 0;
-	if (!node->is_builtin && node->path)
-	{
-		node->args = ft_realloc_2(node->args, i, (i + 1));
-		node->args[i] = ft_strdup(node->path);
-		node->args[i + 1] = NULL;
-		i++;
-	}
+	t = 0;
+	j = 0;
+
+	
+	
 	while (s[start])
 	{
-		end = start;
-		if (s[start] == '\'' || s[start] == '\"')
+		// end = start;
+		// if (s[start] == '\'' || s[start] == '\"')
+		// {
+		// 	if (s[start - 1] == '\\')
+		// 		continue;
+		// 	end = search_second_quote(s, start + 1, s[start]);
+		// 	if (!end)
+		// 	{
+		// 		printf ("\n start = %d\n", start);
+		// 		// error_msg("error multiligne");
+		// 	}
+			
+		// }
+		// while (s[end] && s[end] != ' ')
+		// 	end++;
+		t = start;
+		
+		while (s[start] && s[start] != ' ')
 		{
-			if (s[start - 1] == '\\')
-				continue;
-			end = search_second_quote(s, start + 1, s[start]);
-			if (!end)
-				error_msg("error multiligne");
+			if (s[start] == '\'' || s[start] == '\"')
+			{
+				if (start - 1 > 0 && s[start - 1] == '\\')
+					continue;
+				end = search_second_quote(s, start + 1, s[start]);
+				if (!end)
+					error_msg("error multiligne");
+				start = end + 1;
+			}
+			else
+				start++;
 		}
-		while (s[end] && s[end] != ' ')
-			end++;
-		if (end > start)
+		// s = handling_dollar(s, node);
+		
+		if (t < start)
 		{
-			node->args = ft_realloc_2(node->args, i, (i + 1));
-			add_to_args(start, end, s, i, node);
+			s = handling_dollar(s, node);
+			add_to_args(t, start, s, i, node);
 			i++;
 		}
-			start = end;
+		// if (s[start] == '\'' || s[start] == '\"')
+		// 	start = end + 1;
+		// else
+		// 	start = end;
+		// start = end;
 		while (s[start] && s[start] == ' ')
 			start++;
 	}
@@ -690,6 +991,7 @@ void	init_t_sep(t_sep *node)
 	node->lower_builtin = NULL;
 	node->is_red = 0;
 	node->s_red = NULL;
+	node->is_path_in_arg = 0;
 	
 }
 /*int		check_red(t_sep *node, char *s)
@@ -726,12 +1028,46 @@ void	init_t_sep(t_sep *node)
 	return (0);
 }*/
 
+char	*replace_from_env(char *str, t_sep *node)
+{
+	int i;
+	char *tmp;
+	int l;
+	int fd;
+	t_env *current = g_env;
+	(void)node;
+	i = 0;
+	fd = 0;
+	l = ft_strlen(str);
+	while (str[i])
+	{
+		if (str[i] == '$' && str[i + 1])
+		{
+			tmp = ft_substr(str, i + 1, l - i + 1);
+			while (current != NULL)
+			{
+				if (!ft_strcmp(current->key, tmp))
+				{
+					free(str);
+					free(tmp);
+					return (ft_strdup(current->value)); 
+				}
+				current = current->next;
+			}
+		}
+	}
+	return (str);
+}
+
 void    get_builtin(char *s, t_sep *node)
 {
 	int     i;
 	int		l;
 
 	i = 0;
+	// l = ft_strlen(s);
+	// if (s[i] && s[i] == '$')
+	// 	s = replace_from_env(s, node);
 	l = ft_strlen(s);
 	if (s[i] == '|')
 	{
@@ -740,25 +1076,30 @@ void    get_builtin(char *s, t_sep *node)
 			i++;
 		s = ft_substr(s, i, l - i);
 	}
-	i = l;
+	// i = l;
+	
+	// s = handling_dollar(s, node);
+	// node->builtin = malloc(sizeof(char) * (i + 1));
+	// node->upper_builtin = malloc(sizeof(char) * (i + 1));
+	// node->lower_builtin = malloc(sizeof(char) * (i + 1));
+	// i = 0;
+	// while (s[i] && s[i] != ' ')
+	// {
+	// 	node->builtin[i] = s[i];
+	// 	node->upper_builtin[i] = ft_toupper(s[i]);
+	// 	node->lower_builtin[i] = ft_tolower(s[i]);
+	// 	i++;
+	// }
+	// node->builtin[i] = '\0';
+	// node->upper_builtin[i] = '\0';
+	// node->lower_builtin[i] = '\0';
+	// // if (!check_red(node, s) && !check_builtin(node) && !check_fill_path(node))
+	// check_fill_path(node);
+	// check_builtin(node);
 
-	node->builtin = malloc(sizeof(char) * (i + 1));
-	node->upper_builtin = malloc(sizeof(char) * (i + 1));
-	node->lower_builtin = malloc(sizeof(char) * (i + 1));
-	i = 0;
-	while (s[i] && s[i] != ' ')
-	{
-		node->builtin[i] = s[i];
-		node->upper_builtin[i] = ft_toupper(s[i]);
-		node->lower_builtin[i] = ft_tolower(s[i]);
-		i++;
-	}
-	node->builtin[i] = '\0';
-	node->upper_builtin[i] = '\0';
-	node->lower_builtin[i] = '\0';
-	// if (!check_red(node, s) && !check_builtin(node) && !check_fill_path(node))
-	check_fill_path(node);
-	check_builtin(node);
+
+
+	
 		// error_msg("COMMAND NOT FOUND!!");
 	// printf("\n\nred return : %d", node-> is_red);
 	// if (node-> is_red != 1)
@@ -814,6 +1155,7 @@ void    fill_node(char *s, t_sep *node, int start, char *str)
 	// printf("\n s end : |%s|\n", s);
 	// parsing_red(node, s);
 	node->s_red = ft_strdup(s);
+	// if (s[i] && )
 	// if (((str[i] != '>' && str[i] != '<') && (s[i] != '>' && s[i] != '<')) && (str[ft_strlen(s)]!= '>' || str[ft_strlen(s)]!= '>')
 	// && (str[ft_strlen(s) + 1]!= '>' || str[ft_strlen(s) + 1]!= '>'))
 	if (s[0] != '<' && s[0] != '>' && str[start + l] != '<' && str[start + l] != '>')
@@ -917,7 +1259,7 @@ void	fill_list(char *str)
 		}
 		i++;
 	}
-	// print_mylist(head, pipes_num); 
+	print_mylist(head, pipes_num); 
 	run_cmdline(head, pipes_num);
 	free_mylist_sep(head);
 	
