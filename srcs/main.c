@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/07/19 18:58:48 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/09/07 07:44:40 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -1104,9 +1104,10 @@ void    get_builtin(char *s, t_sep *node)
 	// printf("\n\nred return : %d", node-> is_red);
 	// if (node-> is_red != 1)
 	// {
-		while (s[i] && s[i] == ' ')
-			i++;
-		get_args(s, i, node);
+	i = 0;
+	while (s[i] && s[i] == ' ')
+		i++;
+	get_args(s, i, node);
 	// printf("\ncmd : |%s|\n", node->builtin);
 	// }
 }
@@ -1260,7 +1261,7 @@ void	fill_list(char *str)
 		i++;
 	}
 	print_mylist(head, pipes_num); 
-	run_cmdline(head, pipes_num);
+	// run_cmdline(head, pipes_num);
 	free_mylist_sep(head);
 	
 }
