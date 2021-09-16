@@ -6,7 +6,7 @@
 /*   By: mhaddi <mhaddi@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/08 15:34:01 by mhaddi            #+#    #+#             */
-/*   Updated: 2021/07/16 16:25:41 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/09/16 16:37:09 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -463,6 +463,7 @@ void    run_cmdline(t_sep *node, int pipes_num)
 		int pipe_fd[2];
 		pipe(pipe_fd);
 		int num_cmd = 0;
+		int stdin_fd = 0;
 		while (node != NULL)
 		{
 			// if sep is a pipe (e.g.: `ls | cat`, current node's cmd
@@ -472,6 +473,7 @@ void    run_cmdline(t_sep *node, int pipes_num)
 			{
 				if (num_cmd > 0)
 				{
+					stdin_fd = dup(0);
 					dup2(pipe_fd[0], 0);
 					pipe(pipe_fd);
 				}
@@ -484,18 +486,21 @@ void    run_cmdline(t_sep *node, int pipes_num)
 					{
 						printf("minishell: %s: command not found\n", node->builtin);
 						close(pipe_fd[1]);
-						break ;
+						exit(1); // error code
 					}
 				}
-				waitpid(pids[num_cmd], NULL, 0);
-				close(pipe_fd[1]);
-				num_cmd++;
+				else {
+					waitpid(pids[num_cmd], NULL, 0);
+					close(pipe_fd[1]);
+					num_cmd++;
+				}
 			}
 			// else if (sep is some type of redirection)
 			// 		; do stuff 	// TO-DO: try out all possible usages of all the redirection
 			// 					// operators (especially the various positions they can take),
 			// 					// this might affect the parsing methods regarding the
 			// 					// redirection operators.
+			dup2(stdin_fd, 0);
 			node = node->next;
 		}
 	}

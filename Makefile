@@ -5,7 +5,10 @@ INC = -I includes/
 SRCS =	./srcs/main.c \
 		./srcs/run_cmdline.c \
 		./srcs/parsing/minishell_utils.c
-FLAGS = -Wall -Wextra -Werror -g -lreadline -fsanitize=address
+LDFLAGS	= "-L/Volumes/Samsung_T5/home_dir/homebrew/opt/readline/lib"
+CPPFLAGS = "-I/Volumes/Samsung_T5/home_dir/homebrew/opt/readline/include"
+
+FLAGS = -Wall -Wextra -Werror -g -lreadline $(LDFLAGS) $(CPPFLAGS) -fsanitize=address
 all: $(NAME)
 $(NAME): $(LIBFT)
 	@$(CC) $(FLAGS) $(INC) $(SRCS) -o $(NAME) $(LIBFT)
