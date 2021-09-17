@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/09/16 16:41:52 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/09/17 17:07:53 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -246,7 +246,7 @@ char	*replace_dollar(char *s, char *v, int start, char *key, int end)
 int		equal_export(char *s, int i)
 {
 	i++;
-	while (s[i] && s[i] != '$' && (ft_isalpha(s[i]) || s[i] == '_'))
+	while (s[i] && s[i] != '$' && (ft_isalpha(s[i]) || ft_isdigit(s[i]) || s[i] == '_'))
 		i++;
 	return (i);
 }
@@ -272,7 +272,7 @@ char	*str_export_split(char *s, int start, int is_dollar)
 	i = start;
 	if (is_dollar)
 	{
-		while (s[i] && s[i] != '$' && (ft_isalpha(s[i]) || s[i] == '_'))
+		while (s[i] && s[i] != '$' && (ft_isalpha(s[i]) || ft_isdigit(s[i]) || s[i] == '_'))
 			i++;
 		return (ft_substr(s, start, i - start));
 	}
