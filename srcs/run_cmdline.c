@@ -6,7 +6,7 @@
 /*   By: mhaddi <mhaddi@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/08 15:34:01 by mhaddi            #+#    #+#             */
-/*   Updated: 2021/09/21 10:36:33 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/09/21 12:01:41 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -453,6 +453,8 @@ void    run_cmdline(t_sep *node, int pipes_num)
 			if (fork_pid == 0)
 			{
 				// execve(argv[0], argv, g_envp);
+				
+				/*
 				if (node->path)
 				{
 					if (execve(node->path, node->args, g_envp) == -1)
@@ -463,6 +465,10 @@ void    run_cmdline(t_sep *node, int pipes_num)
 					if (execve(node->builtin, node->args, g_envp) == -1)
 						printf("minishell: %s: command not found\n", node->builtin);
 				}
+				*/
+
+				if (execve((char *[2]){node->path, node->builtin}[!node->path], node->args, g_envp) == -1)
+					printf("minishell: %s: command not found\n", node->builtin);
 			}
 			waitpid(fork_pid, NULL, 0); // TO-DO: handle exit codes in execve and builtins and others
 		}
@@ -492,6 +498,8 @@ void    run_cmdline(t_sep *node, int pipes_num)
 				{
 					if (num_cmd < pipes_num)
 						dup2(pipe_fd[1], 1);
+
+					/*
 					if (node->path)
 					{
 						if (execve(node->path, node->args, g_envp) == -1)
@@ -509,6 +517,14 @@ void    run_cmdline(t_sep *node, int pipes_num)
 							close(pipe_fd[1]);
 							exit(1); // error code
 						}
+					}
+					*/
+
+					if (execve((char *[2]){node->path, node->builtin}[!node->path], node->args, g_envp) == -1)
+					{
+						printf("minishell: %s: command not found\n", node->builtin);
+						close(pipe_fd[1]);
+						exit(1); // error code
 					}
 				}
 				else {
