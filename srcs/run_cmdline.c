@@ -6,7 +6,7 @@
 /*   By: mhaddi <mhaddi@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/08 15:34:01 by mhaddi            #+#    #+#             */
-/*   Updated: 2021/09/21 09:01:08 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/09/21 09:35:36 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -141,7 +141,7 @@ int    ft_unsetenv(char *key)
 
    if (*key == '\0')
    {
-	   printf("minishell: export: `%s': not a valid identifier\n", key);
+	   printf("minishell: unset: `%s': not a valid identifier\n", key);
 	   return (1);
    }
 
@@ -149,7 +149,7 @@ int    ft_unsetenv(char *key)
    {
 	   if (!ft_isalnum(key[i]) && key[i] != '_')
 	   {
-		   printf("minishell: export: `%s': not a valid identifier\n", key);
+		   printf("minishell: unset: `%s': not a valid identifier\n", key);
 		   return (1);
 	   }
 	   i++;
