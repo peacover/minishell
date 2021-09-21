@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/09/21 09:10:59 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/09/21 10:26:33 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -1366,7 +1366,7 @@ int     main(int argc, char **argv, char **env)
 		str = readline("\x1B[32m$> \e[0m");
 		if (!str)
 		{
-			if (isatty(0))
+			//if (isatty(0))
 				write(2, "exit\n", 5);
 			break ;
 		}

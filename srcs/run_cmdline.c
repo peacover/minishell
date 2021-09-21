@@ -6,7 +6,7 @@
 /*   By: mhaddi <mhaddi@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/08 15:34:01 by mhaddi            #+#    #+#             */
-/*   Updated: 2021/09/21 09:35:36 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/09/21 10:36:33 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -451,9 +451,19 @@ void    run_cmdline(t_sep *node, int pipes_num)
 			// char *argv[] = {"/bin/sh", "-c", node->s_red, NULL};
 			pid_t fork_pid = fork();
 			if (fork_pid == 0)
-				if (execve(node->path, node->args, g_envp) == -1)
-					printf("minishell: %s: command not found\n", node->builtin);
+			{
 				// execve(argv[0], argv, g_envp);
+				if (node->path)
+				{
+					if (execve(node->path, node->args, g_envp) == -1)
+						printf("minishell: %s: command not found\n", node->builtin);
+				}
+				else
+				{
+					if (execve(node->builtin, node->args, g_envp) == -1)
+						printf("minishell: %s: command not found\n", node->builtin);
+				}
+			}
 			waitpid(fork_pid, NULL, 0); // TO-DO: handle exit codes in execve and builtins and others
 		}
 	}
@@ -482,11 +492,23 @@ void    run_cmdline(t_sep *node, int pipes_num)
 				{
 					if (num_cmd < pipes_num)
 						dup2(pipe_fd[1], 1);
-					if (execve(node->path, node->args, g_envp) == -1)
+					if (node->path)
 					{
-						printf("minishell: %s: command not found\n", node->builtin);
-						close(pipe_fd[1]);
-						exit(1); // error code
+						if (execve(node->path, node->args, g_envp) == -1)
+						{
+							printf("minishell: %s: command not found\n", node->builtin);
+							close(pipe_fd[1]);
+							exit(1); // error code
+						}
+					}
+					else
+					{
+						if (execve(node->builtin, node->args, g_envp) == -1)
+						{
+							printf("minishell: %s: command not found\n", node->builtin);
+							close(pipe_fd[1]);
+							exit(1); // error code
+						}
 					}
 				}
 				else {
