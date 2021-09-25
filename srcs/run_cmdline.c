@@ -6,7 +6,7 @@
 /*   By: mhaddi <mhaddi@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/08 15:34:01 by mhaddi            #+#    #+#             */
-/*   Updated: 2021/07/16 16:25:41 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/09/21 12:01:41 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -141,7 +141,7 @@ int    ft_unsetenv(char *key)
 
    if (*key == '\0')
    {
-	   printf("minishell: export: `%s': not a valid identifier\n", key);
+	   printf("minishell: unset: `%s': not a valid identifier\n", key);
 	   return (1);
    }
 
@@ -149,7 +149,7 @@ int    ft_unsetenv(char *key)
    {
 	   if (!ft_isalnum(key[i]) && key[i] != '_')
 	   {
-		   printf("minishell: export: `%s': not a valid identifier\n", key);
+		   printf("minishell: unset: `%s': not a valid identifier\n", key);
 		   return (1);
 	   }
 	   i++;
@@ -371,7 +371,7 @@ void export(char **args)
 {
 	int i = 0;
 
-	if (args && *args && args[0][0] != '\0')
+	if (args)
 	{
 		while (args[i])
 		{
@@ -451,9 +451,25 @@ void    run_cmdline(t_sep *node, int pipes_num)
 			// char *argv[] = {"/bin/sh", "-c", node->s_red, NULL};
 			pid_t fork_pid = fork();
 			if (fork_pid == 0)
-				if (execve(node->path, node->args, g_envp) == -1)
-					printf("minishell: %s: command not found\n", node->builtin);
+			{
 				// execve(argv[0], argv, g_envp);
+				
+				/*
+				if (node->path)
+				{
+					if (execve(node->path, node->args, g_envp) == -1)
+						printf("minishell: %s: command not found\n", node->builtin);
+				}
+				else
+				{
+					if (execve(node->builtin, node->args, g_envp) == -1)
+						printf("minishell: %s: command not found\n", node->builtin);
+				}
+				*/
+
+				if (execve((char *[2]){node->path, node->builtin}[!node->path], node->args, g_envp) == -1)
+					printf("minishell: %s: command not found\n", node->builtin);
+			}
 			waitpid(fork_pid, NULL, 0); // TO-DO: handle exit codes in execve and builtins and others
 		}
 	}
@@ -463,6 +479,7 @@ void    run_cmdline(t_sep *node, int pipes_num)
 		int pipe_fd[2];
 		pipe(pipe_fd);
 		int num_cmd = 0;
+		int stdin_fd = 0;
 		while (node != NULL)
 		{
 			// if sep is a pipe (e.g.: `ls | cat`, current node's cmd
@@ -472,6 +489,7 @@ void    run_cmdline(t_sep *node, int pipes_num)
 			{
 				if (num_cmd > 0)
 				{
+					stdin_fd = dup(0);
 					dup2(pipe_fd[0], 0);
 					pipe(pipe_fd);
 				}
@@ -480,22 +498,47 @@ void    run_cmdline(t_sep *node, int pipes_num)
 				{
 					if (num_cmd < pipes_num)
 						dup2(pipe_fd[1], 1);
-					if (execve(node->path, node->args, g_envp) == -1)
+
+					/*
+					if (node->path)
+					{
+						if (execve(node->path, node->args, g_envp) == -1)
+						{
+							printf("minishell: %s: command not found\n", node->builtin);
+							close(pipe_fd[1]);
+							exit(1); // error code
+						}
+					}
+					else
+					{
+						if (execve(node->builtin, node->args, g_envp) == -1)
+						{
+							printf("minishell: %s: command not found\n", node->builtin);
+							close(pipe_fd[1]);
+							exit(1); // error code
+						}
+					}
+					*/
+
+					if (execve((char *[2]){node->path, node->builtin}[!node->path], node->args, g_envp) == -1)
 					{
 						printf("minishell: %s: command not found\n", node->builtin);
 						close(pipe_fd[1]);
-						break ;
+						exit(1); // error code
 					}
 				}
-				waitpid(pids[num_cmd], NULL, 0);
-				close(pipe_fd[1]);
-				num_cmd++;
+				else {
+					waitpid(pids[num_cmd], NULL, 0);
+					close(pipe_fd[1]);
+					num_cmd++;
+				}
 			}
 			// else if (sep is some type of redirection)
 			// 		; do stuff 	// TO-DO: try out all possible usages of all the redirection
 			// 					// operators (especially the various positions they can take),
 			// 					// this might affect the parsing methods regarding the
 			// 					// redirection operators.
+			dup2(stdin_fd, 0);
 			node = node->next;
 		}
 	}
