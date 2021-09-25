@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/09/07 07:44:40 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/09/25 16:46:49 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,7 @@ void    print_mylist(t_sep *node, int pipes_num)
 {
 	int i;
 	int l;
+	int l2;
 	int node_num;
 	
 	i = 0;
@@ -47,13 +48,23 @@ void    print_mylist(t_sep *node, int pipes_num)
 		printf ("\n s_red : %s", node->s_red);
 		printf ("\n sep : %c", node->t_sp);
 		printf ("\n pipes_num : %d", pipes_num);
+		
+		printf ("\n\n is_red : %d", node->is_red);
+		printf ("\n file : %s", node->r_file);
+		printf ("\n type_red : %c", node->red_op);
 		i = 0; 
 		l = ft_strlen2(node->args);
+		l2 = ft_strlen2(node->r_args);
 		while (l > i)
 		{
 			printf ("\n arg %d : |%s|", i, node->args[i]);
 			i++;
 		}
+		// while (l2 > i)
+		// {
+		// 	printf ("\n r_arg %d : |%s|", i, node->r_args[i]);
+		// 	i++;
+		// }
 		printf("\n------------------------------------------\n\n");
 		node_num++;
 		node = node->next;
@@ -246,7 +257,7 @@ char	*replace_dollar(char *s, char *v, int start, char *key, int end)
 int		equal_export(char *s, int i)
 {
 	i++;
-	while (s[i] && s[i] != '$' && (ft_isalpha(s[i]) || s[i] == '_'))
+	while (s[i] && s[i] != '$' && (ft_isalpha(s[i]) || s[i] == '_' || ft_isdigit(s[i])))
 		i++;
 	return (i);
 }
@@ -272,7 +283,7 @@ char	*str_export_split(char *s, int start, int is_dollar)
 	i = start;
 	if (is_dollar)
 	{
-		while (s[i] && s[i] != '$' && (ft_isalpha(s[i]) || s[i] == '_'))
+		while (s[i] && s[i] != '$' && (ft_isalpha(s[i]) || s[i] == '_' || ft_isdigit(s[i])))
 			i++;
 		return (ft_substr(s, start, i - start));
 	}
@@ -585,9 +596,9 @@ void    add_to_args(int start, int end, char *s, int i, t_sep *node)
 	if (i > 0)
 	{
 		if (node->is_path_in_arg)
-				j = i;
-			else
-				j = i - 1;
+			j = i;
+		else
+			j = i - 1;
 			// if (j > 0)
 		node->args = ft_realloc_2(node->args, j, (j + 1));
 		node->args[j] = NULL;
@@ -751,7 +762,7 @@ void    get_args(char *s, int start, t_sep *node)
 	}
 }
 
-/*char	*red_redim_s(char *s, int start, int end)
+char	*red_redim_s(char *s, int start, int end)
 {
 	char	*s1;
 	char	*s2;
@@ -797,7 +808,7 @@ char	*red_get_file(t_sep *node, char *s, int start, char type)
 					file = handling_bs_dq(file);
 				else
 					file = handling_bs(file);
-				file = handling_dollar(file);
+				file = handling_dollar(file, node);
 			}
 			node->red_args = red_redim_s(s, i, end);
 			// printf("\n FILE : |%s| \n", file);
@@ -816,7 +827,7 @@ char	*red_get_file(t_sep *node, char *s, int start, char type)
 					file = handling_bs_dq(file);
 				else
 					file = handling_bs(file);
-				file = handling_dollar(file);
+				file = handling_dollar(file, node);
 			}
 			// printf("\n FILE : |%s| \n", file);
 			return (file);
@@ -830,24 +841,56 @@ void    r_add_to_args(int start, int end, char *s, int i, t_sep *node)
 {
 	int		l;
 	char	type;
+	int j;
 	
 	type = s[start];
 	l = end - start;
-	node->r_args[i] = NULL;
-	if (type != '\'' && type != '\"')
-		node->r_args[i] = ft_substr(s, start, l);
-	else
-		node->r_args[i] = ft_substr(s, start + 1, l - 1);
-	if (type != '\'')
+	// node->r_args[i] = NULL;
+
+	if (i > 0)
 	{
-		if (type == '\"')
-			node->r_args[i] = handling_bs_dq(node->r_args[i]);
+		if (node->is_path_in_arg)
+			j = i;
 		else
-			node->r_args[i] = handling_bs(node->r_args[i]);
-		node->r_args[i] = handling_dollar(node->r_args[i]);
+			j = i - 1;
+			// if (j > 0)
+		node->args = ft_realloc_2(node->args, j, (j + 1));
+		node->args[j] = NULL;
 	}
-	node->r_args[i + 1] = NULL;
-	// printf ("\n\n\nred arg %d : |%s|\n", i, node->r_args[i]);
+	if (i == 0)
+	{
+		handling_builtins(node, s, 0);
+		// if (!node->builtin)
+		// {
+			// s = ft_strdup(handling_dollar(s, node));
+			if (!node->is_builtin && node->path)
+			{
+				node->r_args = ft_realloc_2(node->r_args, i, (i + 1));
+				node->r_args[i] = ft_strdup(node->path);
+				node->r_args[i + 1] = NULL;
+				node->is_path_in_arg = 1;
+				// i++;
+			}
+		// }
+		return ;
+	}
+	
+		// node->r_args = ft_realloc_2(node->r_args, j, (j + 1));
+		if (type != '\'' && type != '\"')
+			node->r_args[j] = ft_substr(s, start, l);
+		else
+			node->r_args[j] = ft_substr(s, start + 1, l - 1);
+		if (type != '\'')
+		{
+			if (type == '\"')
+				node->r_args[j] = handling_bs_dq(node->r_args[j]);
+			else
+				node->r_args[j] = handling_bs(node->r_args[j]);
+			node->r_args[j] = handling_dollar(node->r_args[j], node);
+		}
+	
+	// node->r_args[i + 1] = NULL;
+	printf ("\n\n\nred arg %d : |%s|\n", i, node->r_args[i]);
 }
 
 void	red_get_cmd_args(t_sep *node)
@@ -858,6 +901,7 @@ void	red_get_cmd_args(t_sep *node)
 
 	i = 0;
 	start = 0;
+	
 	while (node->red_args[start])
 	{
 		if (node->red_args[start] == '\'' || node->red_args[start] == '\"')
@@ -867,8 +911,9 @@ void	red_get_cmd_args(t_sep *node)
 			end = search_second_quote(node->red_args, start + 1, node->red_args[start]);
 			if (!end)
 				error_msg("error multiligne");
-			node->r_args = ft_realloc_2(node->r_args, i, (i + 1));
-			r_add_to_args(start, end, node->red_args, i, node);
+			// node->r_args = ft_realloc_2(node->r_args, i, (i + 1));
+			// r_add_to_args(start, end, node->red_args, i, node);
+			add_to_args(start, end, node->red_args, i, node);
 			i++;
 			start = end + 1;
 		}
@@ -879,8 +924,9 @@ void	red_get_cmd_args(t_sep *node)
 				end++;
 			if (end > start)
 			{
-				node->r_args = ft_realloc_2(node->r_args, i, (i + 1));
-				r_add_to_args(start, end, node->red_args, i, node);
+				// node->r_args = ft_realloc_2(node->r_args, i, (i + 1));
+				// r_add_to_args(start, end, node->red_args, i, node);
+				add_to_args(start, end, node->red_args, i, node);
 				i++;
 			}
 			start = end;
@@ -925,7 +971,7 @@ char	red_get_type(char *s, int start)
 void	red_get_type_file(t_sep *node, char *s, int start)
 {
 	int		i;
-	char	type;
+	// char	type;
 	char	*file;
 	int		end;
 	int		j;
@@ -935,6 +981,8 @@ void	red_get_type_file(t_sep *node, char *s, int start)
 	file = NULL;
 	end = 0;
 	node->red_args = NULL;
+	node->r_file = NULL;
+	node->red_op = '\0';
 	(void)start;
 	j = 0;
 	while (s[i])
@@ -950,35 +998,37 @@ void	red_get_type_file(t_sep *node, char *s, int start)
 				error_msg("error multiligne");
 			i = end;
 		}
-		if ((s[i] == '>' && s[i - 1] != '\\') ||
-		(s[i] == '<' && s[i - 1] != '\\') )
+		if ((s[i] == '>' ) ||
+		(s[i] == '<' ) )
 		{
 			// j = i;
-			type = red_get_type(s, i);
-			file = red_get_file(node, s, i, type);
+			node->red_op = red_get_type(s, i);
+			node->r_file = red_get_file(node, s, i, node->red_op);
 			s = node->red_args;
 			// printf("\n REDIM : |%s| \n", node->red_args);
-			printf("\n FILE : |%s| // TYPE : |%c| \n", file, type);
+			// printf("\n FILE : |%s| // TYPE : |%c| \n", file, type);
 			// i = j;
 		}
-		if (s[i + 1] == '\0')
+		if (node->r_file)
 			{
 				red_get_cmd_args(node);
 				// printf("\n RED_ARGS : |%s| \n", node->red_args);
-				j = ft_strlen2(node->r_args);
-				i = 0;
-				while (j > 0)
-				{
-					printf("\narg %d : |%s|\n", i, node->r_args[i]);
-					i++;
-					j--; 
-				}
-				break;
+				// j = ft_strlen2(node->r_args);
+				// i = 0;
+				// while (j > 0)
+				// {
+				// 	printf("\narg %d : |%s|\n", i, node->r_args[i]);
+				// 	i++;
+				// 	j--; 
+				// }
+				// break;
+				return ;
 			}
 		j = 0;
 		i++;
 	}
-}*/
+	// node->r_args = node->args;
+}
 
 void	init_t_sep(t_sep *node)
 {
@@ -991,10 +1041,13 @@ void	init_t_sep(t_sep *node)
 	node->lower_builtin = NULL;
 	node->is_red = 0;
 	node->s_red = NULL;
+	node->r_file = NULL;
+	node->r_args = NULL;
 	node->is_path_in_arg = 0;
-	
+	node->red_op = '\0';
 }
-/*int		check_red(t_sep *node, char *s)
+
+int		check_red(t_sep *node, char *s)
 {
 	int start;
 	int end;
@@ -1026,7 +1079,7 @@ void	init_t_sep(t_sep *node)
 		start++;
 	}
 	return (0);
-}*/
+}
 
 char	*replace_from_env(char *str, t_sep *node)
 {
@@ -1107,7 +1160,8 @@ void    get_builtin(char *s, t_sep *node)
 	i = 0;
 	while (s[i] && s[i] == ' ')
 		i++;
-	get_args(s, i, node);
+	if (!check_red(node, s))
+		get_args(s, i, node);
 	// printf("\ncmd : |%s|\n", node->builtin);
 	// }
 }
@@ -1156,15 +1210,17 @@ void    fill_node(char *s, t_sep *node, int start, char *str)
 	// printf("\n s end : |%s|\n", s);
 	// parsing_red(node, s);
 	node->s_red = ft_strdup(s);
-	// if (s[i] && )
-	// if (((str[i] != '>' && str[i] != '<') && (s[i] != '>' && s[i] != '<')) && (str[ft_strlen(s)]!= '>' || str[ft_strlen(s)]!= '>')
-	// && (str[ft_strlen(s) + 1]!= '>' || str[ft_strlen(s) + 1]!= '>'))
-	if (s[0] != '<' && s[0] != '>' && str[start + l] != '<' && str[start + l] != '>')
-	{
-		if (start > 0 && (str[start - 1] == '>' && str[start - 1] == '>'))
-			return ;
+	
+	
+	// if (s[0] != '<' && s[0] != '>' && str[start + l] != '<' && str[start + l] != '>')
+	// {
+	// 	if (start > 0 && (str[start - 1] == '>' && str[start - 1] == '>'))
+	// 		return ;
 		get_builtin(s, node);
-	}
+	// }
+
+
+	
 	// printf ("\n\n string red : |%s|", node->s_red);
 	// printf ("\nlower : %s", node->cmd.lower_builtin);
 	
@@ -1236,9 +1292,9 @@ void	fill_list(char *str)
 			i = end;
 		}
 		if ((str[i] == '|')
-		|| (str[i] == ';')
-		|| (str[i] == '>')
-		|| (str[i] == '<')
+		// || (str[i] == ';')
+		// || (str[i] == '>')
+		// || (str[i] == '<')
 		|| (!str[i + 1]))
 		{
 			pipes_num += (str[i] == '|');
@@ -1255,8 +1311,8 @@ void	fill_list(char *str)
 			if (s)
 				free(s);
 			start = i;
-			if ((str[i] == '>' && str[i + 1] == '>') || (str[i] == '<' && str[i + 1] == '<'))
-				i++;
+			// if ((str[i] == '>' && str[i + 1] == '>') || (str[i] == '<' && str[i + 1] == '<'))
+			// 	i++;
 		}
 		i++;
 	}

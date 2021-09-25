@@ -1,0 +1,14 @@
+total 232
+drwxr-xr-x  13 yer-raki  2019     442 Sep 25 16:42 .
+drwx------  14 yer-raki  2019     476 Sep 24 10:07 ..
+-rw-r--r--   1 yer-raki  2019    6148 Jul 15 07:40 .DS_Store
+drwxr-xr-x  15 yer-raki  2019     510 Sep 25 12:27 .git
+-rw-r--r--   1 yer-raki  2019     514 Jul 15 07:40 .gitignore
+drwxr-xr-x   3 yer-raki  2019     102 Jul 18 09:17 .vscode
+drwxr-xr-x  75 yer-raki  2019    2550 Sep 25 16:41 Libft
+-rw-r--r--   1 yer-raki  2019     461 Jul 15 07:40 Makefile
+drwxr-xr-x   3 yer-raki  2019     102 Jul 15 07:40 includes
+-rwxr-xr-x   1 yer-raki  2019  102320 Sep 25 16:41 minishell
+drwxr-xr-x   3 yer-raki  2019     102 Sep 25 16:41 minishell.dSYM
+-rw-r--r--   1 yer-raki  2019       0 Sep 25 16:42 out
+drwxr-xr-x   6 yer-raki  2019     204 Sep  7 07:34 srcs

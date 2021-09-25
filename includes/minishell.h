@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:09:15 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/07/19 08:35:00 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/09/25 14:48:29 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,6 +59,8 @@ typedef struct  s_sep
 	char    *upper_builtin; // normalized builtin (UPPER)
 	char	*lower_builtin;
 	char    **args; // commands without builtin
+	char	*r_file;
+	char	red_op;
 	char	*red_args;
 	char	**r_args; // r_args[0] is the command and the others are arguments
 	int		p_pip;
