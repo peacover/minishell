@@ -6,7 +6,7 @@
 /*   By: mhaddi <mhaddi@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/08 15:34:01 by mhaddi            #+#    #+#             */
-/*   Updated: 2021/09/21 12:01:41 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/09/26 11:21:12 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -418,11 +418,44 @@ void env()
 	}
 }
 
+void	redirect(int *stdin_fd, int *stdout_fd, t_sep *node)
+{
+	int input_fd;
+	int output_fd;
+
+	// check if there is a redir_op
+	if (node->is_red)
+	{
+		// check type of redir
+		if (node->red_op == 'i')
+		{
+			input_fd = open(node->r_file, O_RDONLY);
+			*stdin_fd = dup(0);
+			dup2(input_fd, 0);
+		}
+		else if (node->red_op == 'o')
+		{
+			output_fd = open(node->r_file, O_CREAT | O_TRUNC | O_WRONLY, 0644);
+			*stdout_fd = dup(1);
+			dup2(output_fd, 1);
+		}
+	}
+}
+
+// TO-DO: try out all possible usages of all the redirection
+// operators (especially the various positions they can take),
+// this might affect the parsing methods regarding the
+// redirection operators.
+
 void    run_cmdline(t_sep *node, int pipes_num)
 {
-	
+	int stdin_fd;
+	int stdout_fd;
+
 	if (node->next == NULL) // no pipes or redirections
 	{
+		redirect(&stdin_fd, &stdout_fd, node);
+
 		// printf("true, next is null.\n");
 		if (node->is_builtin)
 		{
@@ -453,25 +486,16 @@ void    run_cmdline(t_sep *node, int pipes_num)
 			if (fork_pid == 0)
 			{
 				// execve(argv[0], argv, g_envp);
-				
-				/*
-				if (node->path)
-				{
-					if (execve(node->path, node->args, g_envp) == -1)
-						printf("minishell: %s: command not found\n", node->builtin);
-				}
-				else
-				{
-					if (execve(node->builtin, node->args, g_envp) == -1)
-						printf("minishell: %s: command not found\n", node->builtin);
-				}
-				*/
-
 				if (execve((char *[2]){node->path, node->builtin}[!node->path], node->args, g_envp) == -1)
 					printf("minishell: %s: command not found\n", node->builtin);
 			}
-			waitpid(fork_pid, NULL, 0); // TO-DO: handle exit codes in execve and builtins and others
+			else
+			{
+				waitpid(fork_pid, NULL, 0); // TO-DO: handle exit codes in execve and builtins and others
+			}
 		}
+		dup2(stdin_fd, 0);
+		dup2(stdout_fd, 1);
 	}
 	else // pipes and redirections
 	{
@@ -479,7 +503,6 @@ void    run_cmdline(t_sep *node, int pipes_num)
 		int pipe_fd[2];
 		pipe(pipe_fd);
 		int num_cmd = 0;
-		int stdin_fd = 0;
 		while (node != NULL)
 		{
 			// if sep is a pipe (e.g.: `ls | cat`, current node's cmd
@@ -487,7 +510,9 @@ void    run_cmdline(t_sep *node, int pipes_num)
 			// or if cmd is last cmd in the pipeline
 			if (node->t_sp == '|' || num_cmd == pipes_num)
 			{
-				if (num_cmd > 0)
+				redirect(&stdin_fd, &stdout_fd, node);
+
+				if (num_cmd > 0 && node->red_op != 'i')
 				{
 					stdin_fd = dup(0);
 					dup2(pipe_fd[0], 0);
@@ -496,29 +521,8 @@ void    run_cmdline(t_sep *node, int pipes_num)
 				pids[num_cmd] = fork();
 				if (pids[num_cmd] == 0)
 				{
-					if (num_cmd < pipes_num)
+					if (num_cmd < pipes_num && node->red_op != 'o')
 						dup2(pipe_fd[1], 1);
-
-					/*
-					if (node->path)
-					{
-						if (execve(node->path, node->args, g_envp) == -1)
-						{
-							printf("minishell: %s: command not found\n", node->builtin);
-							close(pipe_fd[1]);
-							exit(1); // error code
-						}
-					}
-					else
-					{
-						if (execve(node->builtin, node->args, g_envp) == -1)
-						{
-							printf("minishell: %s: command not found\n", node->builtin);
-							close(pipe_fd[1]);
-							exit(1); // error code
-						}
-					}
-					*/
 
 					if (execve((char *[2]){node->path, node->builtin}[!node->path], node->args, g_envp) == -1)
 					{
@@ -533,12 +537,8 @@ void    run_cmdline(t_sep *node, int pipes_num)
 					num_cmd++;
 				}
 			}
-			// else if (sep is some type of redirection)
-			// 		; do stuff 	// TO-DO: try out all possible usages of all the redirection
-			// 					// operators (especially the various positions they can take),
-			// 					// this might affect the parsing methods regarding the
-			// 					// redirection operators.
 			dup2(stdin_fd, 0);
+			dup2(stdout_fd, 1);
 			node = node->next;
 		}
 	}

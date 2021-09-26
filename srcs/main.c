@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/09/25 16:46:49 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/09/26 11:14:18 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -1316,8 +1316,8 @@ void	fill_list(char *str)
 		}
 		i++;
 	}
-	print_mylist(head, pipes_num); 
-	// run_cmdline(head, pipes_num);
+	// print_mylist(head, pipes_num); 
+	run_cmdline(head, pipes_num);
 	free_mylist_sep(head);
 	
 }
