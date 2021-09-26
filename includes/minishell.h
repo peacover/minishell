@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:09:15 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/09/25 14:48:29 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/09/26 13:15:27 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,11 +42,12 @@ typedef struct	s_env
     struct s_env * next;
 }				t_env;
 
-typedef struct s_list
+typedef struct s_red
 {
-	void	*content;
-	struct s_list *next;
-}				t_list;
+	char			*r_file;
+	char			red_op;
+	struct s_red	*next;
+}				t_red;
 
 typedef struct  s_sep
 {
@@ -68,6 +69,7 @@ typedef struct  s_sep
 	char	*s_red; //string of redirection
 	
 	t_env	*env;
+	t_red	*red;
 	struct s_sep *next;
 }               t_sep;
 

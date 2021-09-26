@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/09/26 11:14:18 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/09/26 15:07:05 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,22 @@ void    error_msg(char *s)
 	ft_putchar('\n');
 	exit(0);
 }
+void	print_red(t_red *red)
+{
+	int i;
 
+	i = 0;
+	while (red)
+	{
+		printf(" \nRED_Node: %d\n", i);
+		printf("\n---------------------------\n");
+		printf (" File : %s", red->r_file);
+		printf ("\n Type_red : %c", red->red_op);
+		printf("\n---------------------------\n");
+		red = red->next;
+		i++;
+	}
+}
 void    print_mylist(t_sep *node, int pipes_num)
 {
 	int i;
@@ -50,8 +65,7 @@ void    print_mylist(t_sep *node, int pipes_num)
 		printf ("\n pipes_num : %d", pipes_num);
 		
 		printf ("\n\n is_red : %d", node->is_red);
-		printf ("\n file : %s", node->r_file);
-		printf ("\n type_red : %c", node->red_op);
+		print_red(node->red);
 		i = 0; 
 		l = ft_strlen2(node->args);
 		l2 = ft_strlen2(node->r_args);
@@ -787,6 +801,7 @@ char	*red_get_file(t_sep *node, char *s, int start, char type)
 	file = NULL;
 	while (s[start])
 	{
+		node->red_args = NULL;
 		i = start;
 		if (type == 'i' || type == 'o' )
 			start++;
@@ -968,22 +983,54 @@ char	red_get_type(char *s, int start)
 	return('\0');
 }
 
+void	init_node_red(t_red *red)
+{
+	red->r_file = NULL;
+	red->red_op = '\0';
+}
+
+void	fill_node_red(t_red *red, char *file, char type)
+{
+	red->r_file = file;
+	red->red_op = type;	
+}
+
+void	fill_red_list(t_red **head, char *file, char type)
+{
+	int i;
+	
+	i = 0;
+	t_red *newNode = malloc(sizeof(t_red));
+	t_red *lastNode = *head;
+	init_node_red(newNode);
+	fill_node_red(newNode, file, type);
+	newNode->next = NULL;
+	if (*head == NULL)
+		 *head = newNode;
+	else
+	{
+		lastNode = *head;
+		while (lastNode->next != NULL)
+		{
+			lastNode = lastNode->next;
+		}
+		lastNode->next = newNode;
+	}
+}
+
 void	red_get_type_file(t_sep *node, char *s, int start)
 {
 	int		i;
-	// char	type;
+	char	type;
 	char	*file;
 	int		end;
 	int		j;
-
+	
 	i = 0;
-	(void)node;
+	(void)start;
 	file = NULL;
 	end = 0;
 	node->red_args = NULL;
-	node->r_file = NULL;
-	node->red_op = '\0';
-	(void)start;
 	j = 0;
 	while (s[i])
 	{
@@ -998,20 +1045,23 @@ void	red_get_type_file(t_sep *node, char *s, int start)
 				error_msg("error multiligne");
 			i = end;
 		}
-		if ((s[i] == '>' ) ||
-		(s[i] == '<' ) )
+		if ((s[i] == '>' ) || (s[i] == '<' ) )
 		{
 			// j = i;
-			node->red_op = red_get_type(s, i);
-			node->r_file = red_get_file(node, s, i, node->red_op);
+			type = red_get_type(s, i);
+			file = red_get_file(node, s, i, type);
 			s = node->red_args;
+			fill_red_list(&node->red, file, type);
+			// node->red_args = NULL;
 			// printf("\n REDIM : |%s| \n", node->red_args);
 			// printf("\n FILE : |%s| // TYPE : |%c| \n", file, type);
 			// i = j;
+			// printf(" \n\nRED S = %s | i = %d", s, i);
 		}
-		if (node->r_file)
-			{
-				red_get_cmd_args(node);
+			// printf(" \n\nTYPE = %c", node->red->red_op);
+		// if (!s)
+		// 	{
+		// 		red_get_cmd_args(node);
 				// printf("\n RED_ARGS : |%s| \n", node->red_args);
 				// j = ft_strlen2(node->r_args);
 				// i = 0;
@@ -1022,11 +1072,12 @@ void	red_get_type_file(t_sep *node, char *s, int start)
 				// 	j--; 
 				// }
 				// break;
-				return ;
-			}
+				// return ;
+			// }
 		j = 0;
 		i++;
 	}
+	red_get_cmd_args(node);
 	// node->r_args = node->args;
 }
 
@@ -1041,10 +1092,11 @@ void	init_t_sep(t_sep *node)
 	node->lower_builtin = NULL;
 	node->is_red = 0;
 	node->s_red = NULL;
-	node->r_file = NULL;
+	
 	node->r_args = NULL;
 	node->is_path_in_arg = 0;
-	node->red_op = '\0';
+	
+	node->red = NULL;
 }
 
 int		check_red(t_sep *node, char *s)
@@ -1116,7 +1168,7 @@ void    get_builtin(char *s, t_sep *node)
 {
 	int     i;
 	int		l;
-
+	
 	i = 0;
 	// l = ft_strlen(s);
 	// if (s[i] && s[i] == '$')
@@ -1234,7 +1286,6 @@ void	addlast_sep(t_sep **head, char *s, int start, char *str)
 	int i;
 	
 	i = 0;
-	(void)str;
 	t_sep *newNode = malloc(sizeof(t_sep));
 	t_sep *lastNode = *head;
 	init_t_sep(newNode);
@@ -1253,6 +1304,17 @@ void	addlast_sep(t_sep **head, char *s, int start, char *str)
 	}
 }
 
+void	free_mylist_red(t_red *head)
+{
+	t_red *tmp;
+	
+	while (head != NULL)
+	{
+	   tmp = head;
+	   head = head->next;
+	   free(tmp);
+	}
+}
 
 void	free_mylist_sep(t_sep *head)
 {
@@ -1316,8 +1378,9 @@ void	fill_list(char *str)
 		}
 		i++;
 	}
-	// print_mylist(head, pipes_num); 
-	run_cmdline(head, pipes_num);
+	print_mylist(head, pipes_num); 
+	// run_cmdline(head, pipes_num);
+	free_mylist_red(head->red);
 	free_mylist_sep(head);
 	
 }
