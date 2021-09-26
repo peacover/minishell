@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/09/26 15:07:05 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/09/26 15:51:08 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -1024,14 +1024,12 @@ void	red_get_type_file(t_sep *node, char *s, int start)
 	char	type;
 	char	*file;
 	int		end;
-	int		j;
 	
 	i = 0;
 	(void)start;
 	file = NULL;
 	end = 0;
 	node->red_args = NULL;
-	j = 0;
 	while (s[i])
 	{
 		while (s[i] && s[i] == ' ')
@@ -1047,35 +1045,21 @@ void	red_get_type_file(t_sep *node, char *s, int start)
 		}
 		if ((s[i] == '>' ) || (s[i] == '<' ) )
 		{
-			// j = i;
 			type = red_get_type(s, i);
 			file = red_get_file(node, s, i, type);
+			
 			s = node->red_args;
 			fill_red_list(&node->red, file, type);
-			// node->red_args = NULL;
 			// printf("\n REDIM : |%s| \n", node->red_args);
 			// printf("\n FILE : |%s| // TYPE : |%c| \n", file, type);
 			// i = j;
-			// printf(" \n\nRED S = %s | i = %d", s, i);
+			//printf(" \n\nRED S = |%s| | i = %d", s, i);
 		}
-			// printf(" \n\nTYPE = %c", node->red->red_op);
-		// if (!s)
-		// 	{
-		// 		red_get_cmd_args(node);
-				// printf("\n RED_ARGS : |%s| \n", node->red_args);
-				// j = ft_strlen2(node->r_args);
-				// i = 0;
-				// while (j > 0)
-				// {
-				// 	printf("\narg %d : |%s|\n", i, node->r_args[i]);
-				// 	i++;
-				// 	j--; 
-				// }
-				// break;
-				// return ;
-			// }
-		j = 0;
+		if ((int)ft_strlen(s) < i + 1)
+			break;
 		i++;
+		// if ((int)ft_strlen(s) >= i)
+		// 	break;
 	}
 	red_get_cmd_args(node);
 	// node->r_args = node->args;
