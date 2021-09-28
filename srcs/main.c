@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/09/26 15:51:08 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/09/28 09:09:40 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -1362,8 +1362,8 @@ void	fill_list(char *str)
 		}
 		i++;
 	}
-	print_mylist(head, pipes_num); 
-	// run_cmdline(head, pipes_num);
+	// print_mylist(head, pipes_num); 
+	run_cmdline(head, pipes_num);
 	free_mylist_red(head->red);
 	free_mylist_sep(head);
 	
@@ -1466,18 +1466,22 @@ int     main(int argc, char **argv, char **env)
 	while (1)
 	{
 		str = NULL;
-		// str = readline(my_getcwd());
 		str = readline("\x1B[32m$> \e[0m");
-		if (ft_strlen(str) < 1)
+		if (!str)
+		{
+			//if (isatty(0))
+				write(2, "\b\bexit\n", 7);
+			break ;
+		}
+		if (str[0] == '\0')
 		{
 			free(str);
-			continue;
+			continue ;
 		}
 		add_history(str);
 		if (!handling_errors_arg(str))
 			fill_args(str);
-		if (str)
-			free(str);
+		free(str);
 		// system("leaks minishell");
 	}
 }

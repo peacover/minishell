@@ -6,13 +6,14 @@
 /*   By: mhaddi <mhaddi@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/08 15:34:01 by mhaddi            #+#    #+#             */
-/*   Updated: 2021/09/26 11:21:12 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/09/28 10:02:30 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/minishell.h"
 #include <errno.h>
 #include <string.h>
+#include <sys/fcntl.h>
 #include <sys/types.h>
 #include <dirent.h>
 
@@ -422,23 +423,39 @@ void	redirect(int *stdin_fd, int *stdout_fd, t_sep *node)
 {
 	int input_fd;
 	int output_fd;
+	int is_input = 0;
+	int is_output = 0;
 
-	// check if there is a redir_op
-	if (node->is_red)
+	while (node->red != NULL)
 	{
 		// check type of redir
-		if (node->red_op == 'i')
+		if (node->red->red_op == 'i')
 		{
-			input_fd = open(node->r_file, O_RDONLY);
-			*stdin_fd = dup(0);
-			dup2(input_fd, 0);
+			input_fd = open(node->red->r_file, O_RDONLY);
+			is_input++;
 		}
-		else if (node->red_op == 'o')
+		else if (node->red->red_op == 'o')
 		{
-			output_fd = open(node->r_file, O_CREAT | O_TRUNC | O_WRONLY, 0644);
-			*stdout_fd = dup(1);
-			dup2(output_fd, 1);
+			output_fd = open(node->red->r_file, O_CREAT | O_TRUNC | O_WRONLY, 0644);
+			is_output++;
 		}
+		else if (node->red->red_op == 'a')
+		{
+			output_fd = open(node->red->r_file, O_CREAT | O_APPEND | O_WRONLY, 0644);
+			is_output++;
+		}
+		node->red = node->red->next;
+	}
+
+	if (is_input)
+	{
+		*stdin_fd = dup(0);
+		dup2(input_fd, 0);
+	}
+	if (is_output)
+	{
+		*stdout_fd = dup(1);
+		dup2(output_fd, 1);
 	}
 }
 
@@ -449,12 +466,14 @@ void	redirect(int *stdin_fd, int *stdout_fd, t_sep *node)
 
 void    run_cmdline(t_sep *node, int pipes_num)
 {
-	int stdin_fd;
-	int stdout_fd;
+	int stdin_fd = 0;
+	int stdout_fd = 0;
 
 	if (node->next == NULL) // no pipes or redirections
 	{
-		redirect(&stdin_fd, &stdout_fd, node);
+		// check if there is a redir_op
+		if (node->is_red)
+			redirect(&stdin_fd, &stdout_fd, node);
 
 		// printf("true, next is null.\n");
 		if (node->is_builtin)
@@ -487,13 +506,17 @@ void    run_cmdline(t_sep *node, int pipes_num)
 			{
 				// execve(argv[0], argv, g_envp);
 				if (execve((char *[2]){node->path, node->builtin}[!node->path], node->args, g_envp) == -1)
+				{
 					printf("minishell: %s: command not found\n", node->builtin);
+					exit(1); // error code
+				}
 			}
 			else
 			{
 				waitpid(fork_pid, NULL, 0); // TO-DO: handle exit codes in execve and builtins and others
 			}
 		}
+
 		dup2(stdin_fd, 0);
 		dup2(stdout_fd, 1);
 	}
@@ -510,9 +533,7 @@ void    run_cmdline(t_sep *node, int pipes_num)
 			// or if cmd is last cmd in the pipeline
 			if (node->t_sp == '|' || num_cmd == pipes_num)
 			{
-				redirect(&stdin_fd, &stdout_fd, node);
-
-				if (num_cmd > 0 && node->red_op != 'i')
+				if (num_cmd > 0)
 				{
 					stdin_fd = dup(0);
 					dup2(pipe_fd[0], 0);
@@ -521,14 +542,27 @@ void    run_cmdline(t_sep *node, int pipes_num)
 				pids[num_cmd] = fork();
 				if (pids[num_cmd] == 0)
 				{
-					if (num_cmd < pipes_num && node->red_op != 'o')
+					if (num_cmd < pipes_num && (node->path || node->builtin))
 						dup2(pipe_fd[1], 1);
 
-					if (execve((char *[2]){node->path, node->builtin}[!node->path], node->args, g_envp) == -1)
+					// check if there is a redir_op
+					if (node->is_red)
+						redirect(&stdin_fd, &stdout_fd, node);
+
+					if (node->path || node->builtin)
 					{
-						printf("minishell: %s: command not found\n", node->builtin);
+						if (execve((char *[2]){node->path, node->builtin}[!node->path], node->args, g_envp) == -1)
+						{
+							printf("minishell: %s: command not found\n", node->builtin);
+							close(pipe_fd[1]);
+							exit(1); // error code
+						}
+					}
+					else
+					{
 						close(pipe_fd[1]);
-						exit(1); // error code
+						close(0);
+						dup2(open("/dev/null", O_WRONLY), 1);
 					}
 				}
 				else {
