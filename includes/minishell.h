@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:09:15 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/09/26 13:15:27 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/10/03 11:29:17 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,8 @@
 # define KEY_REMOVE 127
 # define KEY_TAB 9
 # define CTRL_D 4
+# define NODE_INDEX 0
+# define REDIR_INDEX 1
 
 typedef struct	s_env
 {

@@ -6,7 +6,7 @@
 /*   By: mhaddi <mhaddi@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/08 15:34:01 by mhaddi            #+#    #+#             */
-/*   Updated: 2021/09/28 10:02:30 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/10/03 11:35:47 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,106 @@
 #include <sys/fcntl.h>
 #include <sys/types.h>
 #include <dirent.h>
+
+char    *ft_getline(void)
+{
+    char    c;
+    char    *line;
+    char    *tmp;
+
+    line = malloc(1);
+    *line = '\0';
+    while (1)
+    {
+        read(0, &c, 1);
+        if (c == EOF)
+            return (line);
+        tmp = line;
+        line = ft_strjoin(tmp, (char [2]){c, '\0'});
+        free(tmp);
+        if (c == '\n')
+            return (line);
+    }
+}
+
+int *find_working_heredocs(t_sep *node)
+{
+	int node_index;
+	int red_index;
+	int *heredoc_index = malloc(2);
+
+	heredoc_index[NODE_INDEX] = -1;
+	heredoc_index[REDIR_INDEX] = -1;
+
+	node_index = -1;
+
+	while (node != NULL)
+	{
+		node_index++;
+		red_index = -1;
+
+		while (node->red != NULL)
+		{
+			red_index++;
+			if (node->red->red_op == 'h')
+			{
+				heredoc_index[NODE_INDEX] = node_index;
+				heredoc_index[REDIR_INDEX] = red_index;
+			}
+			node->red = node->red->next;
+		}
+		node = node->next;
+	}
+
+	return heredoc_index;
+}
+
+int run_heredoc(t_sep *node, int *heredoc_index)
+{
+	char *input;
+	char *line;
+	int input_fd;
+
+	if (heredoc_index[REDIR_INDEX] == -1)
+		return (1); // also when ctrl-c, return and error (not 1) and exit from run_cmdline
+
+	while (heredoc_index[NODE_INDEX] > 0)
+	{
+		node = node->next;
+		heredoc_index[NODE_INDEX]--;
+	}
+	while (heredoc_index[REDIR_INDEX] > 0)
+	{
+		node->red = node->red->next;
+		heredoc_index[REDIR_INDEX]--;
+	}
+
+	input = malloc(1);
+	*input = '\0';
+	while (1)
+	{
+		line = ft_getline();
+		// check_error(!line, 0, "ft_getline() failed.\nError", strings);
+		if (ft_strncmp(ft_strjoin(node->red->r_file, "\n"), line, ft_strlen(node->red->r_file)) == 0)
+		{
+			free(line);
+			break;
+		}
+		input = ft_strjoin(input, line); // free old input
+		free(line);
+		// check_error(!input, ENOMEM, "ft_strjoin() failed.\nError", strings);
+	}
+	input_fd = open("/tmp/heredoc", O_WRONLY | O_TRUNC | O_CREAT, 0644);
+	write(input_fd, input, ft_strlen(input));
+	// check_error(write(input_fd, input, ft_strlen(input)) == -1, errno, "write() failed.\nError", strings);
+	free(input);
+	close(input_fd);
+	close(0);
+	// check_error(close_status == -1, errno, "close() failed.\nError", strings);
+	input_fd = open("/tmp/heredoc", O_RDONLY);
+
+	return (0);
+}
 
 int echo(char **args)
 {
@@ -468,6 +568,8 @@ void    run_cmdline(t_sep *node, int pipes_num)
 {
 	int stdin_fd = 0;
 	int stdout_fd = 0;
+
+	run_heredoc(node, find_working_heredoc(node)); // exit function if ctrl+c
 
 	if (node->next == NULL) // no pipes or redirections
 	{
