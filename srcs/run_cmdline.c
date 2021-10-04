@@ -6,7 +6,7 @@
 /*   By: mhaddi <mhaddi@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/08 15:34:01 by mhaddi            #+#    #+#             */
-/*   Updated: 2021/10/04 10:16:49 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/10/04 10:50:08 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,10 +44,12 @@ void run_heredoc(t_sep *node)
 	int input_fd;
 	int i;
 	char *file_name;
+	t_red *red_head;
 
 	i = 0;
 	while (node != NULL)
 	{
+		red_head = node->red;
 		while (node->red != NULL)
 		{
 			if (node->red->red_op == 'h')
@@ -68,16 +70,17 @@ void run_heredoc(t_sep *node)
 					free(line);
 					// check_error(!input, ENOMEM, "ft_strjoin() failed.\nError", strings);
 				}
-				/* change redir type and file name here
-				 *
-				 *
-				 *
-				 * */
+
+				// change redir type and file name here
+				free(node->red->r_file);
+				node->red->r_file = file_name;
+
 				// check_error(write(input_fd, input, ft_strlen(input)) == -1, errno, "write() failed.\nError", strings);
 				// check_error(close_status == -1, errno, "close() failed.\nError", strings);
 			}
 			node->red = node->red->next;
 		}
+		node->red = red_head;
 		node = node->next;
 	}
 }
@@ -494,7 +497,7 @@ void	redirect(int *stdin_fd, int *stdout_fd, t_sep *node)
 	while (node->red != NULL)
 	{
 		// check type of redir
-		if (node->red->red_op == 'i')
+		if (node->red->red_op == 'i' || node->red->red_op == 'h')
 		{
 			input_fd = open(node->red->r_file, O_RDONLY);
 			is_input++;
