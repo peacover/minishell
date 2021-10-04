@@ -6,7 +6,7 @@
 /*   By: mhaddi <mhaddi@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/08 15:34:01 by mhaddi            #+#    #+#             */
-/*   Updated: 2021/10/04 10:50:08 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/10/04 12:57:25 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -493,26 +493,39 @@ void	redirect(int *stdin_fd, int *stdout_fd, t_sep *node)
 	int output_fd;
 	int is_input = 0;
 	int is_output = 0;
+	t_red *red_head;
 
-	while (node->red != NULL)
+	while (node != NULL)
 	{
-		// check type of redir
-		if (node->red->red_op == 'i' || node->red->red_op == 'h')
+		red_head = node->red;
+		while (node->red != NULL)
 		{
-			input_fd = open(node->red->r_file, O_RDONLY);
-			is_input++;
+			// check type of redir
+			if (node->red->red_op == 'i' || node->red->red_op == 'h')
+			{
+				input_fd = open(node->red->r_file, O_RDONLY);
+				free(node->red->r_file);
+				node->red->r_file = ft_itoa(input_fd);
+				is_input++;
+			}
+			else if (node->red->red_op == 'o')
+			{
+				output_fd = open(node->red->r_file, O_CREAT | O_TRUNC | O_WRONLY, 0644);
+				free(node->red->r_file);
+				node->red->r_file = ft_itoa(output_fd);
+				is_output++;
+			}
+			else if (node->red->red_op == 'a')
+			{
+				output_fd = open(node->red->r_file, O_CREAT | O_APPEND | O_WRONLY, 0644);
+				free(node->red->r_file);
+				node->red->r_file = ft_itoa(output_fd);
+				is_output++;
+			}
+			node->red = node->red->next;
 		}
-		else if (node->red->red_op == 'o')
-		{
-			output_fd = open(node->red->r_file, O_CREAT | O_TRUNC | O_WRONLY, 0644);
-			is_output++;
-		}
-		else if (node->red->red_op == 'a')
-		{
-			output_fd = open(node->red->r_file, O_CREAT | O_APPEND | O_WRONLY, 0644);
-			is_output++;
-		}
-		node->red = node->red->next;
+		node->red = red_head;
+		node = node->next;
 	}
 
 	if (is_input)
@@ -538,13 +551,10 @@ void    run_cmdline(t_sep *node, int pipes_num)
 	int stdout_fd = 0;
 
 	run_heredoc(node); // exit function if ctrl+c
+	redirect(&stdin_fd, &stdout_fd, node);
 
 	if (node->next == NULL) // no pipes or redirections
 	{
-		// check if there is a redir_op
-		if (node->is_red)
-			redirect(&stdin_fd, &stdout_fd, node);
-
 		// printf("true, next is null.\n");
 		if (node->is_builtin)
 		{
@@ -617,7 +627,12 @@ void    run_cmdline(t_sep *node, int pipes_num)
 
 					// check if there is a redir_op
 					if (node->is_red)
-						redirect(&stdin_fd, &stdout_fd, node);
+					{
+						while (node->red->next != NULL)
+							node->red = node->red->next;
+						dup2(ft_atoi(node->red->r_file), 1);
+						// redirect(&stdin_fd, &stdout_fd, node);
+					}
 
 					if (node->path || node->builtin)
 					{
