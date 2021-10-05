@@ -6,7 +6,7 @@
 /*   By: mhaddi <mhaddi@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/08 15:34:01 by mhaddi            #+#    #+#             */
-/*   Updated: 2021/10/05 09:31:29 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/10/05 11:08:23 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,13 +59,15 @@ void run_heredoc(t_sep *node)
 				input_fd = open(file_name, O_WRONLY | O_TRUNC | O_CREAT, 0644);
 				while (1)
 				{
-					line = ft_getline();
+					line = ft_getline(); // print > at beginning of line
 					// check_error(!line, 0, "ft_getline() failed.\nError", strings);
 					if (ft_strncmp(ft_strjoin(node->red->r_file, "\n"), line, ft_strlen(line)) == 0)
 					{
 						free(line);
 						break;
 					}
+					// implement expansion if there is no "" in STOP word
+					// line = handling_dollar(line, node);
 					write(input_fd, line, ft_strlen(line));
 					free(line);
 					// check_error(!input, ENOMEM, "ft_strjoin() failed.\nError", strings);
