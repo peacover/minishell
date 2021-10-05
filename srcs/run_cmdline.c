@@ -6,7 +6,7 @@
 /*   By: mhaddi <mhaddi@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/08 15:34:01 by mhaddi            #+#    #+#             */
-/*   Updated: 2021/10/04 12:57:25 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/10/05 09:31:29 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -626,13 +626,42 @@ void    run_cmdline(t_sep *node, int pipes_num)
 						dup2(pipe_fd[1], 1);
 
 					// check if there is a redir_op
+					// if (node->is_red)
+					// {
+					// 	while (node->red->next != NULL)
+					// 		node->red = node->red->next;
+					// 	dup2(ft_atoi(node->red->r_file), 1);
+					// 	// redirect(&stdin_fd, &stdout_fd, node);
+					// }
+					
+					// check if there is a redir_op
 					if (node->is_red)
 					{
-						while (node->red->next != NULL)
+						int i_red_found = 0;
+						char *i_red_file;
+						int o_red_found = 0;
+						char *o_red_file;
+						while (node->red != NULL)
+						{
+							if (node->red->red_op == 'o' || node->red->red_op == 'a')
+							{
+								o_red_found = 1;
+								o_red_file = node->red->r_file;
+							}
+							else if (node->red->red_op == 'h' || node->red->red_op == 'i')
+							{
+								i_red_found = 1;
+								i_red_file = node->red->r_file;
+							}
 							node->red = node->red->next;
-						dup2(ft_atoi(node->red->r_file), 1);
+						}
+						if (o_red_found)
+							dup2(ft_atoi(o_red_file), 1);
+						if (i_red_found)
+							dup2(ft_atoi(i_red_file), 0);
 						// redirect(&stdin_fd, &stdout_fd, node);
 					}
+
 
 					if (node->path || node->builtin)
 					{
