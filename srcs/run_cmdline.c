@@ -6,7 +6,7 @@
 /*   By: mhaddi <mhaddi@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/08 15:34:01 by mhaddi            #+#    #+#             */
-/*   Updated: 2021/10/06 09:38:32 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/10/06 10:42:45 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
 #include <sys/types.h>
 #include <dirent.h>
 
+/*
 char    *ft_getline(void)
 {
     char    c;
@@ -30,6 +31,32 @@ char    *ft_getline(void)
         read(0, &c, 1);
         if (c == EOF)
             return (line);
+        tmp = line;
+        line = ft_strjoin(tmp, (char [2]){c, '\0'});
+        free(tmp);
+        if (c == '\n')
+            return (line);
+    }
+}
+*/
+
+char    *ft_getline(void)
+{
+    char    c;
+    char    *line;
+    char    *tmp;
+
+    line = malloc(1);
+    *line = '\0';
+    while (1)
+    {
+        if (!read(0, &c, 1))
+        {
+            tmp = line;
+            line = ft_strjoin(tmp, "EOF");
+            free(tmp);
+            return (line);
+        }
         tmp = line;
         line = ft_strjoin(tmp, (char [2]){c, '\0'});
         free(tmp);
@@ -56,7 +83,7 @@ int has_quotes(char *str)
 void run_heredoc(t_sep *node)
 {
 	char *line;
-	char *unexpanded_line;
+	// char *unexpanded_line;
 	int input_fd;
 	int i;
 	char *file_name;
@@ -77,6 +104,11 @@ void run_heredoc(t_sep *node)
 				{
 					write(1, "> ", 2); // print > at beginning of line
 					line = ft_getline(); 
+					if (ft_strcmp(line, "EOF") == 0)
+					{
+						free(line);
+            			break ;
+					}
 					// check_error(!line, 0, "ft_getline() failed.\nError", strings);
 					if (ft_strncmp(ft_strjoin(node->red->r_file, "\n"), line, ft_strlen(line)) == 0)
 					{
@@ -88,9 +120,9 @@ void run_heredoc(t_sep *node)
 											// as a new parameter to the redirection list node,
 											// because quotes needs to be removed from the string.
 					{
-						unexpanded_line = line;
+						// unexpanded_line = line;
 						line = handling_dollar(line, node);
-						free(unexpanded_line);
+						// free(unexpanded_line);
 					}
 					write(input_fd, line, ft_strlen(line));
 					free(line);
