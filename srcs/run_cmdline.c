@@ -6,7 +6,7 @@
 /*   By: mhaddi <mhaddi@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/08 15:34:01 by mhaddi            #+#    #+#             */
-/*   Updated: 2021/10/05 11:08:23 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/10/06 09:38:32 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,9 +38,25 @@ char    *ft_getline(void)
     }
 }
 
+int has_quotes(char *str)
+{
+	int i;
+
+	i = 0;
+	while (str[i])
+	{
+		if (str[i] == '\"' || str[i] == '\'')
+			return (1);
+		i++;
+	}
+
+	return (0);
+}
+
 void run_heredoc(t_sep *node)
 {
 	char *line;
+	char *unexpanded_line;
 	int input_fd;
 	int i;
 	char *file_name;
@@ -55,11 +71,12 @@ void run_heredoc(t_sep *node)
 			if (node->red->red_op == 'h')
 			{
 				i++;
-				file_name = ft_strjoin("/tmp/heredoc_", ft_itoa(i)); // to free
+				file_name = ft_strjoin("/tmp/.heredoc_", ft_itoa(i)); // to free
 				input_fd = open(file_name, O_WRONLY | O_TRUNC | O_CREAT, 0644);
 				while (1)
 				{
-					line = ft_getline(); // print > at beginning of line
+					write(1, "> ", 2); // print > at beginning of line
+					line = ft_getline(); 
 					// check_error(!line, 0, "ft_getline() failed.\nError", strings);
 					if (ft_strncmp(ft_strjoin(node->red->r_file, "\n"), line, ft_strlen(line)) == 0)
 					{
@@ -67,7 +84,14 @@ void run_heredoc(t_sep *node)
 						break;
 					}
 					// implement expansion if there is no "" in STOP word
-					// line = handling_dollar(line, node);
+					if (!has_quotes(line))  // this should be checked in parsing and added
+											// as a new parameter to the redirection list node,
+											// because quotes needs to be removed from the string.
+					{
+						unexpanded_line = line;
+						line = handling_dollar(line, node);
+						free(unexpanded_line);
+					}
 					write(input_fd, line, ft_strlen(line));
 					free(line);
 					// check_error(!input, ENOMEM, "ft_strjoin() failed.\nError", strings);
@@ -489,7 +513,7 @@ void env()
 	}
 }
 
-void	redirect(int *stdin_fd, int *stdout_fd, t_sep *node)
+int	redirect(int *stdin_fd, int *stdout_fd, t_sep *node)
 {
 	int input_fd;
 	int output_fd;
@@ -506,6 +530,11 @@ void	redirect(int *stdin_fd, int *stdout_fd, t_sep *node)
 			if (node->red->red_op == 'i' || node->red->red_op == 'h')
 			{
 				input_fd = open(node->red->r_file, O_RDONLY);
+				if (input_fd == -1)
+				{
+					printf("minishell: %s: %s\n", node->red->r_file, strerror(errno));
+					return (-1);
+				}
 				free(node->red->r_file);
 				node->red->r_file = ft_itoa(input_fd);
 				is_input++;
@@ -513,6 +542,7 @@ void	redirect(int *stdin_fd, int *stdout_fd, t_sep *node)
 			else if (node->red->red_op == 'o')
 			{
 				output_fd = open(node->red->r_file, O_CREAT | O_TRUNC | O_WRONLY, 0644);
+				// handle errors...like what? unexpected tokens? shit like that
 				free(node->red->r_file);
 				node->red->r_file = ft_itoa(output_fd);
 				is_output++;
@@ -540,6 +570,8 @@ void	redirect(int *stdin_fd, int *stdout_fd, t_sep *node)
 		*stdout_fd = dup(1);
 		dup2(output_fd, 1);
 	}
+
+	return (0);
 }
 
 // TO-DO: try out all possible usages of all the redirection
@@ -551,9 +583,12 @@ void    run_cmdline(t_sep *node, int pipes_num)
 {
 	int stdin_fd = 0;
 	int stdout_fd = 0;
+	int redirect_status;
 
 	run_heredoc(node); // exit function if ctrl+c
-	redirect(&stdin_fd, &stdout_fd, node);
+	redirect_status = redirect(&stdin_fd, &stdout_fd, node);
+	if (redirect_status == -1)
+		return ;
 
 	if (node->next == NULL) // no pipes or redirections
 	{
@@ -579,7 +614,7 @@ void    run_cmdline(t_sep *node, int pipes_num)
 				exit(0);
 			}
 		}
-		else
+		else if (node->path || node->builtin)
 		{
 			// printf("ok, we exec now:\n");
 			// char *argv[] = {"/bin/sh", "-c", node->s_red, NULL};
