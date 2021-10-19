@@ -6,7 +6,7 @@
 /*   By: mhaddi <mhaddi@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/08 15:34:01 by mhaddi            #+#    #+#             */
-/*   Updated: 2021/10/06 10:42:45 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/10/19 12:53:34 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,6 +80,8 @@ int has_quotes(char *str)
 	return (0);
 }
 
+int is_forked = 0;
+
 void run_heredoc(t_sep *node)
 {
 	char *line;
@@ -99,42 +101,51 @@ void run_heredoc(t_sep *node)
 			{
 				i++;
 				file_name = ft_strjoin("/tmp/.heredoc_", ft_itoa(i)); // to free
-				input_fd = open(file_name, O_WRONLY | O_TRUNC | O_CREAT, 0644);
-				while (1)
+				signal(SIGINT, signal_handler_heredoc);
+				pid_t fork_pid = fork();
+				if (fork_pid == 0)
 				{
-					write(1, "> ", 2); // print > at beginning of line
-					line = ft_getline(); 
-					if (ft_strcmp(line, "EOF") == 0)
+					input_fd = open(file_name, O_WRONLY | O_TRUNC | O_CREAT, 0644);
+					while (1)
 					{
+						write(1, "> ", 2); // print > at beginning of line
+						line = ft_getline(); 
+						if (ft_strcmp(line, "EOF") == 0)
+						{
+							free(line);
+							break ;
+						}
+						// check_error(!line, 0, "ft_getline() failed.\nError", strings);
+						if (ft_strncmp(ft_strjoin(node->red->r_file, "\n"), line, ft_strlen(line)) == 0)
+						{
+							free(line);
+							break;
+						}
+						// implement expansion if there is no "" in STOP word
+						if (!has_quotes(line))  // this should be checked in parsing and added
+							// as a new parameter to the redirection list node,
+							// because quotes needs to be removed from the string.
+						{
+							// unexpanded_line = line;
+							line = handling_dollar(line, node);
+							// free(unexpanded_line);
+						}
+						write(input_fd, line, ft_strlen(line));
 						free(line);
-            			break ;
+						// check_error(!input, ENOMEM, "ft_strjoin() failed.\nError", strings);
 					}
-					// check_error(!line, 0, "ft_getline() failed.\nError", strings);
-					if (ft_strncmp(ft_strjoin(node->red->r_file, "\n"), line, ft_strlen(line)) == 0)
-					{
-						free(line);
-						break;
-					}
-					// implement expansion if there is no "" in STOP word
-					if (!has_quotes(line))  // this should be checked in parsing and added
-											// as a new parameter to the redirection list node,
-											// because quotes needs to be removed from the string.
-					{
-						// unexpanded_line = line;
-						line = handling_dollar(line, node);
-						// free(unexpanded_line);
-					}
-					write(input_fd, line, ft_strlen(line));
-					free(line);
-					// check_error(!input, ENOMEM, "ft_strjoin() failed.\nError", strings);
+					close(input_fd);
+					// check_error(write(input_fd, input, ft_strlen(input)) == -1, errno, "write() failed.\nError", strings);
+					// check_error(close_status == -1, errno, "close() failed.\nError", strings);
+					exit(0);
 				}
+				waitpid(fork_pid, NULL, 0); // TO-DO: handle exit codes in execve and builtins and others
+				is_forked = 0;
+				signal(SIGINT, signal_handler_parent);
 
 				// change redir type and file name here
 				free(node->red->r_file);
 				node->red->r_file = file_name;
-
-				// check_error(write(input_fd, input, ft_strlen(input)) == -1, errno, "write() failed.\nError", strings);
-				// check_error(close_status == -1, errno, "close() failed.\nError", strings);
 			}
 			node->red = node->red->next;
 		}
@@ -611,6 +622,43 @@ int	redirect(int *stdin_fd, int *stdout_fd, t_sep *node)
 // this might affect the parsing methods regarding the
 // redirection operators.
 
+void	signal_handler_heredoc(int sig)
+{
+	if (sig == SIGINT && is_forked)
+	{
+		write(1, "\n", 1);
+		rl_on_new_line();
+		exit(1);
+	}
+}
+
+void	signal_handler_parent(int sig)
+{
+	if (sig == SIGQUIT && is_forked)
+	{
+		write(2, "Quit: 3\n", 8);
+		rl_on_new_line();
+	}
+	if (sig == SIGQUIT && !is_forked)
+	{
+		rl_on_new_line();
+		rl_redisplay();
+	}
+	if (sig == SIGINT && is_forked)
+	{
+		write(1, "\n", 1);
+		rl_on_new_line();
+	}
+	if (sig == SIGINT && !is_forked)
+	{
+		write(1, "\n", 1);
+		rl_replace_line("", 1);
+		rl_on_new_line();
+		rl_redisplay();
+		// update_status_code(1);
+	}
+}
+
 void    run_cmdline(t_sep *node, int pipes_num)
 {
 	int stdin_fd = 0;
@@ -653,6 +701,7 @@ void    run_cmdline(t_sep *node, int pipes_num)
 			pid_t fork_pid = fork();
 			if (fork_pid == 0)
 			{
+				is_forked = 1;
 				// execve(argv[0], argv, g_envp);
 				if (execve((char *[2]){node->path, node->builtin}[!node->path], node->args, g_envp) == -1)
 				{
@@ -691,6 +740,7 @@ void    run_cmdline(t_sep *node, int pipes_num)
 				pids[num_cmd] = fork();
 				if (pids[num_cmd] == 0)
 				{
+					is_forked = 1;
 					if (num_cmd < pipes_num && (node->path || node->builtin))
 						dup2(pipe_fd[1], 1);
 
@@ -759,6 +809,7 @@ void    run_cmdline(t_sep *node, int pipes_num)
 			node = node->next;
 		}
 	}
+	is_forked = 0;
 
 	/*
 	int i;

@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/10/06 08:50:26 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/10/19 12:29:39 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -1463,6 +1463,8 @@ int     main(int argc, char **argv, char **env)
 	g_env = fill_env(env);
 	i = 0;
 	ret = 0;
+	signal(SIGQUIT, signal_handler_parent);
+	signal(SIGINT, signal_handler_parent);
 	while (1)
 	{
 		str = NULL;
@@ -1470,7 +1472,7 @@ int     main(int argc, char **argv, char **env)
 		if (!str)
 		{
 			//if (isatty(0))
-				write(2, "\b\bexit\n", 7);
+				write(2, "\b\bexit\n", 7); // return 1
 			break ;
 		}
 		if (str[0] == '\0')
