@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:09:15 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/10/20 09:34:32 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/10/20 12:03:47 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,7 @@
 #include <string.h>
 #include <fcntl.h>
 #include <signal.h>
+#include <termios.h>
 #include <readline/readline.h>
 #include <readline/history.h>
 #include "../Libft/libft.h"
