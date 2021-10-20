@@ -6,7 +6,7 @@
 /*   By: mhaddi <mhaddi@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/08 15:34:01 by mhaddi            #+#    #+#             */
-/*   Updated: 2021/10/19 12:53:34 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/10/20 09:57:13 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,8 +81,9 @@ int has_quotes(char *str)
 }
 
 int is_forked = 0;
+int exit_status;
 
-void run_heredoc(t_sep *node)
+int run_heredoc(t_sep *node)
 {
 	char *line;
 	// char *unexpanded_line;
@@ -105,6 +106,7 @@ void run_heredoc(t_sep *node)
 				pid_t fork_pid = fork();
 				if (fork_pid == 0)
 				{
+					is_forked = 1;
 					input_fd = open(file_name, O_WRONLY | O_TRUNC | O_CREAT, 0644);
 					while (1)
 					{
@@ -139,19 +141,23 @@ void run_heredoc(t_sep *node)
 					// check_error(close_status == -1, errno, "close() failed.\nError", strings);
 					exit(0);
 				}
-				waitpid(fork_pid, NULL, 0); // TO-DO: handle exit codes in execve and builtins and others
+				waitpid(fork_pid, &exit_status, 0); // TO-DO: handle exit codes in execve and builtins and others
 				is_forked = 0;
 				signal(SIGINT, signal_handler_parent);
 
 				// change redir type and file name here
 				free(node->red->r_file);
 				node->red->r_file = file_name;
+
+				if (WEXITSTATUS(exit_status) == 1)
+					return (1);
 			}
 			node->red = node->red->next;
 		}
 		node->red = red_head;
 		node = node->next;
 	}
+	return (0);
 }
 
 int echo(char **args)
@@ -634,16 +640,6 @@ void	signal_handler_heredoc(int sig)
 
 void	signal_handler_parent(int sig)
 {
-	if (sig == SIGQUIT && is_forked)
-	{
-		write(2, "Quit: 3\n", 8);
-		rl_on_new_line();
-	}
-	if (sig == SIGQUIT && !is_forked)
-	{
-		rl_on_new_line();
-		rl_redisplay();
-	}
 	if (sig == SIGINT && is_forked)
 	{
 		write(1, "\n", 1);
@@ -659,16 +655,17 @@ void	signal_handler_parent(int sig)
 	}
 }
 
-void    run_cmdline(t_sep *node, int pipes_num)
+int    run_cmdline(t_sep *node, int pipes_num)
 {
 	int stdin_fd = 0;
 	int stdout_fd = 0;
 	int redirect_status;
 
-	run_heredoc(node); // exit function if ctrl+c
+	if (run_heredoc(node) == 1) // exit function if ctrl+c
+		return (1);
 	redirect_status = redirect(&stdin_fd, &stdout_fd, node);
 	if (redirect_status == -1)
-		return ;
+		return (-1);
 
 	if (node->next == NULL) // no pipes or redirections
 	{
@@ -711,7 +708,9 @@ void    run_cmdline(t_sep *node, int pipes_num)
 			}
 			else
 			{
+				signal(SIGINT, SIG_IGN);
 				waitpid(fork_pid, NULL, 0); // TO-DO: handle exit codes in execve and builtins and others
+				signal(SIGINT, signal_handler_parent);
 			}
 		}
 
@@ -799,7 +798,9 @@ void    run_cmdline(t_sep *node, int pipes_num)
 					}
 				}
 				else {
+					signal(SIGINT, SIG_IGN);
 					waitpid(pids[num_cmd], NULL, 0);
+					signal(SIGINT, signal_handler_parent);
 					close(pipe_fd[1]);
 					num_cmd++;
 				}
@@ -811,30 +812,5 @@ void    run_cmdline(t_sep *node, int pipes_num)
 	}
 	is_forked = 0;
 
-	/*
-	int i;
-	int l;
-	int node_num;
-	
-	i = 0;
-	l = ft_strlen2(node->args);
-	node_num = 0;
-	while (node != NULL)
-	{
-		printf("\n\nNode: %d\n", node_num);
-		printf("\n------------------------------------------\n");
-		printf ("\n path : %s", node->path);
-		printf ("\n cmd : %s", node->builtin);
-		printf ("\n s_red : %s", node->s_red);
-		i = 0; 
-		while (l > i)
-		{
-			printf ("\n arg %d : %s", i, node->args[i]);
-			i++;
-		}
-		printf("\n------------------------------------------\n");
-		node_num++;
-		node = node->next;
-	}
-	*/
+	return (0);
 }

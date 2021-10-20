@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:09:15 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/10/19 12:29:29 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/10/20 09:34:32 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,7 @@
 #include <sys/stat.h>
 #include <string.h>
 #include <fcntl.h>
+#include <signal.h>
 #include <readline/readline.h>
 #include <readline/history.h>
 #include "../Libft/libft.h"
@@ -93,7 +94,7 @@ void	ft_checkcmd1(t_sep *node, char *str, int count_pp);
 void    ft_exec(t_sep *node);
 char    **fill_paramlist(t_sep *node);
 void	handling_builtins(t_sep *node, char *s, int start);
-void    run_cmdline(t_sep *node, int pipes_num);
+int    run_cmdline(t_sep *node, int pipes_num);
 char	*handling_dollar(char *s, t_sep *node);
 void	signal_handler_parent(int sig);
 void	signal_handler_heredoc(int sig);
