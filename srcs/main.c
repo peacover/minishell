@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/10/20 12:04:01 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/10/24 09:02:10 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -1312,7 +1312,7 @@ void	free_mylist_sep(t_sep *head)
 	}
 }
 
-void	fill_list(char *str)
+int	fill_list(char *str)
 {
 	int     i;
 	int     start;
@@ -1363,18 +1363,23 @@ void	fill_list(char *str)
 		i++;
 	}
 	// print_mylist(head, pipes_num); 
-	run_cmdline(head, pipes_num);
+	if (run_cmdline(head, pipes_num) == 1)
+	{
+		free_mylist_red(head->red);
+		free_mylist_sep(head);
+		return (1);
+	}
 	free_mylist_red(head->red);
 	free_mylist_sep(head);
-	
+	return (0);
 }
 
-void    fill_args(char *str)
+int    fill_args(char *str)
 {
 	int     i;
 	
 	i = 0;
-	fill_list(str);
+	return (fill_list(str));
 }
 
 
@@ -1494,8 +1499,15 @@ int     main(int argc, char **argv, char **env)
 		}
 		add_history(str);
 		if (!handling_errors_arg(str))
-			fill_args(str);
+		{
+			if (fill_args(str) == 1)
+			{
+				free(str);
+				return (1);
+			}
+		}
 		free(str);
 		// system("leaks minishell");
 	}
+	return (0);
 }

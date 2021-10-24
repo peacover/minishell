@@ -6,7 +6,7 @@
 /*   By: mhaddi <mhaddi@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/08 15:34:01 by mhaddi            #+#    #+#             */
-/*   Updated: 2021/10/20 09:57:13 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/10/24 10:08:57 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,23 +40,34 @@ char    *ft_getline(void)
 }
 */
 
+// printf("minishell: cd: %s: %s\n", args[0], strerror(errno));
+
 char    *ft_getline(void)
 {
     char    c;
     char    *line;
     char    *tmp;
+	int		read_status;
 
     line = malloc(1);
     *line = '\0';
     while (1)
     {
-        if (!read(0, &c, 1))
+        read_status = !read(0, &c, 1);
+		if (!read_status)
         {
             tmp = line;
             line = ft_strjoin(tmp, "EOF");
             free(tmp);
             return (line);
         }
+		else if (read_status < 0)
+		{
+			printf("minishell: read: %s\n", strerror(errno));
+			free(line);
+			line = NULL;
+			return (line);
+		}
         tmp = line;
         line = ft_strjoin(tmp, (char [2]){c, '\0'});
         free(tmp);
@@ -86,10 +97,11 @@ int exit_status;
 int run_heredoc(t_sep *node)
 {
 	char *line;
-	// char *unexpanded_line;
+	char *unexpanded_line;
 	int input_fd;
 	int i;
 	char *file_name;
+	char *count;
 	t_red *red_head;
 
 	i = 0;
@@ -101,54 +113,101 @@ int run_heredoc(t_sep *node)
 			if (node->red->red_op == 'h')
 			{
 				i++;
-				file_name = ft_strjoin("/tmp/.heredoc_", ft_itoa(i)); // to free
-				signal(SIGINT, signal_handler_heredoc);
+				count = ft_itoa(i);
+				file_name = ft_strjoin("/tmp/.heredoc_", count); // to free
+				free(count);
+				if (signal(SIGINT, signal_handler_heredoc) == SIG_ERR)
+				{
+					printf("minishell: signal: %s\n", strerror(errno));
+					free(file_name);
+					return (1);
+				}
 				pid_t fork_pid = fork();
+				if (fork_pid < 0)
+				{
+					printf("minishell: fork: %s\n", strerror(errno));
+					free(file_name);
+					return (1);
+				}
 				if (fork_pid == 0)
 				{
 					is_forked = 1;
 					input_fd = open(file_name, O_WRONLY | O_TRUNC | O_CREAT, 0644);
+					if (input_fd < 0)
+					{
+						printf("minishell: open: %s\n", strerror(errno));
+						free(file_name);
+						return (1);
+					}
 					while (1)
 					{
-						write(1, "> ", 2); // print > at beginning of line
+						if (write(1, "> ", 2) < 0)
+						{
+							printf("minishell: write: %s\n", strerror(errno));
+							free(file_name);
+							return (1);
+						}
 						line = ft_getline(); 
+						if (!line)
+						{
+							free(file_name);
+							return (1);
+						}
 						if (ft_strcmp(line, "EOF") == 0)
 						{
 							free(line);
 							break ;
 						}
-						// check_error(!line, 0, "ft_getline() failed.\nError", strings);
-						if (ft_strncmp(ft_strjoin(node->red->r_file, "\n"), line, ft_strlen(line)) == 0)
+						char *delimiter = ft_strjoin(node->red->r_file, "\n");
+						if (ft_strncmp(delimiter, line, ft_strlen(line)) == 0)
 						{
+							free(delimiter);
 							free(line);
 							break;
 						}
+						free(delimiter);
 						// implement expansion if there is no "" in STOP word
 						if (!has_quotes(line))  // this should be checked in parsing and added
 							// as a new parameter to the redirection list node,
 							// because quotes needs to be removed from the string.
 						{
-							// unexpanded_line = line;
+							unexpanded_line = line;
 							line = handling_dollar(line, node);
-							// free(unexpanded_line);
+							free(unexpanded_line);
 						}
-						write(input_fd, line, ft_strlen(line));
+						if (write(input_fd, line, ft_strlen(line)) < 0)
+						{
+							printf("minishell: write: %s\n", strerror(errno));
+							free(file_name);
+							free(line);
+							return (1);
+						}
 						free(line);
-						// check_error(!input, ENOMEM, "ft_strjoin() failed.\nError", strings);
 					}
-					close(input_fd);
-					// check_error(write(input_fd, input, ft_strlen(input)) == -1, errno, "write() failed.\nError", strings);
-					// check_error(close_status == -1, errno, "close() failed.\nError", strings);
+					if (close(input_fd) < 0)
+					{
+						printf("minishell: close: %s\n", strerror(errno));
+						free(file_name);
+						return (1);
+					}
 					exit(0);
 				}
-				waitpid(fork_pid, &exit_status, 0); // TO-DO: handle exit codes in execve and builtins and others
+				if (waitpid(fork_pid, &exit_status, 0) < 0)
+				{
+					printf("minishell: waitpid: %s\n", strerror(errno));
+					free(file_name);
+					return (1);
+				}
 				is_forked = 0;
-				signal(SIGINT, signal_handler_parent);
-
+				if (signal(SIGINT, signal_handler_parent) == SIG_ERR)
+				{
+					printf("minishell: signal: %s\n", strerror(errno));
+					free(file_name);
+					return (1);
+				}
 				// change redir type and file name here
 				free(node->red->r_file);
 				node->red->r_file = file_name;
-
 				if (WEXITSTATUS(exit_status) == 1)
 					return (1);
 			}
@@ -172,7 +231,7 @@ int echo(char **args)
 	}
 
 	no_newline = 0;
-	if (strcmp(args[0], "-n") == 0)
+	if (ft_strcmp(args[0], "-n") == 0)
 		no_newline = 1;
 
 	i = no_newline;
@@ -225,7 +284,7 @@ char    *ft_getenv(char *key)
    while (current != NULL)
    {
 	   if (ft_strcmp(current->key, key) == 0)
-		   return current->value;
+		   return ft_strdup(current->value);
 	   current = current->next;
    }
    return NULL;
@@ -233,47 +292,49 @@ char    *ft_getenv(char *key)
 
 void    ft_setenv(char *key, char *value)
 {
-   t_env *current = g_env;
-   int key_exists = 0;
+	t_env *current = g_env;
+	int key_exists = 0;
+	char *key_eq;
 
-   while (current != NULL)
-   {
-	   if (ft_strcmp(current->key, key) == 0)
-	   {
-		   current->value = value;
-		   key_exists = 1;
-		   break ;
-	   }
-	   current = current->next;
-   }
+	while (current != NULL)
+	{
+		if (ft_strcmp(current->key, key) == 0)
+		{
+			free(current->value);
+			current->value = value;
+			key_exists = 1;
+			break ;
+		}
+		current = current->next;
+	}
 
-   int is_valid_identifier = 1;
-   int i = 0;
-   while (key[i])
-   {
-	   if (!ft_isalnum(key[i]) && key[i] != '_')
-	   {
+	int is_valid_identifier = 1;
+	int i = 0;
+	while (key[i])
+	{
+		if (!ft_isalnum(key[i]) && key[i] != '_')
+		{
 			is_valid_identifier = 0;
 			break ;
-	   }
-	   i++;
-   }
+		}
+		i++;
+	}
 
-   if (!key_exists && is_valid_identifier)
-   {
-	   t_env *new_env_var;
-	   new_env_var = malloc(sizeof(*new_env_var));
-	   new_env_var->value
-		   = ft_strjoin(
-				   ft_strjoin(key, "="), value); // to refactor and free
-	   new_env_var->key = key;
-	   new_env_var->value= value;
-	   new_env_var->next = NULL;
-	   ft_lstadd_back(&g_env, new_env_var);
-   }
+	if (!key_exists && is_valid_identifier)
+	{
+		t_env *new_env_var;
+		new_env_var = malloc(sizeof(*new_env_var));
+		key_eq = ft_strjoin(key, "=");
+		new_env_var->val = ft_strjoin(key_eq, value);
+		free(key_eq);
+		new_env_var->key = key;
+		new_env_var->value = value;
+		new_env_var->next = NULL;
+		ft_lstadd_back(&g_env, new_env_var);
+	}
 
-   if (!is_valid_identifier)
-	   printf("minishell: export: `%s': not a valid identifier\n", key);
+	if (!is_valid_identifier)
+		printf("minishell: export: `%s': not a valid identifier\n", key);
 }
 
 int    ft_unsetenv(char *key)
@@ -339,23 +400,20 @@ int	is_cwd(char *path)
 	chdir(path);
 	char *new_d = getcwd(NULL, 0);
 	chdir(cwd);
-	if (strcmp(cwd, new_d))
+	if (ft_strcmp(cwd, new_d))
 		return 0;
 	return 1;
 }
 
-char *replace_tilde_with_home_path(char *path)
-{
-	char *homedir = ft_getenv("HOME");
-	char *new_path = ft_strjoin(homedir, path + 1);
-	free(path);
-	return new_path;
-}
-
 void cd(char **args)
 {
+	char *cwd;
+
 	if (args && *args && **args == '~')
-		args[0] = replace_tilde_with_home_path(args[0]);
+	{
+		free(args[0]);
+		args[0] = ft_getenv("HOME");
+	}
 
 	// set OLDPWD only if cmd's path:
 	// - is not null
@@ -368,12 +426,15 @@ void cd(char **args)
 
 	if (args && *args && **args != '\0')
 	{
-		if (ft_strcmp(args[0], "-")
-			&& opendir(args[0]))
-			// && !is_cwd(args[0]))
-			ft_setenv("OLDPWD", getcwd(NULL, 0));
+		if (ft_strcmp(args[0], "-") && opendir(args[0])) // && !is_cwd(args[0]))
+		{
+			cwd = getcwd(NULL, 0);
+			if (!cwd)
+				printf("minishell: cd: %s\n", strerror(errno));
+			ft_setenv("OLDPWD", cwd);
+		}
 
-		if (strcmp(args[0], "-") == 0)
+		if (ft_strcmp(args[0], "-") == 0)
 		{
 			char *oldpwd = ft_getenv("OLDPWD");
 			if (!oldpwd)
@@ -381,22 +442,39 @@ void cd(char **args)
 			else
 			{
 				cd((char *[]){oldpwd, NULL});
-				printf("%s\n", getcwd(NULL, 0));
+				free(oldpwd);
+				cwd = getcwd(NULL, 0);
+				if (!cwd)
+					printf("minishell: cd: %s\n", strerror(errno));
+				printf("%s\n", cwd);
 			}
 		}
 		else if (chdir(args[0]) == -1)
 			printf("minishell: cd: %s: %s\n", args[0], strerror(errno));
 		else
-			ft_setenv("PWD", getcwd(NULL, 0));
+		{
+			cwd = getcwd(NULL, 0);
+			if (!cwd)
+				printf("minishell: cd: %s\n", strerror(errno));
+			ft_setenv("PWD", cwd);
+		}
 	}
 	else if (!args || !*args || **args == '\0')
 	{
 		// if (ft_strcmp(getenv("HOME"), getcwd(NULL, 0)))
-		ft_setenv("OLDPWD", getcwd(NULL, 0));
+		cwd = getcwd(NULL, 0);
+		if (!cwd)
+			printf("minishell: cd: %s\n", strerror(errno));
+		ft_setenv("OLDPWD", cwd);
 		if (chdir(getenv("HOME")) == -1)
-			printf("%s\n", strerror(errno));
+			printf("minishell: cd: %s\n", strerror(errno));
 		else
-			ft_setenv("PWD", getcwd(NULL, 0));
+		{
+			cwd = getcwd(NULL, 0);
+			if (!cwd)
+				printf("minishell: cd: %s\n", strerror(errno));
+			ft_setenv("PWD", cwd);
+		}
 	}
 }
 
@@ -582,7 +660,7 @@ int	redirect(int *stdin_fd, int *stdout_fd, t_sep *node)
 				if (input_fd == -1)
 				{
 					printf("minishell: %s: %s\n", node->red->r_file, strerror(errno));
-					return (-1);
+					return (1);
 				}
 				free(node->red->r_file);
 				node->red->r_file = ft_itoa(input_fd);
@@ -591,7 +669,11 @@ int	redirect(int *stdin_fd, int *stdout_fd, t_sep *node)
 			else if (node->red->red_op == 'o')
 			{
 				output_fd = open(node->red->r_file, O_CREAT | O_TRUNC | O_WRONLY, 0644);
-				// handle errors...like what? unexpected tokens? shit like that
+				if (output_fd == -1)
+				{
+					printf("minishell: %s: %s\n", node->red->r_file, strerror(errno));
+					return (1);
+				}
 				free(node->red->r_file);
 				node->red->r_file = ft_itoa(output_fd);
 				is_output++;
@@ -599,6 +681,11 @@ int	redirect(int *stdin_fd, int *stdout_fd, t_sep *node)
 			else if (node->red->red_op == 'a')
 			{
 				output_fd = open(node->red->r_file, O_CREAT | O_APPEND | O_WRONLY, 0644);
+				if (output_fd == -1)
+				{
+					printf("minishell: %s: %s\n", node->red->r_file, strerror(errno));
+					return (1);
+				}
 				free(node->red->r_file);
 				node->red->r_file = ft_itoa(output_fd);
 				is_output++;
@@ -612,12 +699,30 @@ int	redirect(int *stdin_fd, int *stdout_fd, t_sep *node)
 	if (is_input)
 	{
 		*stdin_fd = dup(0);
-		dup2(input_fd, 0);
+		if (*stdin_fd < 0)
+		{
+			printf("minishell: dup: %s\n", strerror(errno));
+			return (1);
+		}
+		if (dup2(input_fd, 0) < 0)
+		{
+			printf("minishell: dup2: %s\n", strerror(errno));
+			return (1);
+		}
 	}
 	if (is_output)
 	{
 		*stdout_fd = dup(1);
-		dup2(output_fd, 1);
+		if (*stdout_fd < 0)
+		{
+			printf("minishell: dup: %s\n", strerror(errno));
+			return (1);
+		}
+		if (dup2(output_fd, 1) < 0)
+		{
+			printf("minishell: dup2: %s\n", strerror(errno));
+			return (1);
+		}
 	}
 
 	return (0);
@@ -659,13 +764,11 @@ int    run_cmdline(t_sep *node, int pipes_num)
 {
 	int stdin_fd = 0;
 	int stdout_fd = 0;
-	int redirect_status;
 
-	if (run_heredoc(node) == 1) // exit function if ctrl+c
+	if (run_heredoc(node) == 1)
 		return (1);
-	redirect_status = redirect(&stdin_fd, &stdout_fd, node);
-	if (redirect_status == -1)
-		return (-1);
+	if (redirect(&stdin_fd, &stdout_fd, node))
+		return (1);
 
 	if (node->next == NULL) // no pipes or redirections
 	{
@@ -673,19 +776,19 @@ int    run_cmdline(t_sep *node, int pipes_num)
 		if (node->is_builtin)
 		{
 			// printf("whoops, node is builtin?\n");
-			if (strcmp(node->lower_builtin, "echo") == 0)
+			if (ft_strcmp(node->lower_builtin, "echo") == 0)
 				echo(node->args);
-			if (strcmp(node->lower_builtin, "cd") == 0)
+			if (ft_strcmp(node->lower_builtin, "cd") == 0)
 				cd(node->args);
-			if (strcmp(node->lower_builtin, "pwd") == 0)
+			if (ft_strcmp(node->lower_builtin, "pwd") == 0)
 				pwd();
-			if (strcmp(node->lower_builtin, "export") == 0)
+			if (ft_strcmp(node->lower_builtin, "export") == 0)
 				export(node->args);
-			if (strcmp(node->lower_builtin, "unset") == 0)
+			if (ft_strcmp(node->lower_builtin, "unset") == 0)
 				unset(node->args);
-			if (strcmp(node->lower_builtin, "env") == 0)
+			if (ft_strcmp(node->lower_builtin, "env") == 0)
 				env();
-			if (strcmp(node->lower_builtin, "exit") == 0)
+			if (ft_strcmp(node->lower_builtin, "exit") == 0)
 			{
 				printf("exit\n");
 				exit(0);
