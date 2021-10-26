@@ -6,7 +6,7 @@
 /*   By: mhaddi <mhaddi@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/08 15:34:01 by mhaddi            #+#    #+#             */
-/*   Updated: 2021/10/24 10:08:57 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/10/26 10:14:04 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -370,6 +370,9 @@ int    ft_unsetenv(char *key)
 			   prev->next = tmp;
 		   else
 			   g_env = tmp;
+		   free(current->val);
+		   free(current->key);
+		   free(current->value);
 		   free(current);
 		   return (0);
 	   }
@@ -447,6 +450,7 @@ void cd(char **args)
 				if (!cwd)
 					printf("minishell: cd: %s\n", strerror(errno));
 				printf("%s\n", cwd);
+				free(cwd);
 			}
 		}
 		else if (chdir(args[0]) == -1)
@@ -482,6 +486,8 @@ void pwd(void) {
     char* cwd;
 
 	cwd = getcwd(NULL, 0);
+	if (!cwd)
+		printf("minishell: pwd: %s\n", strerror(errno));
 	printf("%s\n", cwd);
 	free(cwd);
 }
@@ -562,8 +568,8 @@ void    ft_putenv(char *env_var)
 	   t_env *new_env_var;
 	   new_env_var = malloc(sizeof(*new_env_var));
 	   new_env_var->val = env_var;
-	   new_env_var->key = env_var_pair[0];
-	   new_env_var->value= env_var_pair[1];
+	   new_env_var->key = ft_strdup(env_var_pair[0]);
+	   new_env_var->value= ft_strdup(env_var_pair[1]);
 	   new_env_var->next = NULL;
 	   ft_lstadd_back(&g_env, new_env_var);
    }
@@ -571,6 +577,10 @@ void    ft_putenv(char *env_var)
    if (!is_valid_identifier)
 	   printf("minishell: export: `%s': not a valid identifier\n",
 				env_var);
+
+   free(env_var_pair[0]);
+   free(env_var_pair[1]);
+   free(env_var_pair);
 }
 
 // export():
@@ -791,7 +801,7 @@ int    run_cmdline(t_sep *node, int pipes_num)
 			if (ft_strcmp(node->lower_builtin, "exit") == 0)
 			{
 				printf("exit\n");
-				exit(0);
+				return (0); // return 0 and exit in main after free
 			}
 		}
 		else if (node->path || node->builtin)
@@ -799,6 +809,11 @@ int    run_cmdline(t_sep *node, int pipes_num)
 			// printf("ok, we exec now:\n");
 			// char *argv[] = {"/bin/sh", "-c", node->s_red, NULL};
 			pid_t fork_pid = fork();
+			if (fork_pid < 0)
+			{
+				printf("minishell: fork: %s\n", strerror(errno));
+				return (1);
+			}
 			if (fork_pid == 0)
 			{
 				is_forked = 1;
@@ -811,14 +826,34 @@ int    run_cmdline(t_sep *node, int pipes_num)
 			}
 			else
 			{
-				signal(SIGINT, SIG_IGN);
-				waitpid(fork_pid, NULL, 0); // TO-DO: handle exit codes in execve and builtins and others
-				signal(SIGINT, signal_handler_parent);
+				if (signal(SIGINT, SIG_IGN) == SIG_ERR)
+				{
+					printf("minishell: signal: %s\n", strerror(errno));
+					return (1);
+				}
+				if (waitpid(fork_pid, NULL, 0) < 0) // TO-DO: handle exit codes in execve and builtins and others
+				{
+					printf("minishell: waitpid: %s\n", strerror(errno));
+					return (1);
+				}
+				if (signal(SIGINT, signal_handler_parent) == SIG_ERR)
+				{
+					printf("minishell: signal: %s\n", strerror(errno));
+					return (1);
+				}
 			}
 		}
 
-		dup2(stdin_fd, 0);
-		dup2(stdout_fd, 1);
+		if (dup2(stdin_fd, 0) < 0)
+		{
+			printf("minishell: dup2: %s\n", strerror(errno));
+			return (1);
+		}
+		if (dup2(stdout_fd, 1) < 0)
+		{
+			printf("minishell: dup2: %s\n", strerror(errno));
+			return (1);
+		}
 	}
 	else // pipes and redirections
 	{
