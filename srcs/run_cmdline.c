@@ -6,7 +6,7 @@
 /*   By: mhaddi <mhaddi@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/08 15:34:01 by mhaddi            #+#    #+#             */
-/*   Updated: 2021/10/26 10:14:04 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/11/03 11:42:12 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -427,8 +427,17 @@ void cd(char **args)
 	// - is null (so `cd`)
 	// - current directory is not home directory
 
-	if (args && *args && **args != '\0')
+	if (args)
 	{
+		if (**args == '\0')
+		{
+			cwd = getcwd(NULL, 0);
+			if (!cwd)
+				printf("minishell: cd: %s\n", strerror(errno));
+			ft_setenv("OLDPWD", cwd);
+			return ;
+		}
+
 		if (ft_strcmp(args[0], "-") && opendir(args[0])) // && !is_cwd(args[0]))
 		{
 			cwd = getcwd(NULL, 0);
@@ -463,7 +472,7 @@ void cd(char **args)
 			ft_setenv("PWD", cwd);
 		}
 	}
-	else if (!args || !*args || **args == '\0')
+	else if (!args)
 	{
 		// if (ft_strcmp(getenv("HOME"), getcwd(NULL, 0)))
 		cwd = getcwd(NULL, 0);
@@ -544,7 +553,7 @@ void    ft_putenv(char *env_var)
 		   {
 			   if (env_var_pair[1]) // if key exists and the new value
 				   					// isn't a null value
-				   current->value = env_var_pair[1];
+				   current->value = ft_strdup(env_var_pair[1]);
 			   key_exists = 1;
 			   break ;
 		   }
@@ -859,7 +868,12 @@ int    run_cmdline(t_sep *node, int pipes_num)
 	{
 		pid_t *pids = malloc(sizeof(pid_t) * (pipes_num + 1));
 		int pipe_fd[2];
-		pipe(pipe_fd);
+		if (pipe(pipe_fd) < 0)
+		{
+			free(pids);
+			printf("minishell: pipe: %s\n", strerror(errno));
+			return (1);
+		}
 		int num_cmd = 0;
 		while (node != NULL)
 		{
@@ -871,15 +885,38 @@ int    run_cmdline(t_sep *node, int pipes_num)
 				if (num_cmd > 0)
 				{
 					stdin_fd = dup(0);
-					dup2(pipe_fd[0], 0);
-					pipe(pipe_fd);
+					if (stdin_fd < 0 || dup2(pipe_fd[0], 0) < 0)
+					{
+						free(pids);
+						printf("minishell: dup: %s\n", strerror(errno));
+						return (1);
+					}
+					if (pipe(pipe_fd) < 0)
+					{
+						free(pids);
+						printf("minishell: pipe: %s\n", strerror(errno));
+						return (1);
+					}
 				}
 				pids[num_cmd] = fork();
+				if (pids[num_cmd] < 0)
+				{
+					free(pids);
+					printf("minishell: fork: %s\n", strerror(errno));
+					exit(1);
+				}
 				if (pids[num_cmd] == 0)
 				{
 					is_forked = 1;
 					if (num_cmd < pipes_num && (node->path || node->builtin))
-						dup2(pipe_fd[1], 1);
+					{
+						if (dup2(pipe_fd[1], 1) < 0)
+						{
+							free(pids);
+							printf("minishell: dup2: %s\n", strerror(errno));
+							exit(1);
+						}
+					}
 
 					// check if there is a redir_op
 					// if (node->is_red)
@@ -912,14 +949,57 @@ int    run_cmdline(t_sep *node, int pipes_num)
 							node->red = node->red->next;
 						}
 						if (o_red_found)
-							dup2(ft_atoi(o_red_file), 1);
+						{
+							if (dup2(ft_atoi(o_red_file), 1) < 0)
+							{
+								free(pids);
+								printf("minishell: dup2: %s\n", strerror(errno));
+								exit(1);
+							}
+						}
 						if (i_red_found)
-							dup2(ft_atoi(i_red_file), 0);
+						{
+							if (dup2(ft_atoi(i_red_file), 0) < 0)
+							{
+								free(pids);
+								printf("minishell: dup2: %s\n", strerror(errno));
+								exit(1);
+							}
+						}
 						// redirect(&stdin_fd, &stdout_fd, node);
 					}
 
-
-					if (node->path || node->builtin)
+					if (node->is_builtin)
+					{
+						if (ft_strcmp(node->lower_builtin, "echo") == 0)
+							echo(node->args);
+						if (ft_strcmp(node->lower_builtin, "cd") == 0)
+							cd(node->args);
+						if (ft_strcmp(node->lower_builtin, "pwd") == 0)
+							pwd();
+						if (ft_strcmp(node->lower_builtin, "export") == 0)
+							export(node->args);
+						if (ft_strcmp(node->lower_builtin, "unset") == 0)
+							unset(node->args);
+						if (ft_strcmp(node->lower_builtin, "env") == 0)
+							env();
+						if (ft_strcmp(node->lower_builtin, "exit") == 0)
+						{
+							printf("exit\n");
+							return (0); // return 0 and exit in main after free
+						}
+						/*
+						char *argv[] = {"/bin/sh", "-c", node->s_red, NULL};
+						if (execve(argv[0], argv, g_envp) == -1)
+						{
+							printf("minishell: %s: command not found\n", node->builtin);
+							close(pipe_fd[1]);
+							exit(1); // error code
+						}
+						*/
+						exit(0);
+					}
+					else if (node->path || node->builtin)
 					{
 						if (execve((char *[2]){node->path, node->builtin}[!node->path], node->args, g_envp) == -1)
 						{
@@ -932,19 +1012,43 @@ int    run_cmdline(t_sep *node, int pipes_num)
 					{
 						close(pipe_fd[1]);
 						close(0);
-						dup2(open("/dev/null", O_WRONLY), 1);
+						if (dup2(open("/dev/null", O_WRONLY), 1) < 0)
+						{
+							free(pids);
+							printf("minishell: dup2: %s\n", strerror(errno));
+							exit(1);
+						}
 					}
 				}
 				else {
-					signal(SIGINT, SIG_IGN);
-					waitpid(pids[num_cmd], NULL, 0);
-					signal(SIGINT, signal_handler_parent);
+					if (signal(SIGINT, SIG_IGN) == SIG_ERR)
+					{
+						free(pids);
+						printf("minishell: signal: %s\n", strerror(errno));
+						return (1);
+					}
+					if (waitpid(pids[num_cmd], NULL, 0) < 0)
+					{
+						free(pids);
+						printf("minishell: waitpid: %s\n", strerror(errno));
+						return (1);
+					}
+					if (signal(SIGINT, signal_handler_parent) == SIG_ERR)
+					{
+						free(pids);
+						printf("minishell: signal: %s\n", strerror(errno));
+						return (1);
+					}
 					close(pipe_fd[1]);
 					num_cmd++;
 				}
 			}
-			dup2(stdin_fd, 0);
-			dup2(stdout_fd, 1);
+			if (dup2(stdin_fd, 0) < 0 || dup2(stdout_fd, 1) < 0)
+			{
+				free(pids);
+				printf("minishell: dup2: %s\n", strerror(errno));
+				exit(1);
+			}
 			node = node->next;
 		}
 	}
