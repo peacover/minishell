@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/11/06 09:34:40 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/11/06 10:12:10 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -1054,7 +1054,7 @@ int	fill_list(char *str)
 	head = NULL;
 	pipes_num = 0;
 	fill_list2(str, i, &pipes_num, &head, start);
-	// print_mylist(head, pipes_num); 
+	print_mylist(head, pipes_num); 
 	if (run_cmdline(head, pipes_num) == 1)
 	{
 		free_mylist_red(head->red);

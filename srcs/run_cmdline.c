@@ -172,7 +172,7 @@ int run_heredoc(t_sep *node)
 							// because quotes needs to be removed from the string.
 						{
 							unexpanded_line = line;
-							line = handling_dollar(line, node);
+							line = handling_dollar(line);
 							free(unexpanded_line);
 						}
 						if (write(input_fd, line, ft_strlen(line)) < 0)
