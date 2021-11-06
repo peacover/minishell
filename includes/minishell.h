@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:09:15 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/10/20 12:03:47 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/11/06 09:34:26 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -96,7 +96,7 @@ void    ft_exec(t_sep *node);
 char    **fill_paramlist(t_sep *node);
 void	handling_builtins(t_sep *node, char *s, int start);
 int    run_cmdline(t_sep *node, int pipes_num);
-char	*handling_dollar(char *s, t_sep *node);
+char	*handling_dollar(char *s);
 void	signal_handler_parent(int sig);
 void	signal_handler_heredoc(int sig);
 

@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/11/03 17:22:30 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/11/06 09:34:40 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -124,21 +124,50 @@ int    handling_errors_arg(char *str)
 	}
 	return (0);
 }
-void	check_fill_path2(char **s,char *w, t_sep *node, int *fd)
+int	check_fill_path2(char *w, t_sep *node)
 {
-	*s = ft_strjoin(w, "/");
-	*s = ft_strjoin(*s, node->lower_builtin);
-	*fd = open(*s, O_RDONLY);
-	if (*fd > 0)
+	int fd;
+	char *s;
+
+	fd = 0;
+	s = ft_strjoin(w, "/");
+	s = ft_strjoin(s, node->lower_builtin);
+	fd = open(s, O_RDONLY);
+	if (fd > 0)
 	{
-		node->path = *s;
-		close(*fd);
-		return ;
+		node->path = s;
+		close(fd);
+		return (1);
 	}
-	close(*fd);
-	free(*s);
+	close(fd);
+	free(s);
+	return (0);
 }
 void	check_fill_path(t_sep *node)
+{
+	int     i;
+	char    **w;
+	
+	i = 0;
+	t_env *current = g_env;
+	while (current != NULL)
+	{
+		if (!ft_strcmp(current->key, "PATH"))
+		{
+			w = ft_split(current->value, ':');
+			while (w[i])
+			{
+				if (check_fill_path2(w[i], node))
+					return ;
+				i++;
+			}
+		}
+		current = current->next;
+	}
+	node->path = NULL;
+}
+
+/*void	check_fill_path(t_sep *node)
 {
 	int     i;
 	char    **w;
@@ -156,14 +185,26 @@ void	check_fill_path(t_sep *node)
 			w = ft_split(current->value, ':');
 			while (w[i])
 			{
-				check_fill_path2(&s, w[i], node, &fd);
+				s = ft_strjoin(w[i], "/");
+				s = ft_strjoin(s, node->lower_builtin);
+				fd = open(s, O_RDONLY);
+				if (fd > 0)
+				{
+					node->path = s;
+					close(fd);
+					return ;
+				}
+				close(fd);
+				free(s);
 				i++;
 			}
 		}
 		current = current->next;
 	}
+	// printf (" \npath : %s \n", node->path);
+	// free w
 	node->path = NULL;
-}
+}*/
 
 void	check_builtin(t_sep *node)
 {
