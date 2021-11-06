@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/11/06 17:05:47 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/11/06 18:19:21 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -340,8 +340,9 @@ void	handling_dollar2(char *v, int is_dollar, int *start, char **ret, t_env **cu
 {	
 	while (*current != NULL)
 	{
-		if (!ft_strcmp((*current)->key, v) ||
-		(!ft_strncmp((*current)->key, v, ft_strlen((*current)->key))))
+		// if (!ft_strcmp((*current)->key, v) ||
+		// (!ft_strncmp((*current)->key, v, ft_strlen((*current)->key))))
+		if (!ft_strcmp((*current)->key, v))
 		{
 			if (is_dollar)
 				*start = 1;
@@ -466,24 +467,24 @@ void	add_to_args4(char *s, int *l, char **str, int start)
 		while (s[*l] && s[*l] != ' ' && s[*l] != '\'' && s[*l] != '\"' )
 			(*l)++;
 		*str = ft_substr(s, start, *l - start);
-		printf (" \n\n ssssss1 : %s\n\n",*str);
 	}
 	else
 	{				
 		*l = search_second_quote(s, start + 1, s[start]);
 		if (!*l)
 			error_msg("error multiligne");
-		printf (" \n\n ssssss2 : %s\n\n",*str);
 		*str = ft_substr(s, start + 1, *l - start - 1);
 	}
 	if (s[start] != '\'')
 		*str = handling_dollar(*str);
-	printf (" \n\n ssssss final : %s\n\n",*str);
 }
 void	add_to_args5(t_sep *node, char **str, int j)
 {
 	if (!ft_strcmp(node->lower_builtin, "unset") && !ft_strcmp(*str, ""))
+	{
 		free (*str);
+		*str = NULL;
+	}
 	if (!node->args[j] && *str)
 		node->args[j] = ft_strdup(*str);
 	else if (*str)
@@ -504,9 +505,7 @@ void    add_to_args(int start, int end, char *s, int i, t_sep *node)
 	{
 		add_to_args4(s, &l, &str, start);
 		if (i == 0)
-		{
 			return (add_to_args3(node, str, i));
-		}
 		else
 		{
 			add_to_args5(node, &str, j);
@@ -579,7 +578,10 @@ void    get_args(char *s, int start, t_sep *node)
 	while (start < (int)ft_strlen(s))
 	{
 		t = start;
+
+		// printf ("\nBEFORE | S : %s\n", s);
 		s = handling_dollar(s);
+		// printf ("\nAFTER | S : %s\n", s);
 		get_args2(s, &start, &end);
 		if (t < start)
 		{
