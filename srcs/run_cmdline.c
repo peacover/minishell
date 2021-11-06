@@ -6,7 +6,7 @@
 /*   By: mhaddi <mhaddi@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/08 15:34:01 by mhaddi            #+#    #+#             */
-/*   Updated: 2021/11/03 11:42:12 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/11/06 10:51:19 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,7 +92,6 @@ int has_quotes(char *str)
 }
 
 int is_forked = 0;
-int exit_status;
 
 int run_heredoc(t_sep *node)
 {
@@ -102,6 +101,7 @@ int run_heredoc(t_sep *node)
 	int i;
 	char *file_name;
 	char *count;
+	int exit_status = 0;
 	t_red *red_head;
 
 	i = 0;
@@ -198,6 +198,7 @@ int run_heredoc(t_sep *node)
 					free(file_name);
 					return (1);
 				}
+				exit_status = WEXITSTATUS(exit_status);
 				is_forked = 0;
 				if (signal(SIGINT, signal_handler_parent) == SIG_ERR)
 				{
@@ -208,15 +209,13 @@ int run_heredoc(t_sep *node)
 				// change redir type and file name here
 				free(node->red->r_file);
 				node->red->r_file = file_name;
-				if (WEXITSTATUS(exit_status) == 1)
-					return (1);
 			}
 			node->red = node->red->next;
 		}
 		node->red = red_head;
 		node = node->next;
 	}
-	return (0);
+	return exit_status;
 }
 
 int echo(char **args)
@@ -783,6 +782,7 @@ int    run_cmdline(t_sep *node, int pipes_num)
 {
 	int stdin_fd = 0;
 	int stdout_fd = 0;
+	int exit_status = 0;
 
 	if (run_heredoc(node) == 1)
 		return (1);
@@ -810,7 +810,7 @@ int    run_cmdline(t_sep *node, int pipes_num)
 			if (ft_strcmp(node->lower_builtin, "exit") == 0)
 			{
 				printf("exit\n");
-				return (0); // return 0 and exit in main after free
+				exit(0); // return 0 and exit in main after free
 			}
 		}
 		else if (node->path || node->builtin)
@@ -840,11 +840,12 @@ int    run_cmdline(t_sep *node, int pipes_num)
 					printf("minishell: signal: %s\n", strerror(errno));
 					return (1);
 				}
-				if (waitpid(fork_pid, NULL, 0) < 0) // TO-DO: handle exit codes in execve and builtins and others
+				if (waitpid(fork_pid, &exit_status, 0) < 0) // TO-DO: handle exit codes in execve and builtins and others
 				{
 					printf("minishell: waitpid: %s\n", strerror(errno));
 					return (1);
 				}
+				exit_status = WEXITSTATUS(exit_status);
 				if (signal(SIGINT, signal_handler_parent) == SIG_ERR)
 				{
 					printf("minishell: signal: %s\n", strerror(errno));
@@ -986,7 +987,7 @@ int    run_cmdline(t_sep *node, int pipes_num)
 						if (ft_strcmp(node->lower_builtin, "exit") == 0)
 						{
 							printf("exit\n");
-							return (0); // return 0 and exit in main after free
+							exit(0); // return 0 and exit in main after free
 						}
 						/*
 						char *argv[] = {"/bin/sh", "-c", node->s_red, NULL};
@@ -1027,12 +1028,13 @@ int    run_cmdline(t_sep *node, int pipes_num)
 						printf("minishell: signal: %s\n", strerror(errno));
 						return (1);
 					}
-					if (waitpid(pids[num_cmd], NULL, 0) < 0)
+					if (waitpid(pids[num_cmd], &exit_status, 0) < 0)
 					{
 						free(pids);
 						printf("minishell: waitpid: %s\n", strerror(errno));
 						return (1);
 					}
+					exit_status = WEXITSTATUS(exit_status);
 					if (signal(SIGINT, signal_handler_parent) == SIG_ERR)
 					{
 						free(pids);
@@ -1054,5 +1056,5 @@ int    run_cmdline(t_sep *node, int pipes_num)
 	}
 	is_forked = 0;
 
-	return (0);
+	return exit_status;
 }
