@@ -6,7 +6,7 @@
 /*   By: mhaddi <mhaddi@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/08 15:34:01 by mhaddi            #+#    #+#             */
-/*   Updated: 2021/11/06 10:51:19 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/11/06 13:03:47 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -289,11 +289,12 @@ char    *ft_getenv(char *key)
    return NULL;
 }
 
-void    ft_setenv(char *key, char *value)
+int    ft_setenv(char *key, char *value)
 {
 	t_env *current = g_env;
 	int key_exists = 0;
 	char *key_eq;
+	int exit_status = 0;
 
 	while (current != NULL)
 	{
@@ -333,7 +334,12 @@ void    ft_setenv(char *key, char *value)
 	}
 
 	if (!is_valid_identifier)
+	{
 		printf("minishell: export: `%s': not a valid identifier\n", key);
+		exit_status = 1;
+	}
+
+	return exit_status;
 }
 
 int    ft_unsetenv(char *key)
@@ -342,11 +348,13 @@ int    ft_unsetenv(char *key)
    t_env *current = g_env;
    t_env *tmp;
    t_env *prev;
+   int exit_status = 0;
 
    if (*key == '\0')
    {
 	   printf("minishell: unset: `%s': not a valid identifier\n", key);
-	   return (1);
+	   exit_status = 1;
+	   return (exit_status);
    }
 
    while (key[i])
@@ -354,7 +362,8 @@ int    ft_unsetenv(char *key)
 	   if (!ft_isalnum(key[i]) && key[i] != '_')
 	   {
 		   printf("minishell: unset: `%s': not a valid identifier\n", key);
-		   return (1);
+	   	   exit_status = 1;
+		   return (exit_status);
 	   }
 	   i++;
    }
@@ -373,14 +382,14 @@ int    ft_unsetenv(char *key)
 		   free(current->key);
 		   free(current->value);
 		   free(current);
-		   return (0);
+		   return exit_status;
 	   }
 	   prev = current;
 	   current = current->next;
 	   i++;
    }
 
-   return (0);
+   return exit_status;
 }
 
 char *ft_tolower_str(char *str)
@@ -407,9 +416,10 @@ int	is_cwd(char *path)
 	return 1;
 }
 
-void cd(char **args)
+int cd(char **args)
 {
 	char *cwd;
+	int exit_status = 0;
 
 	if (args && *args && **args == '~')
 	{
@@ -431,73 +441,75 @@ void cd(char **args)
 		if (**args == '\0')
 		{
 			cwd = getcwd(NULL, 0);
-			if (!cwd)
-				printf("minishell: cd: %s\n", strerror(errno));
-			ft_setenv("OLDPWD", cwd);
-			return ;
+			exit_status = ft_setenv("OLDPWD", cwd);
+			return exit_status;
 		}
 
 		if (ft_strcmp(args[0], "-") && opendir(args[0])) // && !is_cwd(args[0]))
 		{
 			cwd = getcwd(NULL, 0);
-			if (!cwd)
-				printf("minishell: cd: %s\n", strerror(errno));
-			ft_setenv("OLDPWD", cwd);
+			if ((exit_status = ft_setenv("OLDPWD", cwd)) != 0)
+				return exit_status;
 		}
 
 		if (ft_strcmp(args[0], "-") == 0)
 		{
 			char *oldpwd = ft_getenv("OLDPWD");
 			if (!oldpwd)
+			{
    				printf("minishell: cd: OLDPWD not set\n");
+				exit_status = 1;
+			}
 			else
 			{
 				cd((char *[]){oldpwd, NULL});
 				free(oldpwd);
 				cwd = getcwd(NULL, 0);
-				if (!cwd)
-					printf("minishell: cd: %s\n", strerror(errno));
 				printf("%s\n", cwd);
 				free(cwd);
 			}
 		}
 		else if (chdir(args[0]) == -1)
+		{
 			printf("minishell: cd: %s: %s\n", args[0], strerror(errno));
+			exit_status = 1;
+		}
 		else
 		{
 			cwd = getcwd(NULL, 0);
-			if (!cwd)
-				printf("minishell: cd: %s\n", strerror(errno));
-			ft_setenv("PWD", cwd);
+			if ((exit_status = ft_setenv("PWD", cwd)) != 0)
+				return exit_status;
 		}
 	}
 	else if (!args)
 	{
 		// if (ft_strcmp(getenv("HOME"), getcwd(NULL, 0)))
 		cwd = getcwd(NULL, 0);
-		if (!cwd)
-			printf("minishell: cd: %s\n", strerror(errno));
-		ft_setenv("OLDPWD", cwd);
+		if ((exit_status = ft_setenv("OLDPWD", cwd)) != 0)
+			return exit_status;
 		if (chdir(getenv("HOME")) == -1)
+		{
 			printf("minishell: cd: %s\n", strerror(errno));
+			exit_status = 1;
+		}
 		else
 		{
 			cwd = getcwd(NULL, 0);
-			if (!cwd)
-				printf("minishell: cd: %s\n", strerror(errno));
-			ft_setenv("PWD", cwd);
+			if ((exit_status = ft_setenv("PWD", cwd)) != 0)
+				return exit_status;
 		}
 	}
+	return exit_status;
 }
 
-void pwd(void) {
+int pwd(void) {
     char* cwd;
+	int exit_status = 0;
 
 	cwd = getcwd(NULL, 0);
-	if (!cwd)
-		printf("minishell: pwd: %s\n", strerror(errno));
 	printf("%s\n", cwd);
 	free(cwd);
+	return exit_status;
 }
 
 char **split_identifier(char *env_var)
@@ -535,11 +547,12 @@ char **split_identifier(char *env_var)
 	return pair;
 }
 
-void    ft_putenv(char *env_var)
+int ft_putenv(char *env_var)
 {
    t_env *current = g_env;
    int is_valid_identifier = 1;
    int key_exists = 0;
+   int exit_status = 0;
 
    char **env_var_pair = split_identifier(env_var);
    if (env_var_pair[0][0] == '\0' || ft_isdigit(env_var_pair[0][0]))
@@ -583,12 +596,17 @@ void    ft_putenv(char *env_var)
    }
 
    if (!is_valid_identifier)
+   {
 	   printf("minishell: export: `%s': not a valid identifier\n",
 				env_var);
+	   exit_status = 1;
+   }
 
    free(env_var_pair[0]);
    free(env_var_pair[1]);
    free(env_var_pair);
+
+   return exit_status;
 }
 
 // export():
@@ -607,15 +625,16 @@ void    ft_putenv(char *env_var)
 // under‐score.  Also referred to as an
 // identifier.
 //
-void export(char **args)
+int export(char **args)
 {
 	int i = 0;
+	int exit_status = 0;
 
 	if (args)
 	{
 		while (args[i])
 		{
-			ft_putenv(args[i]);
+			exit_status = ft_putenv(args[i]);
 			i++;
 		}
 	}
@@ -631,20 +650,25 @@ void export(char **args)
 			current = current->next;
 		}
 	}
+
+	return exit_status;
 }
 
-void unset(char **args)
+int unset(char **args)
 {
 	int i = 0;
+	int exit_status = 0;
 
 	if (args)
 	{
 		while (args[i])
 		{
-			ft_unsetenv(args[i]);
+			if (ft_unsetenv(args[i]) == 1)
+				exit_status = 1;
 			i++;
 		}
 	}
+	return exit_status;
 }
 
 void env()
@@ -771,7 +795,7 @@ void	signal_handler_parent(int sig)
 	if (sig == SIGINT && !is_forked)
 	{
 		write(1, "\n", 1);
-		rl_replace_line("", 1);
+		// rl_replace_line("", 1);
 		rl_on_new_line();
 		rl_redisplay();
 		// update_status_code(1);
@@ -802,9 +826,9 @@ int    run_cmdline(t_sep *node, int pipes_num)
 			if (ft_strcmp(node->lower_builtin, "pwd") == 0)
 				pwd();
 			if (ft_strcmp(node->lower_builtin, "export") == 0)
-				export(node->args);
+				exit_status = export(node->args);
 			if (ft_strcmp(node->lower_builtin, "unset") == 0)
-				unset(node->args);
+				exit_status = unset(node->args);
 			if (ft_strcmp(node->lower_builtin, "env") == 0)
 				env();
 			if (ft_strcmp(node->lower_builtin, "exit") == 0)
@@ -986,7 +1010,6 @@ int    run_cmdline(t_sep *node, int pipes_num)
 							env();
 						if (ft_strcmp(node->lower_builtin, "exit") == 0)
 						{
-							printf("exit\n");
 							exit(0); // return 0 and exit in main after free
 						}
 						/*
