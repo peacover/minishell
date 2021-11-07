@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/11/06 18:19:21 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/11/07 15:26:58 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -338,6 +338,8 @@ void	handling_dollar3(char **s1, char *s, int *i, char **w)
 }
 void	handling_dollar2(char *v, int is_dollar, int *start, char **ret, t_env **current)
 {	
+
+
 	while (*current != NULL)
 	{
 		// if (!ft_strcmp((*current)->key, v) ||
@@ -393,7 +395,7 @@ char	*handling_dollar(char *s)
 				w = ft_strjoin(w, ret);
 			i += ft_strlen(s1);
 			if (ret)
-				free(ret);
+				free(ret); 
 			if (v)
 				free(v);
 			if (s1)
@@ -404,6 +406,8 @@ char	*handling_dollar(char *s)
 	}
 	if (w)
 		return (w);
+	else if (is_dollar)
+		return (NULL);
 	else
 		return (s);
 }
@@ -512,7 +516,7 @@ void    add_to_args(int start, int end, char *s, int i, t_sep *node)
 			if (s[start] == '\'' || s[start] == '\"')
 				start = l + 1;
 			else
-				start = l;			
+				start = l;	
 		}
 	}
 	node->args[j + 1] = NULL;
@@ -563,6 +567,50 @@ void	get_args2(char *s, int *start, int *end)
 	}
 }
 
+void	check_first_cmd_dollar(char **s, int *start)
+{
+	int l;
+	char *str;
+	char *tmp;
+	char *s1;
+	char *s2;
+
+	l = 0;
+	str = NULL;
+	tmp = NULL;
+	s1 = NULL;
+	s2 = NULL;
+
+	if (*s[*start] != '\'' && *s[*start] != '\"')
+	{
+		l = *start;
+		while ((*s)[l] && (*s)[l] != ' ' && (*s)[l] != '\'' && (*s)[l] != '\"')
+			l++;
+		str = ft_substr(*s, *start, l - *start);
+	}
+	else
+	{				
+		l = search_second_quote(*s, *start + 1, *s[*start]);
+		if (!l)
+			error_msg("error multiligne");
+		str = ft_substr(*s, *start + 1, l - *start - 1);
+	}
+	if (*s[*start] != '\'')
+	{
+		tmp = handling_dollar(str);
+		if (ft_strcmp(tmp, str))
+		{
+			*s = ft_strjoin(tmp, ft_substr(*s, l - 1, ft_strlen(*s) - l));//free prob soon
+			printf("\nAFTER : %s\n", *s);
+			// return (1);
+			// if ((int)ft_strlen(*s) > l)
+				// *s = ft_strjoin(*s, " ");
+			// *start = ft_strlen(*s);
+		}
+	}
+	// return (0);
+}
+
 void    get_args(char *s, int start, t_sep *node)
 {
 	int     i;
@@ -575,16 +623,18 @@ void    get_args(char *s, int start, t_sep *node)
 	v = 0;
 	end = 0;
 	tmp = NULL;
+	check_first_cmd_dollar(&s, &start);
+	printf ("\ns : %s \n", s);
 	while (start < (int)ft_strlen(s))
 	{
 		t = start;
-
 		// printf ("\nBEFORE | S : %s\n", s);
-		s = handling_dollar(s);
+		// s = handling_dollar(s);
 		// printf ("\nAFTER | S : %s\n", s);
 		get_args2(s, &start, &end);
 		if (t < start)
 		{
+			// s = handling_dollar(s);
 			add_to_args(t, start, s, i, node);
 			i++;
 		}
@@ -592,7 +642,6 @@ void    get_args(char *s, int start, t_sep *node)
 			start++;
 	}
 }
-
 
 char	*red_redim_s(char *s, int start, int end)
 {
@@ -851,8 +900,8 @@ int		check_red(t_sep *node, char *s)
 	{
 		if (s[start] == '\'' || s[start] == '\"')
 		{
-			if (s[start - 1] == '\\')
-				continue;
+			// if (s[start - 1] == '\\')
+			// 	continue;
 			end = search_second_quote(s, start + 1, s[start]);
 			if (!end)
 				error_msg("error multiligne");
@@ -1047,7 +1096,7 @@ void	fill_list2(char *str, int i, int *pipes_num, t_sep **head, int start)
 			if (i && str[i - 1] == '\\')
 				error_msg("error multiligne");
 			fill_list3(head, str, i, &start);
-			}
+		}
 		i++;
 	}
 }
