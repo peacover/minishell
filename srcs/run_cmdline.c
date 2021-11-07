@@ -6,7 +6,7 @@
 /*   By: mhaddi <mhaddi@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/08 15:34:01 by mhaddi            #+#    #+#             */
-/*   Updated: 2021/11/06 17:08:08 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/11/07 17:33:33 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -643,10 +643,13 @@ int export(char **args)
 		t_env *current = g_env;
 		while (current != NULL)
 		{
-			printf("declare -x %s", current->key);
-			if (current->value)
-				printf("=\"%s\"", current->value);
-			printf("\n");
+			if (current->key[0] != '?')
+			{
+				printf("declare -x %s", current->key);
+				if (current->value)
+					printf("=\"%s\"", current->value);
+				printf("\n");
+			}
 			current = current->next;
 		}
 	}
@@ -676,7 +679,7 @@ void env()
 	t_env *current = g_env;
 	while (current != NULL)
 	{
-		if (current->value)
+		if (current->value && current->key[0] != '?')
 			printf("%s=%s\n", current->key, current->value);
 		current = current->next;
 	}
