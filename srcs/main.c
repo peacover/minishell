@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/11/07 15:26:58 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/11/07 16:07:26 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -1151,19 +1151,22 @@ void    print_list_env()
 
 t_env    *fill_env(char **env)
 {
-	t_env *head = NULL;
-	t_env *tail = NULL;
-	int i;
-	i = 0;
+	t_env *head;
+	t_env *tail;
 	t_env *temp;
 	char **s;
+	int i;
+	
+	i = 0;
+	head = NULL;
+	tail = NULL;
 	while (env[i])
 	{
 		s = ft_split(env[i],'=');
 		temp = malloc(sizeof(*temp));
 		temp->val = env[i];
 		temp->key = s[0];
-		temp->value= s[1];
+		temp->value = s[1];
 		temp->next = NULL;
 		if (!head)
 		{
@@ -1177,6 +1180,13 @@ t_env    *fill_env(char **env)
 		}
 		i++;
 	}
+	temp = malloc(sizeof(*temp));
+	temp->val = ft_strdup("?=0");
+	temp->key = ft_strdup("?");
+	temp->value = ft_strdup("0");
+	temp->next = NULL;
+	tail->next = temp;
+	tail = temp;
 	return (head);
 }
 
