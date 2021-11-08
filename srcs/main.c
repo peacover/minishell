@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/11/07 16:33:11 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/11/08 07:29:38 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -291,7 +291,8 @@ char	*handling_bs_dq(char *s)
 int		equal_export(char *s, int i)
 {
 	i++;
-	while (s[i] && s[i] != '$' && (ft_isalpha(s[i]) || s[i] == '_' || ft_isdigit(s[i])))
+	while (s[i] && s[i] != '$' && (ft_isalpha(s[i]) || s[i] == '_'
+	|| ft_isdigit(s[i]) || (s[i] == '?' && s[i - 1] == '$')))
 		i++;
 	return (i);
 }
@@ -303,7 +304,8 @@ char	*str_export_split(char *s, int start, int is_dollar)
 	i = start;
 	if (is_dollar)
 	{
-		while (s[i] && s[i] != '$' && (ft_isalpha(s[i]) || s[i] == '_' || ft_isdigit(s[i])))
+		while (s[i] && s[i] != '$' && (ft_isalpha(s[i]) || s[i] == '_'
+		|| ft_isdigit(s[i]) || (s[i] == '?' && s[i - 1] == '$')))
 			i++;
 		return (ft_substr(s, start, i - start));
 	}
@@ -344,6 +346,7 @@ void	handling_dollar2(char *v, int is_dollar, int *start, char **ret, t_env **cu
 	{
 		// if (!ft_strcmp((*current)->key, v) ||
 		// (!ft_strncmp((*current)->key, v, ft_strlen((*current)->key))))
+		// printf ("\n key : %s  | value : %s\n", (*current)->key, (*current)->value);
 		if (!ft_strcmp((*current)->key, v))
 		{
 			if (is_dollar)
