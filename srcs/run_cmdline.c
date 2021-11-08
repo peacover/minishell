@@ -6,7 +6,7 @@
 /*   By: mhaddi <mhaddi@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/08 15:34:01 by mhaddi            #+#    #+#             */
-/*   Updated: 2021/11/07 17:33:33 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/11/08 12:47:37 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -798,7 +798,7 @@ void	signal_handler_parent(int sig)
 	if (sig == SIGINT && !is_forked)
 	{
 		write(1, "\n", 1);
-		// rl_replace_line("", 1);
+		rl_replace_line("", 1);
 		rl_on_new_line();
 		rl_redisplay();
 		// update_status_code(1);

@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/11/08 07:29:38 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/11/08 12:33:35 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -1111,6 +1111,8 @@ int	fill_list(char *str)
 	int		end;
 	int     pipes_num;
 	t_sep	*head;
+	t_env *current = g_env;
+	int exit_status;
 
 	i = 0;
 	end = 0;
@@ -1119,15 +1121,18 @@ int	fill_list(char *str)
 	pipes_num = 0;
 	fill_list2(str, i, &pipes_num, &head, start);
 	print_mylist(head, pipes_num); 
-	run_cmdline(head, pipes_num);
-	/*
-	if (run_cmdline(head, pipes_num) == 1)
+	exit_status = run_cmdline(head, pipes_num);
+	// set exit_status value 
+	while (current != NULL)
 	{
-		free_mylist_red(head->red);
-		free_mylist_sep(head);
-		return (1);
+		if (ft_strcmp(current->key, "?") == 0)
+		{
+			free(current->value);
+			current->value = ft_itoa(exit_status);
+			break ;
+		}
+		current = current->next;
 	}
-	*/
 	free_mylist_red(head->red);
 	free_mylist_sep(head);
 	return (0);
