@@ -6,7 +6,7 @@
 /*   By: mhaddi <mhaddi@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/08 15:34:01 by mhaddi            #+#    #+#             */
-/*   Updated: 2021/11/10 11:32:08 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/11/10 18:34:03 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,31 +16,6 @@
 #include <sys/fcntl.h>
 #include <sys/types.h>
 #include <dirent.h>
-
-/*
-char    *ft_getline(void)
-{
-    char    c;
-    char    *line;
-    char    *tmp;
-
-    line = malloc(1);
-    *line = '\0';
-    while (1)
-    {
-        read(0, &c, 1);
-        if (c == EOF)
-            return (line);
-        tmp = line;
-        line = ft_strjoin(tmp, (char [2]){c, '\0'});
-        free(tmp);
-        if (c == '\n')
-            return (line);
-    }
-}
-*/
-
-// printf("minishell: cd: %s: %s\n", args[0], strerror(errno));
 
 char    *ft_getline(void)
 {
@@ -800,6 +775,197 @@ void	signal_handler_parent(int sig)
 	}
 }
 
+int	run_builtins(t_sep *node, int is_in_pipe)
+{
+	int exit_status;
+
+	if (ft_strcmp(node->lower_builtin, "echo") == 0)
+		echo(node->args);
+	if (ft_strcmp(node->lower_builtin, "cd") == 0)
+		cd(node->args);
+	if (ft_strcmp(node->lower_builtin, "pwd") == 0)
+		pwd();
+	if (ft_strcmp(node->lower_builtin, "export") == 0)
+		exit_status = export(node->args);
+	if (ft_strcmp(node->lower_builtin, "unset") == 0)
+		exit_status = unset(node->args);
+	if (ft_strcmp(node->lower_builtin, "env") == 0)
+		env();
+	if (ft_strcmp(node->lower_builtin, "exit") == 0)
+	{
+		if (!is_in_pipe)
+			printf("exit\n");
+		exit(0);
+	}
+
+	return exit_status;
+}
+
+int run_executables(t_sep *node)
+{
+	int exit_status = 0;
+
+	pid_t fork_pid = fork();
+	if (fork_pid < 0)
+	{
+		printf("minishell: fork: %s\n", strerror(errno));
+		return (1);
+	}
+	if (fork_pid == 0)
+	{
+		is_forked = 1;
+		if (execve((char *[2]){node->path, node->builtin}[!node->path], node->args, g_envp) == -1)
+		{
+			printf("minishell: %s: command not found\n", node->builtin);
+			exit(127);
+		}
+	}
+	else
+	{
+		if (signal(SIGINT, SIG_IGN) == SIG_ERR)
+		{
+			printf("minishell: signal: %s\n", strerror(errno));
+			return (1);
+		}
+		if (waitpid(fork_pid, &exit_status, 0) < 0) // TO-DO: handle exit codes in execve and builtins and others
+		{
+			printf("minishell: waitpid: %s\n", strerror(errno));
+			return (1);
+		}
+		exit_status = WEXITSTATUS(exit_status);
+		if (signal(SIGINT, signal_handler_parent) == SIG_ERR)
+		{
+			printf("minishell: signal: %s\n", strerror(errno));
+			return (1);
+		}
+	}
+
+	return exit_status;
+}
+
+int run_no_pipe_cmd(t_sep *node, int *stdin_fd, int *stdout_fd)
+{
+	int exit_status = 0;
+
+	if (node->is_builtin)
+		exit_status = run_builtins(node, 0);
+	else if (node->path || node->builtin)
+		exit_status = run_executables(node);
+
+	if (dup2(*stdin_fd, 0) < 0)
+	{
+		printf("minishell: dup2: %s\n", strerror(errno));
+		return (1);
+	}
+	if (dup2(*stdout_fd, 1) < 0)
+	{
+		printf("minishell: dup2: %s\n", strerror(errno));
+		return (1);
+	}
+
+	return (exit_status);
+}
+
+int check_error(int condition, void *to_free, char *to_print, int exit_code)
+{
+	if (condition)
+	{
+		if (to_free)
+			free(to_free);
+		if (to_print)
+			printf("%s: %s\n", to_print, strerror(errno));
+		if (exit_code > -1)
+			exit(exit_code);
+		return (1);
+	}
+	return (0);
+}
+
+int	run_pipes(t_sep *node, int pipes_num, int *stdin_fd, int *stdout_fd)
+{
+	int exit_status = 0;
+
+	pid_t *pids = malloc(sizeof(pid_t) * (pipes_num + 1));
+	int pipe_fd[2];
+	if (check_error(pipe(pipe_fd) < 0, pids, "minishell: pipe", -1)) return (1);
+	int num_cmd = 0;
+	while (node != NULL)
+	{
+		if (node->t_sp == '|' || num_cmd == pipes_num)
+		{
+			if (num_cmd > 0)
+			{
+				*stdin_fd = dup(0);
+				if (check_error(*stdin_fd < 0 || dup2(pipe_fd[0], 0) < 0, pids, "minishell: dup", -1)) return (1);
+				if (check_error(pipe(pipe_fd) < 0, pids, "minishell: pipe", -1)) return (1);
+			}
+			pids[num_cmd] = fork();
+			check_error(pids[num_cmd] < 0, pids, "minishell: fork", 1);
+			if (pids[num_cmd] == 0)
+			{
+				is_forked = 1;
+				if (num_cmd < pipes_num && (node->path || node->builtin))
+					check_error(dup2(pipe_fd[1], 1) < 0, pids, "minishell: dup2", 1);
+				if (node->is_red)
+				{
+					int i_red_found = 0;
+					char *i_red_file;
+					int o_red_found = 0;
+					char *o_red_file;
+					while (node->red != NULL)
+					{
+						if (node->red->red_op == 'o' || node->red->red_op == 'a')
+						{
+							o_red_found = 1;
+							o_red_file = node->red->r_file;
+						}
+						else if (node->red->red_op == 'h' || node->red->red_op == 'i')
+						{
+							i_red_found = 1;
+							i_red_file = node->red->r_file;
+						}
+						node->red = node->red->next;
+					}
+					if (o_red_found)
+						check_error(dup2(ft_atoi(o_red_file), 1) < 0, pids, "minishell: dup2", 1);
+					if (i_red_found)
+						check_error(dup2(ft_atoi(i_red_file), 0) < 0, pids, "minishell: dup2", 1);
+				}
+
+				if (node->is_builtin)
+					exit_status = run_builtins(node, 1);
+				else if (node->path || node->builtin)
+				{
+					if (execve((char *[2]){node->path, node->builtin}[!node->path], node->args, g_envp) == -1)
+					{
+						printf("minishell: %s: command not found\n", node->builtin);
+						close(pipe_fd[1]);
+						exit(127);
+					}
+				}
+				else
+				{
+					close(pipe_fd[1]);
+					close(0);
+					check_error(dup2(open("/dev/null", O_WRONLY), 1) < 0, pids, "minishell: dup2", 1);
+				}
+			}
+			else {
+				if (check_error(signal(SIGINT, SIG_IGN) == SIG_ERR, pids, "minishell: signal", -1)) return (1);
+				if (check_error(waitpid(pids[num_cmd], &exit_status, 0) < 0, pids, "minishell: waitpid", -1)) return (1);
+				exit_status = WEXITSTATUS(exit_status);
+				if (check_error(signal(SIGINT, signal_handler_parent) == SIG_ERR, pids, "minishell: signal", -1)) return (1);
+				close(pipe_fd[1]);
+				num_cmd++;
+			}
+		}
+		check_error(dup2(*stdin_fd, 0) < 0 || dup2(*stdout_fd, 1) < 0, pids, "minishell: dup2", 1);
+		node = node->next;
+	}
+
+	return (exit_status);
+}
+
 int    run_cmdline(t_sep *node, int pipes_num)
 {
 	int stdin_fd = 0;
@@ -811,270 +977,10 @@ int    run_cmdline(t_sep *node, int pipes_num)
 	if ((exit_status = redirect(&stdin_fd, &stdout_fd, node)))
 		return (exit_status);
 
-	if (node->next == NULL) // no pipes or redirections
-	{
-		// printf("true, next is null.\n");
-		if (node->is_builtin)
-		{
-			// printf("whoops, node is builtin?\n");
-			if (ft_strcmp(node->lower_builtin, "echo") == 0)
-				echo(node->args);
-			if (ft_strcmp(node->lower_builtin, "cd") == 0)
-				cd(node->args);
-			if (ft_strcmp(node->lower_builtin, "pwd") == 0)
-				pwd();
-			if (ft_strcmp(node->lower_builtin, "export") == 0)
-				exit_status = export(node->args);
-			if (ft_strcmp(node->lower_builtin, "unset") == 0)
-				exit_status = unset(node->args);
-			if (ft_strcmp(node->lower_builtin, "env") == 0)
-				env();
-			if (ft_strcmp(node->lower_builtin, "exit") == 0)
-			{
-				printf("exit\n");
-				exit(0); // return 0 and exit in main after free
-			}
-		}
-		else if (node->path || node->builtin)
-		{
-			// printf("ok, we exec now:\n");
-			// char *argv[] = {"/bin/sh", "-c", node->s_red, NULL};
-			pid_t fork_pid = fork();
-			if (fork_pid < 0)
-			{
-				printf("minishell: fork: %s\n", strerror(errno));
-				return (1);
-			}
-			if (fork_pid == 0)
-			{
-				is_forked = 1;
-				// execve(argv[0], argv, g_envp);
-				if (execve((char *[2]){node->path, node->builtin}[!node->path], node->args, g_envp) == -1)
-				{
-					printf("minishell: %s: command not found\n", node->builtin);
-					exit(1); // error code
-				}
-			}
-			else
-			{
-				if (signal(SIGINT, SIG_IGN) == SIG_ERR)
-				{
-					printf("minishell: signal: %s\n", strerror(errno));
-					return (1);
-				}
-				if (waitpid(fork_pid, &exit_status, 0) < 0) // TO-DO: handle exit codes in execve and builtins and others
-				{
-					printf("minishell: waitpid: %s\n", strerror(errno));
-					return (1);
-				}
-				exit_status = WEXITSTATUS(exit_status);
-				if (signal(SIGINT, signal_handler_parent) == SIG_ERR)
-				{
-					printf("minishell: signal: %s\n", strerror(errno));
-					return (1);
-				}
-			}
-		}
-
-		if (dup2(stdin_fd, 0) < 0)
-		{
-			printf("minishell: dup2: %s\n", strerror(errno));
-			return (1);
-		}
-		if (dup2(stdout_fd, 1) < 0)
-		{
-			printf("minishell: dup2: %s\n", strerror(errno));
-			return (1);
-		}
-	}
-	else // pipes and redirections
-	{
-		pid_t *pids = malloc(sizeof(pid_t) * (pipes_num + 1));
-		int pipe_fd[2];
-		if (pipe(pipe_fd) < 0)
-		{
-			free(pids);
-			printf("minishell: pipe: %s\n", strerror(errno));
-			return (1);
-		}
-		int num_cmd = 0;
-		while (node != NULL)
-		{
-			// if sep is a pipe (e.g.: `ls | cat`, current node's cmd
-			// is `ls` and next node's cmd is `cat`, their sep is `|`)
-			// or if cmd is last cmd in the pipeline
-			if (node->t_sp == '|' || num_cmd == pipes_num)
-			{
-				if (num_cmd > 0)
-				{
-					stdin_fd = dup(0);
-					if (stdin_fd < 0 || dup2(pipe_fd[0], 0) < 0)
-					{
-						free(pids);
-						printf("minishell: dup: %s\n", strerror(errno));
-						return (1);
-					}
-					if (pipe(pipe_fd) < 0)
-					{
-						free(pids);
-						printf("minishell: pipe: %s\n", strerror(errno));
-						return (1);
-					}
-				}
-				pids[num_cmd] = fork();
-				if (pids[num_cmd] < 0)
-				{
-					free(pids);
-					printf("minishell: fork: %s\n", strerror(errno));
-					exit(1);
-				}
-				if (pids[num_cmd] == 0)
-				{
-					is_forked = 1;
-					if (num_cmd < pipes_num && (node->path || node->builtin))
-					{
-						if (dup2(pipe_fd[1], 1) < 0)
-						{
-							free(pids);
-							printf("minishell: dup2: %s\n", strerror(errno));
-							exit(1);
-						}
-					}
-
-					// check if there is a redir_op
-					// if (node->is_red)
-					// {
-					// 	while (node->red->next != NULL)
-					// 		node->red = node->red->next;
-					// 	dup2(ft_atoi(node->red->r_file), 1);
-					// 	// redirect(&stdin_fd, &stdout_fd, node);
-					// }
-					
-					// check if there is a redir_op
-					if (node->is_red)
-					{
-						int i_red_found = 0;
-						char *i_red_file;
-						int o_red_found = 0;
-						char *o_red_file;
-						while (node->red != NULL)
-						{
-							if (node->red->red_op == 'o' || node->red->red_op == 'a')
-							{
-								o_red_found = 1;
-								o_red_file = node->red->r_file;
-							}
-							else if (node->red->red_op == 'h' || node->red->red_op == 'i')
-							{
-								i_red_found = 1;
-								i_red_file = node->red->r_file;
-							}
-							node->red = node->red->next;
-						}
-						if (o_red_found)
-						{
-							if (dup2(ft_atoi(o_red_file), 1) < 0)
-							{
-								free(pids);
-								printf("minishell: dup2: %s\n", strerror(errno));
-								exit(1);
-							}
-						}
-						if (i_red_found)
-						{
-							if (dup2(ft_atoi(i_red_file), 0) < 0)
-							{
-								free(pids);
-								printf("minishell: dup2: %s\n", strerror(errno));
-								exit(1);
-							}
-						}
-						// redirect(&stdin_fd, &stdout_fd, node);
-					}
-
-					if (node->is_builtin)
-					{
-						if (ft_strcmp(node->lower_builtin, "echo") == 0)
-							echo(node->args);
-						if (ft_strcmp(node->lower_builtin, "cd") == 0)
-							cd(node->args);
-						if (ft_strcmp(node->lower_builtin, "pwd") == 0)
-							pwd();
-						if (ft_strcmp(node->lower_builtin, "export") == 0)
-							export(node->args);
-						if (ft_strcmp(node->lower_builtin, "unset") == 0)
-							unset(node->args);
-						if (ft_strcmp(node->lower_builtin, "env") == 0)
-							env();
-						if (ft_strcmp(node->lower_builtin, "exit") == 0)
-						{
-							exit(0); // return 0 and exit in main after free
-						}
-						/*
-						char *argv[] = {"/bin/sh", "-c", node->s_red, NULL};
-						if (execve(argv[0], argv, g_envp) == -1)
-						{
-							printf("minishell: %s: command not found\n", node->builtin);
-							close(pipe_fd[1]);
-							exit(1); // error code
-						}
-						*/
-						exit(0);
-					}
-					else if (node->path || node->builtin)
-					{
-						if (execve((char *[2]){node->path, node->builtin}[!node->path], node->args, g_envp) == -1)
-						{
-							printf("minishell: %s: command not found\n", node->builtin);
-							close(pipe_fd[1]);
-							exit(1); // error code
-						}
-					}
-					else
-					{
-						close(pipe_fd[1]);
-						close(0);
-						if (dup2(open("/dev/null", O_WRONLY), 1) < 0)
-						{
-							free(pids);
-							printf("minishell: dup2: %s\n", strerror(errno));
-							exit(1);
-						}
-					}
-				}
-				else {
-					if (signal(SIGINT, SIG_IGN) == SIG_ERR)
-					{
-						free(pids);
-						printf("minishell: signal: %s\n", strerror(errno));
-						return (1);
-					}
-					if (waitpid(pids[num_cmd], &exit_status, 0) < 0)
-					{
-						free(pids);
-						printf("minishell: waitpid: %s\n", strerror(errno));
-						return (1);
-					}
-					exit_status = WEXITSTATUS(exit_status);
-					if (signal(SIGINT, signal_handler_parent) == SIG_ERR)
-					{
-						free(pids);
-						printf("minishell: signal: %s\n", strerror(errno));
-						return (1);
-					}
-					close(pipe_fd[1]);
-					num_cmd++;
-				}
-			}
-			if (dup2(stdin_fd, 0) < 0 || dup2(stdout_fd, 1) < 0)
-			{
-				free(pids);
-				printf("minishell: dup2: %s\n", strerror(errno));
-				exit(1);
-			}
-			node = node->next;
-		}
-	}
+	if (node->next == NULL)
+		exit_status = run_no_pipe_cmd(node, &stdin_fd, &stdout_fd);
+	else
+		exit_status = run_pipes(node, pipes_num, &stdin_fd, &stdout_fd);
 	is_forked = 0;
 
 	return exit_status;
