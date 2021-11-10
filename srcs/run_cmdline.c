@@ -6,7 +6,7 @@
 /*   By: mhaddi <mhaddi@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/08 15:34:01 by mhaddi            #+#    #+#             */
-/*   Updated: 2021/11/08 12:47:37 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/11/10 10:46:47 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -436,7 +436,7 @@ int cd(char **args)
 	// - is null (so `cd`)
 	// - current directory is not home directory
 
-	if (args)
+	if (args && *args)
 	{
 		if (**args == '\0')
 		{
@@ -481,7 +481,7 @@ int cd(char **args)
 				return exit_status;
 		}
 	}
-	else if (!args)
+	else
 	{
 		// if (ft_strcmp(getenv("HOME"), getcwd(NULL, 0)))
 		cwd = getcwd(NULL, 0);
@@ -630,7 +630,7 @@ int export(char **args)
 	int i = 0;
 	int exit_status = 0;
 
-	if (args)
+	if (args && *args)
 	{
 		while (args[i])
 		{
