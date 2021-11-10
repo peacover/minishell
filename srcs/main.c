@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/11/10 09:41:21 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/11/10 10:05:38 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -277,6 +277,7 @@ char	*str_export_split(char *s, int start, int is_dollar)
 		return (ft_substr(s, start, i - start));
 	}
 }
+
 int		check_dollar(char *s, char **ret)
 {
 	int i;
@@ -291,6 +292,7 @@ int		check_dollar(char *s, char **ret)
 	}
 	return (0);
 }
+
 void	handling_dollar3(char **s1, char *s, int *i, char **w)
 {
 	*s1 = str_export_split(s, *i, 0);
@@ -463,11 +465,6 @@ void	add_to_args4(char *s, int *l, char **str, int start)
 }
 void	add_to_args5(t_sep *node, char **str, int j)
 {
-	if (!ft_strcmp(node->lower_builtin, "unset") && !ft_strcmp(*str, ""))
-	{
-		free (*str);
-		*str = NULL;
-	}
 	if (!node->args[j] && *str)
 		node->args[j] = ft_strdup(*str);
 	else if (*str)
