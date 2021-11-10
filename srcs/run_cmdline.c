@@ -6,7 +6,7 @@
 /*   By: mhaddi <mhaddi@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/08 15:34:01 by mhaddi            #+#    #+#             */
-/*   Updated: 2021/11/10 10:46:47 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/11/10 11:32:08 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,7 +53,7 @@ char    *ft_getline(void)
     *line = '\0';
     while (1)
     {
-        read_status = !read(0, &c, 1);
+        read_status = read(0, &c, 1);
 		if (!read_status)
         {
             tmp = line;
@@ -96,7 +96,6 @@ int is_forked = 0;
 int run_heredoc(t_sep *node)
 {
 	char *line;
-	char *unexpanded_line;
 	int input_fd;
 	int i;
 	char *file_name;
@@ -112,6 +111,11 @@ int run_heredoc(t_sep *node)
 		{
 			if (node->red->red_op == 'h')
 			{
+				if (!node->red->r_file || !*node->red->r_file)
+				{
+					printf("minishell: syntax error near unexpected token `newline'\n");
+					return (258);
+				}
 				i++;
 				count = ft_itoa(i);
 				file_name = ft_strjoin("/tmp/.heredoc_", count); // to free
@@ -166,15 +170,6 @@ int run_heredoc(t_sep *node)
 							break;
 						}
 						free(delimiter);
-						// implement expansion if there is no "" in STOP word
-						if (!has_quotes(line))  // this should be checked in parsing and added
-							// as a new parameter to the redirection list node,
-							// because quotes needs to be removed from the string.
-						{
-							unexpanded_line = line;
-							line = handling_dollar(line);
-							free(unexpanded_line);
-						}
 						if (write(input_fd, line, ft_strlen(line)) < 0)
 						{
 							printf("minishell: write: %s\n", strerror(errno));
@@ -811,10 +806,10 @@ int    run_cmdline(t_sep *node, int pipes_num)
 	int stdout_fd = 0;
 	int exit_status = 0;
 
-	if (run_heredoc(node) == 1)
-		return (1);
-	if (redirect(&stdin_fd, &stdout_fd, node))
-		return (1);
+	if ((exit_status = run_heredoc(node)))
+		return (exit_status);
+	if ((exit_status = redirect(&stdin_fd, &stdout_fd, node)))
+		return (exit_status);
 
 	if (node->next == NULL) // no pipes or redirections
 	{
