@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/11/08 12:33:35 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/11/10 09:41:21 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -167,45 +167,6 @@ void	check_fill_path(t_sep *node)
 	node->path = NULL;
 }
 
-/*void	check_fill_path(t_sep *node)
-{
-	int     i;
-	char    **w;
-	char    *s;
-	int     fd;
-	
-	i = 0;
-	fd = 0;
-	s = NULL;
-	t_env *current = g_env;
-	while (current != NULL)
-	{
-		if (!ft_strcmp(current->key, "PATH"))
-		{
-			w = ft_split(current->value, ':');
-			while (w[i])
-			{
-				s = ft_strjoin(w[i], "/");
-				s = ft_strjoin(s, node->lower_builtin);
-				fd = open(s, O_RDONLY);
-				if (fd > 0)
-				{
-					node->path = s;
-					close(fd);
-					return ;
-				}
-				close(fd);
-				free(s);
-				i++;
-			}
-		}
-		current = current->next;
-	}
-	// printf (" \npath : %s \n", node->path);
-	// free w
-	node->path = NULL;
-}*/
-
 void	check_builtin(t_sep *node)
 {
 	int i;
@@ -316,11 +277,12 @@ char	*str_export_split(char *s, int start, int is_dollar)
 		return (ft_substr(s, start, i - start));
 	}
 }
-int		check_dollar(char *s)
+int		check_dollar(char *s, char **ret)
 {
 	int i;
 
 	i = 0;
+	*ret = NULL;
 	while (s[i])
 	{
 		if (s[i] == '$')
@@ -338,25 +300,66 @@ void	handling_dollar3(char **s1, char *s, int *i, char **w)
 		*w = ft_strjoin(*w, *s1);
 	*i += ft_strlen(*s1);
 }
-void	handling_dollar2(char *v, int is_dollar, int *start, char **ret, t_env **current)
+void	handling_dollar2(char *v, int is_dollar, int *start, char **ret)
 {	
-
-
-	while (*current != NULL)
+	t_env	*current = g_env;
+	
+	while (current != NULL)
 	{
-		// if (!ft_strcmp((*current)->key, v) ||
-		// (!ft_strncmp((*current)->key, v, ft_strlen((*current)->key))))
-		// printf ("\n key : %s  | value : %s\n", (*current)->key, (*current)->value);
-		if (!ft_strcmp((*current)->key, v))
+		if (!ft_strcmp((current)->key, v))
 		{
 			if (is_dollar)
 				*start = 1;
-			*ret = ft_strdup((*current)->value);
+			*ret = ft_strdup((current)->value);
 			break;
 		}
-		*current = (*current)->next;
+		current = (current)->next;
 	}
-	*current = g_env;
+	current = g_env;
+}
+
+void	handling_dollar4(char **w, int *i, char **ret, char **v, char **s1)
+{
+	if (!*w && *ret)
+		*w = ft_strdup(*ret);
+	else if (*ret)
+		*w = ft_strjoin(*w, *ret);
+	*i += ft_strlen(*s1);
+	if (*ret)
+		free(*ret); 
+	if (*v)
+		free(*v);
+	if (*s1)
+		free(*s1);
+}
+
+char *handling_dollar5(char *w, int is_dollar, char *s)
+{
+	if (w)
+		return (w);
+	else if (is_dollar)
+		return (NULL);
+	else
+		return (s);
+}
+
+int		handling_dollar6(int *i, int *start, char **s1, int *end, char **w)
+{
+	*i = 0;
+	*start = 0;
+	*s1 = NULL;
+	*end = 0;
+	*w = NULL;
+	return (0);
+}
+char	*handling_dollar7(int *end, char *s, int *i, int *start, char **v)
+{
+	*end = equal_export(s, *i);
+	*start = ++(*i);
+	*v = ft_substr(s, *start, *i - *start);
+	if (*end)
+		*v = ft_substr(s, *start, *end - *start);
+	return (str_export_split(s, *start, 1));
 }
 
 char	*handling_dollar(char *s)
@@ -369,50 +372,23 @@ char	*handling_dollar(char *s)
 	int		is_dollar;
 	char	*v;
 	char	*w;
-	t_env	*current = g_env;
-   
-	i = 0;
-	start = 0;
-	s1 = NULL;
-	end = 0;
-	w = NULL;
-	is_dollar = 0;
-	while (s[i] && check_dollar(s))
+
+	is_dollar = handling_dollar6(&i, &start, &s1, &end, &w);
+	while (s[i] && check_dollar(s, &ret))
 	{
-		ret = NULL;
 		if (ft_strlen(s) == 1 && s[0] == '$')
 			return (ft_strdup("$"));
 		if (s[i] == '$')
 		{
 			is_dollar = 1;
-			end = equal_export(s, i);
-			start = ++i;
-			v = ft_substr(s, start, i - start);
-			if (end)
-				v = ft_substr(s, start, end - start);
-			s1 = str_export_split(s, start, 1);
-			handling_dollar2(v, is_dollar, &start, &ret, &current);
-			if (!w && ret)
-				w = ft_strdup(ret);
-			else if (ret)
-				w = ft_strjoin(w, ret);
-			i += ft_strlen(s1);
-			if (ret)
-				free(ret); 
-			if (v)
-				free(v);
-			if (s1)
-				free(s1);
+			s1 = handling_dollar7(&end, s, &i, &start, &v);
+			handling_dollar2(v, is_dollar, &start, &ret);
+			handling_dollar4(&w, &i, &ret, &v, &s1);
 		}
 		else
 			handling_dollar3(&s1, s, &i, &w);
 	}
-	if (w)
-		return (w);
-	else if (is_dollar)
-		return (NULL);
-	else
-		return (s);
+	return (handling_dollar5(w, is_dollar, s));
 }
 
 char	*str_upper(char *s)
@@ -575,15 +551,8 @@ void	check_first_cmd_dollar(char **s, int *start)
 	int l;
 	char *str;
 	char *tmp;
-	char *s1;
-	char *s2;
 
-	l = 0;
-	str = NULL;
 	tmp = NULL;
-	s1 = NULL;
-	s2 = NULL;
-
 	if (*s[*start] != '\'' && *s[*start] != '\"')
 	{
 		l = *start;
@@ -602,16 +571,8 @@ void	check_first_cmd_dollar(char **s, int *start)
 	{
 		tmp = handling_dollar(str);
 		if (ft_strcmp(tmp, str))
-		{
 			*s = ft_strjoin(tmp, ft_substr(*s, l - 1, ft_strlen(*s) - l));//free prob soon
-			printf("\nAFTER : %s\n", *s);
-			// return (1);
-			// if ((int)ft_strlen(*s) > l)
-				// *s = ft_strjoin(*s, " ");
-			// *start = ft_strlen(*s);
-		}
 	}
-	// return (0);
 }
 
 void    get_args(char *s, int start, t_sep *node)
@@ -619,25 +580,17 @@ void    get_args(char *s, int start, t_sep *node)
 	int     i;
 	int		end;
 	int		t;
-	char	*tmp;
-	int v;
+
 	i = 0;
 	t = 0;
-	v = 0;
 	end = 0;
-	tmp = NULL;
 	check_first_cmd_dollar(&s, &start);
-	printf ("\ns : %s \n", s);
 	while (start < (int)ft_strlen(s))
 	{
 		t = start;
-		// printf ("\nBEFORE | S : %s\n", s);
-		// s = handling_dollar(s);
-		// printf ("\nAFTER | S : %s\n", s);
 		get_args2(s, &start, &end);
 		if (t < start)
 		{
-			// s = handling_dollar(s);
 			add_to_args(t, start, s, i, node);
 			i++;
 		}
@@ -885,10 +838,8 @@ void	init_t_sep(t_sep *node)
 	node->lower_builtin = NULL;
 	node->is_red = 0;
 	node->s_red = NULL;
-	
 	node->r_args = NULL;
 	node->is_path_in_arg = 0;
-	
 	node->red = NULL;
 }
 
@@ -898,13 +849,12 @@ int		check_red(t_sep *node, char *s)
 	int end;
 
 	start = 0;
-	end = 0;
 	while (s[start])
 	{
 		if (s[start] == '\'' || s[start] == '\"')
 		{
-			// if (s[start - 1] == '\\')
-			// 	continue;
+			if (s[start - 1] == '\\')
+				continue;
 			end = search_second_quote(s, start + 1, s[start]);
 			if (!end)
 				error_msg("error multiligne");
@@ -921,37 +871,6 @@ int		check_red(t_sep *node, char *s)
 	}
 	return (0);
 }
-
-// char	*replace_from_env(char *str, t_sep *node)
-// {
-// 	int i;
-// 	char *tmp;
-// 	int l;
-// 	int fd;
-// 	t_env *current = g_env;
-// 	(void)node;
-// 	i = 0;
-// 	fd = 0;
-// 	l = ft_strlen(str);
-// 	while (str[i])
-// 	{
-// 		if (str[i] == '$' && str[i + 1])
-// 		{
-// 			tmp = ft_substr(str, i + 1, l - i + 1);
-// 			while (current != NULL)
-// 			{
-// 				if (!ft_strcmp(current->key, tmp))
-// 				{
-// 					free(str);
-// 					free(tmp);
-// 					return (ft_strdup(current->value)); 
-// 				}
-// 				current = current->next;
-// 			}
-// 		}
-// 	}
-// 	return (str);
-// }
 
 void    get_builtin(char *s, t_sep *node)
 {
@@ -1078,16 +997,18 @@ void	fill_list3(t_sep **head, char *str, int i, int *start)
 	*start = i;
 }
 
-void	fill_list2(char *str, int i, int *pipes_num, t_sep **head, int start)
+void	fill_list2(char *str, int *pipes_num, t_sep **head)
 {
+	int i;
+	int start;
 	int end;
 
+	i = 0;
+	start = 0;
 	while (str[i])
 	{
 		if (str[i] == '\'' || str[i] == '\"')
 		{
-			if (i != 0 && str[i - 1] == '\\')
-				continue;
 			end = search_second_quote(str, i + 1, str[i]);
 			if (!end)
 				error_msg("error multiligne");
@@ -1106,20 +1027,14 @@ void	fill_list2(char *str, int i, int *pipes_num, t_sep **head, int start)
 
 int	fill_list(char *str)
 {
-	int     i;
-	int     start;
-	int		end;
 	int     pipes_num;
 	t_sep	*head;
-	t_env *current = g_env;
-	int exit_status;
+	t_env	*current = g_env;
+	int		exit_status;
 
-	i = 0;
-	end = 0;
-	start = 0;
 	head = NULL;
 	pipes_num = 0;
-	fill_list2(str, i, &pipes_num, &head, start);
+	fill_list2(str, &pipes_num, &head);
 	print_mylist(head, pipes_num); 
 	exit_status = run_cmdline(head, pipes_num);
 	// set exit_status value 
@@ -1157,25 +1072,39 @@ void    print_list_env()
 	}
 }
 
+void	fill_env2(t_env	**temp, char **env, int i)
+{
+	char **s;
+	
+	s = ft_split(env[i],'=');
+	*temp = malloc(sizeof(**temp));
+	(*temp)->val = env[i];
+	(*temp)->key = s[0];
+	(*temp)->value = s[1];
+	(*temp)->next = NULL;
+}
+
+void fill_env3(t_env **temp)
+{
+	*temp = malloc(sizeof(**temp));
+	(*temp)->val = ft_strdup("?=0");
+	(*temp)->key = ft_strdup("?");
+	(*temp)->value = ft_strdup("0");
+	(*temp)->next = NULL;
+}
+
 t_env    *fill_env(char **env)
 {
-	t_env *head;
-	t_env *last;
-	t_env *temp;
-	char **s;
-	int i;
+	t_env	*head;
+	t_env	*last;
+	t_env	*temp;
+	int		i;
 	
 	i = 0;
 	head = NULL;
-	last = NULL;
 	while (env[i])
 	{
-		s = ft_split(env[i],'=');
-		temp = malloc(sizeof(*temp));
-		temp->val = env[i];
-		temp->key = s[0];
-		temp->value = s[1];
-		temp->next = NULL;
+		fill_env2(&temp, env, i);
 		if (!head)
 		{
 			head = temp;
@@ -1188,30 +1117,9 @@ t_env    *fill_env(char **env)
 		}
 		i++;
 	}
-	temp = malloc(sizeof(*temp));
-	temp->val = ft_strdup("?=0");
-	temp->key = ft_strdup("?");
-	temp->value = ft_strdup("0");
-	temp->next = NULL;
+	fill_env3(&temp);
 	last->next = temp;
 	return (head);
-}
-
-void    search_path()
-{
-	t_env *current = g_env;
-	while (current != NULL)
-	{
-		if (ft_strcmp(current->key,"PWD") == 0)
-		{
-			// ft_putstr("\n");
-			ft_putstr(current->value);
-			// ft_putstr("\n");
-			// current->value = pwd;
-			break;
-		}
-		current = current->next;
-	}
 }
 
 char    *my_getcwd()
