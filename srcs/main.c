@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/11/10 10:05:38 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/11/10 10:08:23 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -1075,9 +1075,9 @@ void	fill_env2(t_env	**temp, char **env, int i)
 	
 	s = ft_split(env[i],'=');
 	*temp = malloc(sizeof(**temp));
-	(*temp)->val = env[i];
-	(*temp)->key = s[0];
-	(*temp)->value = s[1];
+	(*temp)->val = ft_strdup(env[i]);
+	(*temp)->key = ft_strdup(s[0]);
+	(*temp)->value = ft_strdup(s[1]);
 	(*temp)->next = NULL;
 }
 
