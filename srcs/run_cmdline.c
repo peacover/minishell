@@ -6,7 +6,7 @@
 /*   By: mhaddi <mhaddi@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/08 15:34:01 by mhaddi            #+#    #+#             */
-/*   Updated: 2021/11/11 12:54:37 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/11/11 16:20:31 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -866,6 +866,101 @@ int run_no_pipe_cmd(t_sep *node, int *stdin_fd, int *stdout_fd)
 	return (exit_status);
 }
 
+int create_pipe(int *stdin_fd, int pipe_fd[2], pid_t *pids)
+{
+	*stdin_fd = dup(0);
+	if (check_error(*stdin_fd < 0 || dup2(pipe_fd[0], 0) < 0, pids, "minishell: dup", -1)) return (1);
+	if (check_error(pipe(pipe_fd) < 0, pids, "minishell: pipe", -1)) return (1);
+	return (0);
+}
+
+void pipe_redirect(t_sep *node, pid_t *pids)
+{
+	int i_red_found = 0;
+	char *i_red_file;
+	int o_red_found = 0;
+	char *o_red_file;
+	while (node->red != NULL)
+	{
+		if (node->red->red_op == 'o' || node->red->red_op == 'a')
+		{
+			o_red_found = 1;
+			o_red_file = node->red->r_file;
+		}
+		else if (node->red->red_op == 'h' || node->red->red_op == 'i')
+		{
+			i_red_found = 1;
+			i_red_file = node->red->r_file;
+		}
+		node->red = node->red->next;
+	}
+	if (o_red_found)
+		check_error(dup2(ft_atoi(o_red_file), 1) < 0, pids, "minishell: dup2", 1);
+	if (i_red_found)
+		check_error(dup2(ft_atoi(i_red_file), 0) < 0, pids, "minishell: dup2", 1);
+}
+
+void	run_pipe_executable(t_sep *node, int pipe_fd[2])
+{
+	if (execve((char *[2]){node->path, node->builtin}[!node->path], node->args, g_envp) == -1)
+	{
+		printf("minishell: %s: command not found\n", node->builtin);
+		close(pipe_fd[1]);
+		exit(127);
+	}
+}
+
+void case_no_cmd(int pipe_fd[2], pid_t *pids)
+{
+	close(pipe_fd[1]);
+	close(0);
+	check_error(dup2(open("/dev/null", O_WRONLY), 1) < 0, pids, "minishell: dup2", 1);
+}
+
+void run_piped_process(int *num_cmd, int *pipes_num, int *exit_status, t_sep *node, int pipe_fd[2], pid_t *pids)
+{
+	is_forked = 1;
+	if (*num_cmd < *pipes_num && (node->path || node->builtin))
+		check_error(dup2(pipe_fd[1], 1) < 0, pids, "minishell: dup2", 1);
+	if (node->is_red)
+		pipe_redirect(node, pids);
+	if (node->is_builtin)
+		*exit_status = run_builtins(node, 1);
+	else if (node->path || node->builtin)
+		run_pipe_executable(node, pipe_fd);
+	else
+		case_no_cmd(pipe_fd, pids);
+}
+
+int run_parent_process(pid_t *pids, int *num_cmd, int *exit_status, int pipe_fd[2])
+{
+	if (check_error(signal(SIGINT, SIG_IGN) == SIG_ERR, pids, "minishell: signal", -1))
+		return (1);
+	if (check_error(waitpid(pids[*num_cmd], exit_status, 0) < 0, pids, "minishell: waitpid", -1))
+		return (1);
+	*exit_status = WEXITSTATUS(*exit_status);
+	if (check_error(signal(SIGINT, signal_handler_parent) == SIG_ERR, pids, "minishell: signal", -1))
+		return (1);
+	close(pipe_fd[1]);
+	(*num_cmd)++;
+	return (0);
+}
+
+int run_piped_cmd(int *num_cmd, int *pipes_num, int *exit_status, int *stdin_fd, int pipe_fd[2], pid_t *pids, t_sep *node)
+{
+	if (*num_cmd > 0)
+		create_pipe(stdin_fd, pipe_fd, pids);
+	pids[*num_cmd] = fork();
+	check_error(pids[*num_cmd] < 0, pids, "minishell: fork", 1);
+	if (pids[*num_cmd] == 0)
+		run_piped_process(num_cmd, pipes_num, exit_status, node, pipe_fd, pids);
+	else {
+		if (run_parent_process(pids, num_cmd, exit_status, pipe_fd))
+			return (1);
+	}
+	return (0);
+}
+
 int	run_pipes(t_sep *node, int pipes_num, int *stdin_fd, int *stdout_fd)
 {
 	int exit_status = 0;
@@ -877,73 +972,8 @@ int	run_pipes(t_sep *node, int pipes_num, int *stdin_fd, int *stdout_fd)
 	while (node != NULL)
 	{
 		if (node->t_sp == '|' || num_cmd == pipes_num)
-		{
-			if (num_cmd > 0)
-			{
-				*stdin_fd = dup(0);
-				if (check_error(*stdin_fd < 0 || dup2(pipe_fd[0], 0) < 0, pids, "minishell: dup", -1)) return (1);
-				if (check_error(pipe(pipe_fd) < 0, pids, "minishell: pipe", -1)) return (1);
-			}
-			pids[num_cmd] = fork();
-			check_error(pids[num_cmd] < 0, pids, "minishell: fork", 1);
-			if (pids[num_cmd] == 0)
-			{
-				is_forked = 1;
-				if (num_cmd < pipes_num && (node->path || node->builtin))
-					check_error(dup2(pipe_fd[1], 1) < 0, pids, "minishell: dup2", 1);
-				if (node->is_red)
-				{
-					int i_red_found = 0;
-					char *i_red_file;
-					int o_red_found = 0;
-					char *o_red_file;
-					while (node->red != NULL)
-					{
-						if (node->red->red_op == 'o' || node->red->red_op == 'a')
-						{
-							o_red_found = 1;
-							o_red_file = node->red->r_file;
-						}
-						else if (node->red->red_op == 'h' || node->red->red_op == 'i')
-						{
-							i_red_found = 1;
-							i_red_file = node->red->r_file;
-						}
-						node->red = node->red->next;
-					}
-					if (o_red_found)
-						check_error(dup2(ft_atoi(o_red_file), 1) < 0, pids, "minishell: dup2", 1);
-					if (i_red_found)
-						check_error(dup2(ft_atoi(i_red_file), 0) < 0, pids, "minishell: dup2", 1);
-				}
-
-				if (node->is_builtin)
-					exit_status = run_builtins(node, 1);
-				else if (node->path || node->builtin)
-				{
-					if (execve((char *[2]){node->path, node->builtin}[!node->path], node->args, g_envp) == -1)
-					{
-						printf("minishell: %s: command not found\n", node->builtin);
-						close(pipe_fd[1]);
-						exit(127);
-					}
-				}
-				else
-				{
-					close(pipe_fd[1]);
-					close(0);
-					check_error(dup2(open("/dev/null", O_WRONLY), 1) < 0, pids, "minishell: dup2", 1);
-				}
-			}
-			else {
-				if (check_error(signal(SIGINT, SIG_IGN) == SIG_ERR, pids, "minishell: signal", -1)) return (1);
-				if (check_error(waitpid(pids[num_cmd], &exit_status, 0) < 0, pids, "minishell: waitpid", -1)) return (1);
-				exit_status = WEXITSTATUS(exit_status);
-				if (check_error(signal(SIGINT, signal_handler_parent) == SIG_ERR, pids, "minishell: signal", -1)) return (1);
-				close(pipe_fd[1]);
-				num_cmd++;
-			}
-		}
+			if (run_piped_cmd(&num_cmd, &pipes_num, &exit_status, stdin_fd, pipe_fd, pids, node))
+				return (1);
 		check_error(dup2(*stdin_fd, 0) < 0 || dup2(*stdout_fd, 1) < 0, pids, "minishell: dup2", 1);
 		node = node->next;
 	}
