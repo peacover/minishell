@@ -6,7 +6,7 @@
 /*   By: mhaddi <mhaddi@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/08 15:34:01 by mhaddi            #+#    #+#             */
-/*   Updated: 2021/11/11 10:56:41 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/11/11 11:21:33 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -104,7 +104,7 @@ char *create_heredoc_file(int *i, char *file_name)
 	return file_name;
 }
 
-int heredoc_loop(int *input_fd, t_sep **node, char *file_name)
+int heredoc_loop(int *input_fd, t_sep *node, char *file_name)
 {
 	char *line;
 
@@ -118,7 +118,7 @@ int heredoc_loop(int *input_fd, t_sep **node, char *file_name)
 			free(line);
 			break ;
 		}
-		char *delimiter = ft_strjoin((*node)->red->r_file, "\n");
+		char *delimiter = ft_strjoin(node->red->r_file, "\n");
 		if (ft_strncmp(delimiter, line, ft_strlen(line)) == 0)
 		{
 			free(delimiter);
@@ -139,7 +139,7 @@ int heredoc_loop(int *input_fd, t_sep **node, char *file_name)
 	return (0);
 }
 
-int heredoc_process(t_sep **node, int *exit_status, char *file_name)
+int heredoc_process(t_sep *node, int *exit_status, char *file_name)
 {
 	int input_fd;
 
@@ -159,8 +159,8 @@ int heredoc_process(t_sep **node, int *exit_status, char *file_name)
 	is_forked = 0;
 	if (check_error(signal(SIGINT, signal_handler_parent) == SIG_ERR, file_name, "minishell: signal", -1))
 		return (1);
-	free((*node)->red->r_file);
-	(*node)->red->r_file = file_name;
+	free(node->red->r_file);
+	node->red->r_file = file_name;
 	return (0);
 }
 
@@ -183,7 +183,7 @@ int run_heredoc(t_sep *node)
 				file_name = create_heredoc_file(&i, file_name);
 				if (check_error(signal(SIGINT, signal_handler_heredoc) == SIG_ERR, file_name, "minishell: signal", -1))
 						return (1);
-				if (heredoc_process(&node, &exit_status, file_name)) return (1);
+				if (heredoc_process(node, &exit_status, file_name)) return (1);
 			}
 			node->red = node->red->next;
 		}
@@ -654,25 +654,25 @@ int check_redir_error(int condition, char *file)
 	return (0);
 }
 
-int	open_input(int *input_fd, int *is_input, t_sep **node)
+int	open_input(int *input_fd, int *is_input, t_sep *node)
 {
-	*input_fd = open((*node)->red->r_file, O_RDONLY);
-	if (check_redir_error(*input_fd == -1, (*node)->red->r_file)) return (1);
-	free((*node)->red->r_file);
-	(*node)->red->r_file = ft_itoa(*input_fd);
+	*input_fd = open(node->red->r_file, O_RDONLY);
+	if (check_redir_error(*input_fd == -1, node->red->r_file)) return (1);
+	free(node->red->r_file);
+	node->red->r_file = ft_itoa(*input_fd);
 	(*is_input)++;
 	return (0);
 }
 
-int open_output(int *output_fd, int *is_output, char type, t_sep **node)
+int open_output(int *output_fd, int *is_output, char type, t_sep *node)
 {
 	if (type == 'o')
-		*output_fd = open((*node)->red->r_file, O_CREAT | O_TRUNC | O_WRONLY, 0644);
+		*output_fd = open(node->red->r_file, O_CREAT | O_TRUNC | O_WRONLY, 0644);
 	else if (type == 'a')
-		*output_fd = open((*node)->red->r_file, O_CREAT | O_APPEND | O_WRONLY, 0644);
-	if (check_redir_error(*output_fd == -1, (*node)->red->r_file)) return (1);
-	free((*node)->red->r_file);
-	(*node)->red->r_file = ft_itoa(*output_fd);
+		*output_fd = open(node->red->r_file, O_CREAT | O_APPEND | O_WRONLY, 0644);
+	if (check_redir_error(*output_fd == -1, node->red->r_file)) return (1);
+	free(node->red->r_file);
+	node->red->r_file = ft_itoa(*output_fd);
 	(*is_output)++;
 	return (0);
 }
@@ -691,9 +691,9 @@ int	redirect(int *stdin_fd, int *stdout_fd, t_sep *node)
 		while (node->red != NULL)
 		{
 			if (node->red->red_op == 'i' || node->red->red_op == 'h')
-				if (open_input(&input_fd, &is_input, &node)) return (1);
+				if (open_input(&input_fd, &is_input, node)) return (1);
 			if (node->red->red_op == 'o' || node->red->red_op == 'a')
-				if (open_output(&output_fd, &is_output, node->red->red_op, &node)) return (1);
+				if (open_output(&output_fd, &is_output, node->red->red_op, node)) return (1);
 			node->red = node->red->next;
 		}
 		node->red = red_head;
