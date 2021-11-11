@@ -6,7 +6,7 @@
 /*   By: mhaddi <mhaddi@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/08 15:34:01 by mhaddi            #+#    #+#             */
-/*   Updated: 2021/11/11 16:20:31 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/11/11 18:44:15 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,24 @@ int check_error(int condition, void *to_free, char *to_print, int exit_code)
 	return (0);
 }
 
+char *mark_eof(char *line)
+{
+    char    *tmp;
+
+	tmp = line;
+	line = ft_strjoin(tmp, "EOF");
+	free(tmp);
+	return (line);
+}
+
+char *raise_error(char *line)
+{
+	printf("minishell: read: %s\n", strerror(errno));
+	free(line);
+	line = NULL;
+	return (line);
+}
+
 char    *ft_getline(void)
 {
     char    c;
@@ -45,19 +63,9 @@ char    *ft_getline(void)
     {
         read_status = read(0, &c, 1);
 		if (!read_status)
-        {
-            tmp = line;
-            line = ft_strjoin(tmp, "EOF");
-            free(tmp);
-            return (line);
-        }
+			return (mark_eof(line));
 		else if (read_status < 0)
-		{
-			printf("minishell: read: %s\n", strerror(errno));
-			free(line);
-			line = NULL;
-			return (line);
-		}
+			return (raise_error(line));
         tmp = line;
         line = ft_strjoin(tmp, (char [2]){c, '\0'});
         free(tmp);
@@ -104,6 +112,18 @@ char *create_heredoc_file(int *i, char *file_name)
 	return file_name;
 }
 
+int	is_delimiter(char *line, t_sep *node)
+{
+	char *delimiter = ft_strjoin(node->red->r_file, "\n");
+	if (ft_strncmp(delimiter, line, ft_strlen(line)) == 0)
+	{
+		free(delimiter);
+		return (1);
+	}
+	free(delimiter);
+	return (0);
+}
+
 int heredoc_loop(int *input_fd, t_sep *node, char *file_name)
 {
 	char *line;
@@ -114,18 +134,9 @@ int heredoc_loop(int *input_fd, t_sep *node, char *file_name)
 		line = ft_getline(); 
 		if (check_error(!line, file_name, NULL, -1)) return (1);
 		if (ft_strcmp(line, "EOF") == 0)
-		{
-			free(line);
 			break ;
-		}
-		char *delimiter = ft_strjoin(node->red->r_file, "\n");
-		if (ft_strncmp(delimiter, line, ft_strlen(line)) == 0)
-		{
-			free(delimiter);
-			free(line);
-			break;
-		}
-		free(delimiter);
+		if (is_delimiter(line, node))
+			break ;
 		if (write(*input_fd, line, ft_strlen(line)) < 0)
 		{
 			printf("minishell: write: %s\n", strerror(errno));
@@ -136,6 +147,7 @@ int heredoc_loop(int *input_fd, t_sep *node, char *file_name)
 		free(line);
 	}
 
+	free(line);
 	return (0);
 }
 
@@ -198,7 +210,7 @@ int echo(char **args)
 	int no_newline;
 	int i;
 
-	if (!args || !*args || **args == '\0')
+	if (!args || !*args)
 	{
 		printf("\n");
 		return (0);
@@ -326,54 +338,56 @@ int    ft_setenv(char *key, char *value)
 	return exit_status;
 }
 
+int	check_key_syntax(int condition, char *key)
+{
+	if (condition)
+	{
+	   printf("minishell: unset: `%s': not a valid identifier\n", key);
+	   return (1);
+	}
+	return (0);
+}
+
+int unset_key(int i, t_env *current, t_env *prev)
+{
+   	t_env *tmp;
+
+	tmp = current->next;
+	if (i)
+		prev->next = tmp;
+	else
+		g_env = tmp;
+	free(current->val);
+	free(current->key);
+	free(current->value);
+	free(current);
+	return (0);
+}
+
 int    ft_unsetenv(char *key)
 {
    int i = 0;
    t_env *current = g_env;
-   t_env *tmp;
    t_env *prev;
-   int exit_status = 0;
 
-   if (*key == '\0')
-   {
-	   printf("minishell: unset: `%s': not a valid identifier\n", key);
-	   exit_status = 1;
-	   return (exit_status);
-   }
-
+   if (check_key_syntax(*key == '\0', key))
+	   return (1);
    while (key[i])
    {
-	   if (!ft_isalnum(key[i]) && key[i] != '_')
-	   {
-		   printf("minishell: unset: `%s': not a valid identifier\n", key);
-	   	   exit_status = 1;
-		   return (exit_status);
-	   }
+	   if (check_key_syntax(!ft_isalnum(key[i]) && key[i] != '_', key))
+		   return (1);
 	   i++;
    }
-
    i = 0;
    while (current != NULL)
    {
 	   if (ft_strcmp(current->key, key) == 0)
-	   {
-		   tmp = current->next;
-		   if (i)
-			   prev->next = tmp;
-		   else
-			   g_env = tmp;
-		   free(current->val);
-		   free(current->key);
-		   free(current->value);
-		   free(current);
-		   return exit_status;
-	   }
+		   return (unset_key(i, current, prev));
 	   prev = current;
 	   current = current->next;
 	   i++;
    }
-
-   return exit_status;
+   return (0);
 }
 
 char *ft_tolower_str(char *str)
@@ -483,7 +497,7 @@ int do_cd_with_noargs(char *cwd)
 
 int cd(char **args)
 {
-	char *cwd;
+	char *cwd = NULL;
 	int exit_status = 0;
 
 	check_tilde(args);
@@ -502,7 +516,7 @@ void pwd(void) {
 	free(cwd);
 }
 
-char **split_identifier(char *env_var)
+int get_index(char  *env_var)
 {
 	int i = 0;
 
@@ -515,7 +529,14 @@ char **split_identifier(char *env_var)
 			i++;
 		}
 	}
+	return i;
+}
 
+char **split_identifier(char *env_var)
+{
+	int i = 0;
+
+	i = get_index(env_var);
 	char *key = malloc(sizeof(*key) * (i + 1));
 	ft_strlcpy(key, env_var, i + 1);
 	char *value = NULL;
@@ -537,65 +558,58 @@ char **split_identifier(char *env_var)
 	return pair;
 }
 
+void put_new_key(char *env_var, char **env_var_pair)
+{
+	t_env *new_env_var;
+
+	new_env_var = malloc(sizeof(*new_env_var));
+	new_env_var->val = env_var;
+	new_env_var->key = ft_strdup(env_var_pair[0]);
+	new_env_var->value= ft_strdup(env_var_pair[1]);
+	new_env_var->next = NULL;
+	ft_lstadd_back(&g_env, new_env_var);
+}
+
+void	lookup_key(char **env_var_pair, t_env *current, int *key_exists, int *is_valid_key)
+{
+	while (env_var_pair && current != NULL)
+	{
+		if (ft_strcmp(current->key, env_var_pair[0]) == 0)
+		{
+			if (env_var_pair[1])
+				current->value = ft_strdup(env_var_pair[1]);
+			*key_exists = 1;
+			break ;
+		}
+		current = current->next;
+	}
+	*is_valid_key = is_valid_identifier(env_var_pair[0]);
+}
+
 int ft_putenv(char *env_var)
 {
    t_env *current = g_env;
-   int is_valid_identifier = 1;
+   int is_valid_key = 1;
    int key_exists = 0;
    int exit_status = 0;
 
    char **env_var_pair = split_identifier(env_var);
    if (env_var_pair[0][0] == '\0' || ft_isdigit(env_var_pair[0][0]))
-	   is_valid_identifier = 0;
+	   is_valid_key = 0;
    else
-   {
-	   while (env_var_pair && current != NULL)
-	   {
-		   if (ft_strcmp(current->key, env_var_pair[0]) == 0)
-		   {
-			   if (env_var_pair[1]) // if key exists and the new value
-				   					// isn't a null value
-				   current->value = ft_strdup(env_var_pair[1]);
-			   key_exists = 1;
-			   break ;
-		   }
-		   current = current->next;
-	   }
+	   lookup_key(env_var_pair, current, &key_exists, &is_valid_key);
+   if (!key_exists && is_valid_key)
+	   put_new_key(env_var, env_var_pair);
 
-	   int i = 0;
-	   while (env_var_pair[0][i])
-	   {
-		   if (!ft_isalnum(env_var_pair[0][i]) && env_var_pair[0][i] != '_')
-		   {
-			   is_valid_identifier = 0;
-			   break ;
-		   }
-		   i++;
-	   }
-   }
-
-   if (!key_exists && is_valid_identifier)
+   if (!is_valid_key)
    {
-	   t_env *new_env_var;
-	   new_env_var = malloc(sizeof(*new_env_var));
-	   new_env_var->val = env_var;
-	   new_env_var->key = ft_strdup(env_var_pair[0]);
-	   new_env_var->value= ft_strdup(env_var_pair[1]);
-	   new_env_var->next = NULL;
-	   ft_lstadd_back(&g_env, new_env_var);
-   }
-
-   if (!is_valid_identifier)
-   {
-	   printf("minishell: export: `%s': not a valid identifier\n",
-				env_var);
+	   printf("minishell: export: `%s': not a valid identifier\n", env_var);
 	   exit_status = 1;
    }
 
    free(env_var_pair[0]);
    free(env_var_pair[1]);
    free(env_var_pair);
-
    return exit_status;
 }
 
@@ -755,12 +769,10 @@ int	redirect(int *stdin_fd, int *stdout_fd, t_sep *node)
 		node->red = red_head;
 		node = node->next;
 	}
-
 	if (is_input)
 		if (redirect_stdin(stdin_fd, &input_fd)) return (1);
 	if (is_output)
 		if (redirect_stdout(stdout_fd, &output_fd)) return (1);
-
 	return (0);
 }
 
@@ -894,6 +906,7 @@ void pipe_redirect(t_sep *node, pid_t *pids)
 		}
 		node->red = node->red->next;
 	}
+	// test if o_red_file and i_red_file are int, if not, pass? idk we'll see
 	if (o_red_found)
 		check_error(dup2(ft_atoi(o_red_file), 1) < 0, pids, "minishell: dup2", 1);
 	if (i_red_found)
