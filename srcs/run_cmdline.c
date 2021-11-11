@@ -6,7 +6,7 @@
 /*   By: mhaddi <mhaddi@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/08 15:34:01 by mhaddi            #+#    #+#             */
-/*   Updated: 2021/11/10 18:34:03 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/11/11 10:56:41 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,21 @@
 #include <sys/fcntl.h>
 #include <sys/types.h>
 #include <dirent.h>
+
+int check_error(int condition, void *to_free, char *to_print, int exit_code)
+{
+	if (condition)
+	{
+		if (to_free)
+			free(to_free);
+		if (to_print)
+			printf("%s: %s\n", to_print, strerror(errno));
+		if (exit_code > -1)
+			exit(exit_code);
+		return (1);
+	}
+	return (0);
+}
 
 char    *ft_getline(void)
 {
@@ -68,13 +83,91 @@ int has_quotes(char *str)
 
 int is_forked = 0;
 
-int run_heredoc(t_sep *node)
+int check_heredoc_syntax(int condition)
+{
+	if (condition)
+	{
+		printf("minishell: syntax error near unexpected token `newline'\n");
+		return (258);
+	}
+	return (0);
+}
+
+char *create_heredoc_file(int *i, char *file_name)
+{
+	char *count;
+
+	(*i)++;
+	count = ft_itoa(*i);
+	file_name = ft_strjoin("/tmp/.heredoc_", count);
+	free(count);
+	return file_name;
+}
+
+int heredoc_loop(int *input_fd, t_sep **node, char *file_name)
 {
 	char *line;
+
+	while (1)
+	{
+		if (check_error(write(1, "> ", 2) < 0, file_name, "minishell: write", -1)) return (1);
+		line = ft_getline(); 
+		if (check_error(!line, file_name, NULL, -1)) return (1);
+		if (ft_strcmp(line, "EOF") == 0)
+		{
+			free(line);
+			break ;
+		}
+		char *delimiter = ft_strjoin((*node)->red->r_file, "\n");
+		if (ft_strncmp(delimiter, line, ft_strlen(line)) == 0)
+		{
+			free(delimiter);
+			free(line);
+			break;
+		}
+		free(delimiter);
+		if (write(*input_fd, line, ft_strlen(line)) < 0)
+		{
+			printf("minishell: write: %s\n", strerror(errno));
+			free(file_name);
+			free(line);
+			return (1);
+		}
+		free(line);
+	}
+
+	return (0);
+}
+
+int heredoc_process(t_sep **node, int *exit_status, char *file_name)
+{
 	int input_fd;
+
+	pid_t fork_pid = fork();
+	if (check_error(fork_pid < 0, file_name, "minishell: fork", -1)) return (1);
+	if (fork_pid == 0)
+	{
+		is_forked = 1;
+		input_fd = open(file_name, O_WRONLY | O_TRUNC | O_CREAT, 0644);
+		if (check_error(input_fd < 0, file_name, "minishell: open", -1)) return (1);
+		if (heredoc_loop(&input_fd, node, file_name)) return (1);
+		if (check_error(close(input_fd) < 0, file_name, "minishell: close", -1)) return (1);
+		exit(0);
+	}
+	if (check_error(waitpid(fork_pid, exit_status, 0) < 0, file_name, "minishell: waitpid", -1)) return (1);
+	*exit_status = WEXITSTATUS(*exit_status);
+	is_forked = 0;
+	if (check_error(signal(SIGINT, signal_handler_parent) == SIG_ERR, file_name, "minishell: signal", -1))
+		return (1);
+	free((*node)->red->r_file);
+	(*node)->red->r_file = file_name;
+	return (0);
+}
+
+int run_heredoc(t_sep *node)
+{
 	int i;
 	char *file_name;
-	char *count;
 	int exit_status = 0;
 	t_red *red_head;
 
@@ -86,99 +179,11 @@ int run_heredoc(t_sep *node)
 		{
 			if (node->red->red_op == 'h')
 			{
-				if (!node->red->r_file || !*node->red->r_file)
-				{
-					printf("minishell: syntax error near unexpected token `newline'\n");
-					return (258);
-				}
-				i++;
-				count = ft_itoa(i);
-				file_name = ft_strjoin("/tmp/.heredoc_", count); // to free
-				free(count);
-				if (signal(SIGINT, signal_handler_heredoc) == SIG_ERR)
-				{
-					printf("minishell: signal: %s\n", strerror(errno));
-					free(file_name);
-					return (1);
-				}
-				pid_t fork_pid = fork();
-				if (fork_pid < 0)
-				{
-					printf("minishell: fork: %s\n", strerror(errno));
-					free(file_name);
-					return (1);
-				}
-				if (fork_pid == 0)
-				{
-					is_forked = 1;
-					input_fd = open(file_name, O_WRONLY | O_TRUNC | O_CREAT, 0644);
-					if (input_fd < 0)
-					{
-						printf("minishell: open: %s\n", strerror(errno));
-						free(file_name);
+				if (check_heredoc_syntax(!node->red->r_file || !*node->red->r_file)) return (258);
+				file_name = create_heredoc_file(&i, file_name);
+				if (check_error(signal(SIGINT, signal_handler_heredoc) == SIG_ERR, file_name, "minishell: signal", -1))
 						return (1);
-					}
-					while (1)
-					{
-						if (write(1, "> ", 2) < 0)
-						{
-							printf("minishell: write: %s\n", strerror(errno));
-							free(file_name);
-							return (1);
-						}
-						line = ft_getline(); 
-						if (!line)
-						{
-							free(file_name);
-							return (1);
-						}
-						if (ft_strcmp(line, "EOF") == 0)
-						{
-							free(line);
-							break ;
-						}
-						char *delimiter = ft_strjoin(node->red->r_file, "\n");
-						if (ft_strncmp(delimiter, line, ft_strlen(line)) == 0)
-						{
-							free(delimiter);
-							free(line);
-							break;
-						}
-						free(delimiter);
-						if (write(input_fd, line, ft_strlen(line)) < 0)
-						{
-							printf("minishell: write: %s\n", strerror(errno));
-							free(file_name);
-							free(line);
-							return (1);
-						}
-						free(line);
-					}
-					if (close(input_fd) < 0)
-					{
-						printf("minishell: close: %s\n", strerror(errno));
-						free(file_name);
-						return (1);
-					}
-					exit(0);
-				}
-				if (waitpid(fork_pid, &exit_status, 0) < 0)
-				{
-					printf("minishell: waitpid: %s\n", strerror(errno));
-					free(file_name);
-					return (1);
-				}
-				exit_status = WEXITSTATUS(exit_status);
-				is_forked = 0;
-				if (signal(SIGINT, signal_handler_parent) == SIG_ERR)
-				{
-					printf("minishell: signal: %s\n", strerror(errno));
-					free(file_name);
-					return (1);
-				}
-				// change redir type and file name here
-				free(node->red->r_file);
-				node->red->r_file = file_name;
+				if (heredoc_process(&node, &exit_status, file_name)) return (1);
 			}
 			node->red = node->red->next;
 		}
@@ -579,22 +584,6 @@ int ft_putenv(char *env_var)
    return exit_status;
 }
 
-// export():
-// - it takes multiple arguments
-// - assign value for each 
-// - if it has no =, value is null, and key
-// will be added but not printed when using env
-// - if an invalid identifier is in the middle
-// you continue with other valid identifiers
-// and print an error at the end.
-//
-// - WHAT ARE VALID IDENTIFIERS:
-// name is a word consisting only of alphanumeric
-// characters and under‐scores, and beginning
-// with an alphabetic character or an
-// under‐score.  Also referred to as an
-// identifier.
-//
 int export(char **args)
 {
 	int i = 0;
@@ -655,6 +644,39 @@ void env()
 	}
 }
 
+int check_redir_error(int condition, char *file)
+{
+	if (condition)
+	{
+		printf("minishell: %s: %s\n", file, strerror(errno));
+		return (1);
+	}
+	return (0);
+}
+
+int	open_input(int *input_fd, int *is_input, t_sep **node)
+{
+	*input_fd = open((*node)->red->r_file, O_RDONLY);
+	if (check_redir_error(*input_fd == -1, (*node)->red->r_file)) return (1);
+	free((*node)->red->r_file);
+	(*node)->red->r_file = ft_itoa(*input_fd);
+	(*is_input)++;
+	return (0);
+}
+
+int open_output(int *output_fd, int *is_output, char type, t_sep **node)
+{
+	if (type == 'o')
+		*output_fd = open((*node)->red->r_file, O_CREAT | O_TRUNC | O_WRONLY, 0644);
+	else if (type == 'a')
+		*output_fd = open((*node)->red->r_file, O_CREAT | O_APPEND | O_WRONLY, 0644);
+	if (check_redir_error(*output_fd == -1, (*node)->red->r_file)) return (1);
+	free((*node)->red->r_file);
+	(*node)->red->r_file = ft_itoa(*output_fd);
+	(*is_output)++;
+	return (0);
+}
+
 int	redirect(int *stdin_fd, int *stdout_fd, t_sep *node)
 {
 	int input_fd;
@@ -668,43 +690,10 @@ int	redirect(int *stdin_fd, int *stdout_fd, t_sep *node)
 		red_head = node->red;
 		while (node->red != NULL)
 		{
-			// check type of redir
 			if (node->red->red_op == 'i' || node->red->red_op == 'h')
-			{
-				input_fd = open(node->red->r_file, O_RDONLY);
-				if (input_fd == -1)
-				{
-					printf("minishell: %s: %s\n", node->red->r_file, strerror(errno));
-					return (1);
-				}
-				free(node->red->r_file);
-				node->red->r_file = ft_itoa(input_fd);
-				is_input++;
-			}
-			else if (node->red->red_op == 'o')
-			{
-				output_fd = open(node->red->r_file, O_CREAT | O_TRUNC | O_WRONLY, 0644);
-				if (output_fd == -1)
-				{
-					printf("minishell: %s: %s\n", node->red->r_file, strerror(errno));
-					return (1);
-				}
-				free(node->red->r_file);
-				node->red->r_file = ft_itoa(output_fd);
-				is_output++;
-			}
-			else if (node->red->red_op == 'a')
-			{
-				output_fd = open(node->red->r_file, O_CREAT | O_APPEND | O_WRONLY, 0644);
-				if (output_fd == -1)
-				{
-					printf("minishell: %s: %s\n", node->red->r_file, strerror(errno));
-					return (1);
-				}
-				free(node->red->r_file);
-				node->red->r_file = ft_itoa(output_fd);
-				is_output++;
-			}
+				if (open_input(&input_fd, &is_input, &node)) return (1);
+			if (node->red->red_op == 'o' || node->red->red_op == 'a')
+				if (open_output(&output_fd, &is_output, node->red->red_op, &node)) return (1);
 			node->red = node->red->next;
 		}
 		node->red = red_head;
@@ -742,11 +731,6 @@ int	redirect(int *stdin_fd, int *stdout_fd, t_sep *node)
 
 	return (0);
 }
-
-// TO-DO: try out all possible usages of all the redirection
-// operators (especially the various positions they can take),
-// this might affect the parsing methods regarding the
-// redirection operators.
 
 void	signal_handler_heredoc(int sig)
 {
@@ -864,21 +848,6 @@ int run_no_pipe_cmd(t_sep *node, int *stdin_fd, int *stdout_fd)
 	}
 
 	return (exit_status);
-}
-
-int check_error(int condition, void *to_free, char *to_print, int exit_code)
-{
-	if (condition)
-	{
-		if (to_free)
-			free(to_free);
-		if (to_print)
-			printf("%s: %s\n", to_print, strerror(errno));
-		if (exit_code > -1)
-			exit(exit_code);
-		return (1);
-	}
-	return (0);
 }
 
 int	run_pipes(t_sep *node, int pipes_num, int *stdin_fd, int *stdout_fd)
