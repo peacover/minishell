@@ -6,7 +6,7 @@
 /*   By: mhaddi <mhaddi@student.1337.ma>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/08 15:34:01 by mhaddi            #+#    #+#             */
-/*   Updated: 2021/11/11 18:44:15 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/11/12 11:06:07 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -210,7 +210,7 @@ int echo(char **args)
 	int no_newline;
 	int i;
 
-	if (!args || !*args)
+	if (!args)
 	{
 		printf("\n");
 		return (0);
@@ -224,9 +224,10 @@ int echo(char **args)
 	while (args[i])
 	{
 		printf("%s", args[i]);
+		if (args[i][0])
+			if (args[i + 1] && args[i + 1][0])
+				printf(" ");
 		i++;
-		if (args[i])
-			printf(" ");
 	}
 	if (no_newline == 0)
 		printf("\n");
@@ -694,12 +695,14 @@ int check_redir_error(int condition, char *file)
 
 int	open_input(int *input_fd, int *is_input, t_sep *node)
 {
+	int exit_status = 0;
+
 	*input_fd = open(node->red->r_file, O_RDONLY);
-	if (check_redir_error(*input_fd == -1, node->red->r_file)) return (1);
+	exit_status = check_redir_error(*input_fd == -1, node->red->r_file);
 	free(node->red->r_file);
 	node->red->r_file = ft_itoa(*input_fd);
 	(*is_input)++;
-	return (0);
+	return (exit_status);
 }
 
 int open_output(int *output_fd, int *is_output, char type, t_sep *node)
@@ -754,6 +757,7 @@ int	redirect(int *stdin_fd, int *stdout_fd, t_sep *node)
 	int is_input = 0;
 	int is_output = 0;
 	t_red *red_head;
+	int exit_status = 0;
 
 	while (node != NULL)
 	{
@@ -761,19 +765,19 @@ int	redirect(int *stdin_fd, int *stdout_fd, t_sep *node)
 		while (node->red != NULL)
 		{
 			if (node->red->red_op == 'i' || node->red->red_op == 'h')
-				if (open_input(&input_fd, &is_input, node)) return (1);
+				if ((exit_status = open_input(&input_fd, &is_input, node))) break ;
 			if (node->red->red_op == 'o' || node->red->red_op == 'a')
-				if (open_output(&output_fd, &is_output, node->red->red_op, node)) return (1);
+				if ((exit_status = open_output(&output_fd, &is_output, node->red->red_op, node))) break ;
 			node->red = node->red->next;
 		}
 		node->red = red_head;
 		node = node->next;
 	}
-	if (is_input)
+	if (is_input && !exit_status)
 		if (redirect_stdin(stdin_fd, &input_fd)) return (1);
-	if (is_output)
+	if (is_output && !exit_status)
 		if (redirect_stdout(stdout_fd, &output_fd)) return (1);
-	return (0);
+	return exit_status;
 }
 
 void	signal_handler_heredoc(int sig)
@@ -825,7 +829,8 @@ int	run_builtins(t_sep *node, int is_in_pipe)
 			printf("exit\n");
 		exit(0);
 	}
-
+	if (is_in_pipe)
+		exit(0);
 	return exit_status;
 }
 
@@ -886,7 +891,7 @@ int create_pipe(int *stdin_fd, int pipe_fd[2], pid_t *pids)
 	return (0);
 }
 
-void pipe_redirect(t_sep *node, pid_t *pids)
+int pipe_redirect(t_sep *node, pid_t *pids)
 {
 	int i_red_found = 0;
 	char *i_red_file;
@@ -898,11 +903,15 @@ void pipe_redirect(t_sep *node, pid_t *pids)
 		{
 			o_red_found = 1;
 			o_red_file = node->red->r_file;
+			if (ft_strcmp(o_red_file, "-1") == 0)
+				return (1);
 		}
 		else if (node->red->red_op == 'h' || node->red->red_op == 'i')
 		{
 			i_red_found = 1;
 			i_red_file = node->red->r_file;
+			if (ft_strcmp(i_red_file, "-1") == 0)
+				return (1);
 		}
 		node->red = node->red->next;
 	}
@@ -911,6 +920,8 @@ void pipe_redirect(t_sep *node, pid_t *pids)
 		check_error(dup2(ft_atoi(o_red_file), 1) < 0, pids, "minishell: dup2", 1);
 	if (i_red_found)
 		check_error(dup2(ft_atoi(i_red_file), 0) < 0, pids, "minishell: dup2", 1);
+
+	return (0);
 }
 
 void	run_pipe_executable(t_sep *node, int pipe_fd[2])
@@ -936,13 +947,14 @@ void run_piped_process(int *num_cmd, int *pipes_num, int *exit_status, t_sep *no
 	if (*num_cmd < *pipes_num && (node->path || node->builtin))
 		check_error(dup2(pipe_fd[1], 1) < 0, pids, "minishell: dup2", 1);
 	if (node->is_red)
-		pipe_redirect(node, pids);
+		if (pipe_redirect(node, pids) == 1)
+			exit(1);
 	if (node->is_builtin)
 		*exit_status = run_builtins(node, 1);
 	else if (node->path || node->builtin)
 		run_pipe_executable(node, pipe_fd);
-	else
-		case_no_cmd(pipe_fd, pids);
+	// else
+	// 	case_no_cmd(pipe_fd, pids);
 }
 
 int run_parent_process(pid_t *pids, int *num_cmd, int *exit_status, int pipe_fd[2])
@@ -1002,12 +1014,11 @@ int    run_cmdline(t_sep *node, int pipes_num)
 
 	if ((exit_status = run_heredoc(node)))
 		return (exit_status);
-	if ((exit_status = redirect(&stdin_fd, &stdout_fd, node)))
-		return (exit_status);
+	exit_status = redirect(&stdin_fd, &stdout_fd, node);
 
-	if (node->next == NULL)
+	if (node->next == NULL && !exit_status)
 		exit_status = run_no_pipe_cmd(node, &stdin_fd, &stdout_fd);
-	else
+	else if (node->next)
 		exit_status = run_pipes(node, pipes_num, &stdin_fd, &stdout_fd);
 	is_forked = 0;
 
