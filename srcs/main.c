@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/11/12 11:13:51 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/11/13 09:41:51 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -432,16 +432,19 @@ void	add_to_args2(int i, int *j, t_sep *node, char **str)
 	}
 }
 
-void	add_to_args3(t_sep *node, char *str, int i)
+void	add_to_args3(t_sep *node, char *str, int *i)
 {
 	handling_builtins(node, str, 0);
 	if (!node->is_builtin && node->path)
 	{
-		node->args = ft_realloc_2(node->args, i, (i + 1));
-		node->args[i] = ft_strdup(node->path);
-		node->args[i + 1] = NULL;
+		node->args = ft_realloc_2(node->args, *i, (*i + 1));
+		node->args[*i] = ft_strdup(node->path);
+		node->args[*i + 1] = NULL;
+		(*i)++;
 		node->is_path_in_arg = 1;
+		return ;
 	}
+	(*i)++;
 }
 
 void	add_to_args4(char *s, int *l, char **str, int start)
@@ -463,39 +466,46 @@ void	add_to_args4(char *s, int *l, char **str, int start)
 	if (s[start] != '\'')
 		*str = handling_dollar(*str);
 }
-void	add_to_args5(t_sep *node, char **str, int j)
+void	add_to_args5(t_sep *node, char **str, int j, int *i)
 {
 	if (!node->args[j] && *str)
+	{
 		node->args[j] = ft_strdup(*str);
+		(*i)++;
+	}
 	else if (*str)
-		node->args[j] = ft_strjoin(node->args[j], *str);	
+	{
+		node->args[j] = ft_strjoin(node->args[j], *str);
+		(*i)++;
+	}
 	if (*str)
 		free(*str);
 	*str = NULL;
 }
-void    add_to_args(int start, int end, char *s, int i, t_sep *node)
+void    add_to_args(int start, int end, char *s, int *i, t_sep *node)
 {
 	int		l;
 	char 	*str;
 	int j;
 	
 	l = 0;
-	add_to_args2(i, &j, node, &str);
+	add_to_args2(*i, &j, node, &str);
 	while (s[start] && start < end)
 	{
 		add_to_args4(s, &l, &str, start);
-		if (i == 0)
+		if (*i == 0)
 			return (add_to_args3(node, str, i));
 		else
 		{
-			add_to_args5(node, &str, j);
+			add_to_args5(node, &str, j, i);
 			if (s[start] == '\'' || s[start] == '\"')
 				start = l + 1;
 			else
 				start = l;	
 		}
 	}
-	node->args[j + 1] = NULL;
+	if (node->args[j])
+		node->args[j + 1] = NULL;
 }
 
 void	handling_builtins(t_sep *node, char *s, int start)
@@ -588,8 +598,8 @@ void    get_args(char *s, int start, t_sep *node)
 		get_args2(s, &start, &end);
 		if (t < start)
 		{
-			add_to_args(t, start, s, i, node);
-			i++;
+			add_to_args(t, start, s, &i, node);
+			// i++;
 		}
 		while (start < (int)ft_strlen(s) && s[start] == ' ')
 			start++;
@@ -687,8 +697,8 @@ void	red_get_cmd_args2(t_sep *node, int *start, int *end, int *i)
 		(*end)++;
 	if (*end > *start)
 	{
-		add_to_args(*start, *end, node->red_args, *i, node);
-		(*i)++;
+		add_to_args(*start, *end, node->red_args, i, node);
+		// (*i)++;
 	}
 	*start = *end;
 }
@@ -710,8 +720,8 @@ void	red_get_cmd_args(t_sep *node)
 			end = search_second_quote(node->red_args, start + 1, node->red_args[start]);
 			if (!end)
 				error_msg("error multiligne");
-			add_to_args(start, end, node->red_args, i, node);
-			i++;
+			add_to_args(start, end, node->red_args, &i, node);
+			// i++;
 			start = end + 1;
 		}
 		else
