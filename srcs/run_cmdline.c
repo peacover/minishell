@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/08 15:34:01 by mhaddi            #+#    #+#             */
-/*   Updated: 2021/11/13 13:21:58 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/11/13 15:41:19 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@
 #include <sys/fcntl.h>
 #include <sys/types.h>
 
-int		check_error(int condition, void *to_free, char *to_print, int exit_code)
+int	check_error(int condition, void *to_free, char *to_print, int exit_code)
 {
 	if (condition)
 	{
@@ -67,14 +67,14 @@ char	*ft_getline(void)
 		else if (read_status < 0)
 			return (raise_error(line));
 		tmp = line;
-		line = ft_strjoin(tmp, (char[2]){c, '\0'});
+		line = ft_strjoin(tmp, (char [2]){c, '\0'});
 		free(tmp);
 		if (c == '\n')
 			return (line);
 	}
 }
 
-int		has_quotes(char *str)
+int	has_quotes(char *str)
 {
 	int	i;
 
@@ -88,7 +88,7 @@ int		has_quotes(char *str)
 	return (0);
 }
 
-int		check_heredoc_syntax(int condition)
+int	check_heredoc_syntax(int condition)
 {
 	if (condition)
 	{
@@ -109,7 +109,7 @@ char	*create_heredoc_file(int *i, char *file_name)
 	return (file_name);
 }
 
-int		is_delimiter(char *line, t_sep *node)
+int	is_delimiter(char *line, t_sep *node)
 {
 	char	*delimiter;
 
@@ -123,13 +123,14 @@ int		is_delimiter(char *line, t_sep *node)
 	return (0);
 }
 
-int		heredoc_loop(int *input_fd, t_sep *node, char *file_name)
+int	heredoc_loop(int *input_fd, t_sep *node, char *file_name)
 {
 	char	*line;
 
 	while (1)
 	{
-		if (check_error(write(1, "> ", 2) < 0, file_name, "minishell: write", -1))
+		if (check_error(write(1, "> ", 2) < 0,
+				file_name, "minishell: write", -1))
 			return (1);
 		line = ft_getline();
 		if (check_error(!line, file_name, NULL, -1))
@@ -151,7 +152,7 @@ int		heredoc_loop(int *input_fd, t_sep *node, char *file_name)
 	return (0);
 }
 
-int		heredoc_process(t_sep *node, int *exit_status, char *file_name)
+int	heredoc_process(t_sep *node, int *exit_status, char *file_name)
 {
 	int		input_fd;
 	pid_t	fork_pid;
@@ -172,23 +173,19 @@ int		heredoc_process(t_sep *node, int *exit_status, char *file_name)
 		exit(0);
 	}
 	if (check_error(waitpid(fork_pid, exit_status, 0) < 0,
-					file_name,
-					"minishell: waitpid",
-					-1))
+			file_name, "minishell: waitpid", -1))
 		return (1);
 	*exit_status = WEXITSTATUS(*exit_status);
 	g_data.is_forked = 0;
 	if (check_error(signal(SIGINT, signal_handler_parent) == SIG_ERR,
-					file_name,
-					"minishell: signal",
-					-1))
+			file_name, "minishell: signal", -1))
 		return (1);
 	free(node->red->r_file);
 	node->red->r_file = file_name;
 	return (0);
 }
 
-int		run_heredoc(t_sep *node)
+int	run_heredoc(t_sep *node)
 {
 	int		i;
 	char	*file_name;
@@ -204,14 +201,12 @@ int		run_heredoc(t_sep *node)
 		{
 			if (node->red->red_op == 'h')
 			{
-				if (check_heredoc_syntax(!node->red->r_file ||
-											!*node->red->r_file))
+				if (check_heredoc_syntax(!node->red->r_file
+						|| !*node->red->r_file))
 					return (258);
 				file_name = create_heredoc_file(&i, file_name);
-				if (check_error(signal(SIGINT, signal_handler_heredoc) == SIG_ERR,
-								file_name,
-								"minishell: signal",
-								-1))
+				if (check_error(signal(SIGINT, signal_handler_heredoc)
+						== SIG_ERR, file_name, "minishell: signal", -1))
 					return (1);
 				if (heredoc_process(node, &exit_status, file_name))
 					return (1);
@@ -224,7 +219,7 @@ int		run_heredoc(t_sep *node)
 	return (exit_status);
 }
 
-int		echo(char **args)
+int	echo(char **args)
 {
 	int	no_newline;
 	int	i;
@@ -312,7 +307,7 @@ void	set_value_for_key(char *key, char *value, int *key_exists)
 	}
 }
 
-int		is_valid_identifier(char *key)
+int	is_valid_identifier(char *key)
 {
 	int	i;
 
@@ -341,7 +336,7 @@ void	set_new_key(char *key, char *value)
 	ft_lstadd_back(&g_data.envl, new_env_var);
 }
 
-int		ft_setenv(char *key, char *value)
+int	ft_setenv(char *key, char *value)
 {
 	int	key_exists;
 	int	exit_status;
@@ -361,7 +356,7 @@ int		ft_setenv(char *key, char *value)
 	return (exit_status);
 }
 
-int		check_key_syntax(int condition, char *key)
+int	check_key_syntax(int condition, char *key)
 {
 	if (condition)
 	{
@@ -371,7 +366,7 @@ int		check_key_syntax(int condition, char *key)
 	return (0);
 }
 
-int		unset_key(int i, t_env *current, t_env *prev)
+int	unset_key(int i, t_env *current, t_env *prev)
 {
 	t_env	*tmp;
 
@@ -387,7 +382,7 @@ int		unset_key(int i, t_env *current, t_env *prev)
 	return (0);
 }
 
-int		ft_unsetenv(char *key)
+int	ft_unsetenv(char *key)
 {
 	int		i;
 	t_env	*current;
@@ -428,7 +423,7 @@ char	*ft_tolower_str(char *str)
 	return (str);
 }
 
-int		is_cwd(char *path)
+int	is_cwd(char *path)
 {
 	char	*cwd;
 	char	*new_d;
@@ -451,7 +446,7 @@ void	check_tilde(char **args)
 	}
 }
 
-int		check_valid_dir(char **args, char *cwd)
+int	check_valid_dir(char **args, char *cwd)
 {
 	int	exit_status;
 
@@ -486,14 +481,15 @@ void	goto_oldpwd(int *exit_status, char *cwd)
 	}
 }
 
-int		do_cd_with_args(char **args, char *cwd)
+int	do_cd_with_args(char **args, char *cwd)
 {
 	int	exit_status;
 
 	exit_status = 0;
 	if (**args == '\0')
 		return (ft_setenv("OLDPWD", getcwd(NULL, 0)));
-	if ((exit_status = check_valid_dir(args, cwd)))
+	exit_status = check_valid_dir(args, cwd);
+	if (exit_status)
 		return (exit_status);
 	if (ft_strcmp(args[0], "-") == 0)
 		goto_oldpwd(&exit_status, cwd);
@@ -510,13 +506,14 @@ int		do_cd_with_args(char **args, char *cwd)
 	return (exit_status);
 }
 
-int		do_cd_with_noargs(char *cwd)
+int	do_cd_with_noargs(char *cwd)
 {
 	int	exit_status;
 
 	exit_status = 0;
 	cwd = getcwd(NULL, 0);
-	if ((exit_status = ft_setenv("OLDPWD", cwd)) != 0)
+	exit_status = ft_setenv("OLDPWD", cwd);
+	if (exit_status)
 		return (exit_status);
 	if (chdir(getenv("HOME")) == -1)
 	{
@@ -531,7 +528,7 @@ int		do_cd_with_noargs(char *cwd)
 	return (exit_status);
 }
 
-int		cd(char **args)
+int	cd(char **args)
 {
 	char	*cwd;
 	int		exit_status;
@@ -555,7 +552,7 @@ void	pwd(void)
 	free(cwd);
 }
 
-int		get_index(char *env_var)
+int	get_index(char *env_var)
 {
 	int	i;
 
@@ -631,7 +628,7 @@ void	lookup_key(char **env_var_pair,
 	*is_valid_key = is_valid_identifier(env_var_pair[0]);
 }
 
-int		ft_putenv(char *env_var)
+int	ft_putenv(char *env_var)
 {
 	t_env	*current;
 	int		is_valid_key;
@@ -661,7 +658,7 @@ int		ft_putenv(char *env_var)
 	return (exit_status);
 }
 
-int		do_export_with_args(char **args)
+int	do_export_with_args(char **args)
 {
 	int		i;
 	int		exit_status;
@@ -676,7 +673,7 @@ int		do_export_with_args(char **args)
 	return (exit_status);
 }
 
-void	do_export_with_noargs()
+void	do_export_with_noargs(void)
 {
 	t_env	*current;
 
@@ -694,7 +691,7 @@ void	do_export_with_noargs()
 	}
 }
 
-int		export(char **args)
+int	export(char **args)
 {
 	int		exit_status;
 
@@ -706,7 +703,7 @@ int		export(char **args)
 	return (exit_status);
 }
 
-int		unset(char **args)
+int	unset(char **args)
 {
 	int		i;
 	int		exit_status;
@@ -725,7 +722,7 @@ int		unset(char **args)
 	return (exit_status);
 }
 
-void	env()
+void	env(void)
 {
 	t_env	*current;
 
@@ -738,7 +735,7 @@ void	env()
 	}
 }
 
-int		check_redir_error(int condition, char *file)
+int	check_redir_error(int condition, char *file)
 {
 	if (condition)
 	{
@@ -748,34 +745,43 @@ int		check_redir_error(int condition, char *file)
 	return (0);
 }
 
-int		open_input(int *input_fd, int *is_input, t_sep *node)
+int	open_input(int *input_fd, int *is_input, t_sep *node, int *exit_status)
 {
-	int	exit_status;
-
-	exit_status = 0;
+	*exit_status = 0;
 	*input_fd = open(node->red->r_file, O_RDONLY);
-	exit_status = check_redir_error(*input_fd == -1, node->red->r_file);
+	*exit_status = check_redir_error(*input_fd == -1, node->red->r_file);
 	free(node->red->r_file);
 	node->red->r_file = ft_itoa(*input_fd);
 	(*is_input)++;
-	return (exit_status);
+	return (*exit_status);
 }
 
-int		open_output(int *output_fd, int *is_output, char type, t_sep *node)
+int	open_output(int *ptrs[2], char type, t_sep *node, int *exit_status)
 {
+	int	*output_fd;
+	int	*is_output;
+
+	output_fd = ptrs[0];
+	is_output = ptrs[1];
+	*exit_status = 0;
 	if (type == 'o')
-		*output_fd = open(node->red->r_file, O_CREAT | O_TRUNC | O_WRONLY, 0644);
+		*output_fd = open(node->red->r_file,
+				O_CREAT | O_TRUNC | O_WRONLY, 0644);
 	else if (type == 'a')
-		*output_fd = open(node->red->r_file, O_CREAT | O_APPEND | O_WRONLY, 0644);
+		*output_fd = open(node->red->r_file,
+				O_CREAT | O_APPEND | O_WRONLY, 0644);
 	if (check_redir_error(*output_fd == -1, node->red->r_file))
-		return (1);
+	{
+		*exit_status = 1;
+		return (*exit_status);
+	}
 	free(node->red->r_file);
 	node->red->r_file = ft_itoa(*output_fd);
 	(*is_output)++;
-	return (0);
+	return (*exit_status);
 }
 
-int		redirect_stdin(int *stdin_fd, int *input_fd)
+int	redirect_stdin(int *stdin_fd, int *input_fd)
 {
 	*stdin_fd = dup(0);
 	if (*stdin_fd < 0)
@@ -791,7 +797,7 @@ int		redirect_stdin(int *stdin_fd, int *input_fd)
 	return (0);
 }
 
-int		redirect_stdout(int *stdout_fd, int *output_fd)
+int	redirect_stdout(int *stdout_fd, int *output_fd)
 {
 	*stdout_fd = dup(1);
 	if (*stdout_fd < 0)
@@ -807,42 +813,53 @@ int		redirect_stdout(int *stdout_fd, int *output_fd)
 	return (0);
 }
 
-int		redirect(int *stdin_fd, int *stdout_fd, t_sep *node)
+void	redirect_fds(int *fds[4], int is_input, int is_output, int *exit_status)
+{
+	int	*stdin_fd;
+	int	*input_fd;
+	int	*stdout_fd;
+	int	*output_fd;
+
+	stdin_fd = fds[0];
+	input_fd = fds[1];
+	stdout_fd = fds[2];
+	output_fd = fds[3];
+	if (is_input && !*exit_status)
+		*exit_status = redirect_stdin(stdin_fd, input_fd);
+	if (is_output && !*exit_status)
+		*exit_status = redirect_stdout(stdout_fd, output_fd);
+}
+
+void	redirect(int *stdin_fd, int *stdout_fd, t_sep *node, int *exit_status)
 {
 	int		input_fd;
 	int		output_fd;
 	int		is_input;
 	int		is_output;
 	t_red	*red_head;
-	int		exit_status;
 
 	is_input = 0;
 	is_output = 0;
-	exit_status = 0;
+	*exit_status = 0;
 	while (node != NULL)
 	{
 		red_head = node->red;
 		while (node->red != NULL)
 		{
 			if (node->red->red_op == 'i' || node->red->red_op == 'h')
-				if ((exit_status = open_input(&input_fd, &is_input, node)))
+				if (open_input(&input_fd, &is_input, node, exit_status))
 					break ;
 			if (node->red->red_op == 'o' || node->red->red_op == 'a')
-				if ((exit_status = open_output(
-							&output_fd, &is_output, node->red->red_op, node)))
+				if (open_output((int *[2]){&output_fd, &is_output},
+					node->red->red_op, node, exit_status))
 					break ;
 			node->red = node->red->next;
 		}
 		node->red = red_head;
 		node = node->next;
 	}
-	if (is_input && !exit_status)
-		if (redirect_stdin(stdin_fd, &input_fd))
-			return (1);
-	if (is_output && !exit_status)
-		if (redirect_stdout(stdout_fd, &output_fd))
-			return (1);
-	return (exit_status);
+	redirect_fds((int *[4]){stdin_fd, &input_fd, stdout_fd, &output_fd},
+		is_input, is_output, exit_status);
 }
 
 void	signal_handler_heredoc(int sig)
@@ -872,7 +889,7 @@ void	signal_handler_parent(int sig)
 	}
 }
 
-int		run_builtins(t_sep *node, int is_in_pipe)
+int	run_builtins(t_sep *node, int is_in_pipe)
 {
 	int		exit_status;
 
@@ -900,7 +917,7 @@ int		run_builtins(t_sep *node, int is_in_pipe)
 	return (exit_status);
 }
 
-int		run_executable(t_sep *node)
+int	run_executable(t_sep *node)
 {
 	int		exit_status;
 	pid_t	fork_pid;
@@ -922,25 +939,21 @@ int		run_executable(t_sep *node)
 	}
 	else
 	{
-		if (check_error(
-				signal(SIGINT, SIG_IGN) == SIG_ERR, NULL, "minishell: signal", -1))
+		if (check_error(signal(SIGINT, SIG_IGN) == SIG_ERR,
+				NULL, "minishell: signal", -1))
 			return (1);
 		if (check_error(waitpid(fork_pid, &exit_status, 0) < 0,
-						NULL,
-						"minishell: waitpid",
-						-1))
+				NULL, "minishell: waitpid", -1))
 			return (1);
 		exit_status = WEXITSTATUS(exit_status);
 		if (check_error(signal(SIGINT, signal_handler_parent) == SIG_ERR,
-						NULL,
-						"minishell: signal",
-						-1))
+				NULL, "minishell: signal", -1))
 			return (1);
 	}
 	return (exit_status);
 }
 
-int		run_no_pipe_cmd(t_sep *node, int *stdin_fd, int *stdout_fd)
+int	run_no_pipe_cmd(t_sep *node, int *stdin_fd, int *stdout_fd)
 {
 	int	exit_status;
 
@@ -962,18 +975,18 @@ int		run_no_pipe_cmd(t_sep *node, int *stdin_fd, int *stdout_fd)
 	return (exit_status);
 }
 
-int		create_pipe(int *stdin_fd, int pipe_fd[2], pid_t *pids)
+int	create_pipe(int *stdin_fd, int pipe_fd[2], pid_t *pids)
 {
 	*stdin_fd = dup(0);
-	if (check_error(
-			*stdin_fd < 0 || dup2(pipe_fd[0], 0) < 0, pids, "minishell: dup", -1))
+	if (check_error(*stdin_fd < 0 || dup2(pipe_fd[0], 0) < 0,
+			pids, "minishell: dup", -1))
 		return (1);
 	if (check_error(pipe(pipe_fd) < 0, pids, "minishell: pipe", -1))
 		return (1);
 	return (0);
 }
 
-int		pipe_redirect(t_sep *node, pid_t *pids)
+int	pipe_redirect(t_sep *node, pid_t *pids)
 {
 	int		i_red_found;
 	char	*i_red_file;
@@ -1133,7 +1146,7 @@ int	run_cmdline(t_sep *node, int pipes_num)
 	exit_status = run_heredoc(node);
 	if (exit_status)
 		return (exit_status);
-	exit_status = redirect(&stdin_fd, &stdout_fd, node);
+	redirect(&stdin_fd, &stdout_fd, node, &exit_status);
 	if (node->next == NULL && !exit_status)
 		exit_status = run_no_pipe_cmd(node, &stdin_fd, &stdout_fd);
 	else if (node->next)
