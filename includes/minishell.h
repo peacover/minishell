@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:09:15 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/11/13 12:40:52 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/11/13 15:50:36 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -106,7 +106,7 @@ int    run_cmdline(t_sep *node, int pipes_num);
 char	*handling_dollar(char *s);
 void	signal_handler_parent(int sig);
 void	signal_handler_heredoc(int sig);
-int		add_to_args(int end, char *s, int *i, t_sep *node);
+int		add_to_args(int *end, char *s, int *i, t_sep *node);
 void	get_args2(char *s, int *start, int *end);
 void    set_exit_code(int value);
 

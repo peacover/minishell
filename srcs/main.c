@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/11/13 12:41:26 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/11/13 16:16:49 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,15 @@ void    error_msg(char *s)
 	ft_putstr(s);
 	ft_putchar('\n');
 	exit(0);
+}
+
+char	*join_free(char *s1, char *s2)
+{
+	char *tmp;
+	
+	tmp = ft_strjoin(s1, s2);
+	free(s1);
+	return (tmp);
 }
 void	print_red(t_red *red)
 {
@@ -131,7 +140,8 @@ int	check_fill_path2(char *w, t_sep *node)
 
 	fd = 0;
 	s = ft_strjoin(w, "/");
-	s = ft_strjoin(s, node->lower_builtin);
+	// s = ft_strjoin(s, node->lower_builtin);
+	s = join_free(s, node->lower_builtin);
 	fd = open(s, O_RDONLY);
 	if (fd > 0)
 	{
@@ -299,7 +309,7 @@ void	handling_dollar3(char **s1, char *s, int *i, char **w)
 	if (!*w && *s1)
 		*w = ft_strdup(*s1);
 	else if (*s1)
-		*w = ft_strjoin(*w, *s1);
+		*w = join_free(*w, *s1); //
 	*i += ft_strlen(*s1);
 }
 void	handling_dollar2(char *v, int is_dollar, int *start, char **ret)
@@ -312,7 +322,8 @@ void	handling_dollar2(char *v, int is_dollar, int *start, char **ret)
 		{
 			if (is_dollar)
 				*start = 1;
-			*ret = ft_strdup((current)->value);
+			if ((current)->value && ft_strlen((current)->value) > 0)
+				*ret = ft_strdup((current)->value);
 			break;
 		}
 		current = (current)->next;
@@ -325,7 +336,7 @@ void	handling_dollar4(char **w, int *i, char **ret, char **v, char **s1)
 	if (!*w && *ret)
 		*w = ft_strdup(*ret);
 	else if (*ret)
-		*w = ft_strjoin(*w, *ret);
+		*w = join_free(*w, *ret);
 	*i += ft_strlen(*s1);
 	if (*ret)
 		free(*ret); 
@@ -344,7 +355,7 @@ char *handling_dollar5(char *w, int is_dollar, char *s)
 	else
 		return (s);
 }
-
+    
 int		handling_dollar6(int *i, int *start, char **s1, int *end, char **w)
 {
 	*i = 0;
@@ -475,7 +486,7 @@ void	add_to_args5(t_sep *node, char **str, int j, int *i)
 	}
 	else if (*str)
 	{
-		node->args[j] = ft_strjoin(node->args[j], *str);
+		node->args[j] = join_free(node->args[j], *str);
 		(*i)++;
 	}
 	if (*str)
@@ -483,24 +494,26 @@ void	add_to_args5(t_sep *node, char **str, int j, int *i)
 	*str = NULL;
 }
 
-int    add_to_args(int end, char *s, int *i, t_sep *node)
+int    add_to_args(int *end, char *s, int *i, t_sep *node)
 {
 	int		l;
 	char 	*str;
 	int j;
 	int start;
+	int tmp;
 	
 	l = 0;
-	start = end;
-	get_args2(s, &end, &start);
+	tmp = 0;
+	start = *end;
+	get_args2(s, end, &tmp);
 	add_to_args2(*i, &j, node, &str);
-	while (s[start] && start < end)
+	while (s[start] && start < *end)
 	{
 		add_to_args4(s, &l, &str, start);
 		if (*i == 0)
 		{
 			add_to_args3(node, str, i);
-			return (start);
+			return (tmp);
 		}
 		else
 		{
@@ -513,7 +526,7 @@ int    add_to_args(int end, char *s, int *i, t_sep *node)
 	}
 	if (node->args[j])
 		node->args[j + 1] = NULL;
-	return (start);
+	return (tmp);
 }
 
 void	handling_builtins(t_sep *node, char *s, int start)
@@ -606,7 +619,7 @@ void    get_args(char *s, int start, t_sep *node)
 		// get_args2(s, &start, &end);
 		// if (t < start)
 		// {
-			start = add_to_args(start, s, &i, node);
+			end = add_to_args(&start, s, &i, node);
 			// i++;
 		// }
 		while (start < (int)ft_strlen(s) && s[start] == ' ')
@@ -650,7 +663,7 @@ char	*red_redim_s(char *s, int start, int end)
 	s1 = ft_substr(s, 0, start);
 	s2 = ft_substr(s, end + 1, ft_strlen(s) - end + 1);
 	s = ft_strjoin(s1, " ");
-	s = ft_strjoin(s, s2);
+	s = join_free(s, s2);
 	free(s1);
 	free(s2);
 	return(s);

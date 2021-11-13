@@ -9,6 +9,7 @@
             "request": "launch",
             "name": "Debug",
             "program": "${workspaceFolder}/minishell",
+            // "program": "/Users/yer-raki/Desktop/minishell",
             "args": [],
             "cwd": "${workspaceFolder}"
         }
