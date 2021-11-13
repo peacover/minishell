@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/11/13 09:41:51 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/11/13 11:24:20 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -149,7 +149,7 @@ void	check_fill_path(t_sep *node)
 	char    **w;
 	
 	i = 0;
-	t_env *current = g_env;
+	t_env *current = g_data.envl;
 	while (current != NULL)
 	{
 		if (!ft_strcmp(current->key, "PATH"))
@@ -304,7 +304,7 @@ void	handling_dollar3(char **s1, char *s, int *i, char **w)
 }
 void	handling_dollar2(char *v, int is_dollar, int *start, char **ret)
 {	
-	t_env	*current = g_env;
+	t_env	*current = g_data.envl;
 	
 	while (current != NULL)
 	{
@@ -317,7 +317,7 @@ void	handling_dollar2(char *v, int is_dollar, int *start, char **ret)
 		}
 		current = (current)->next;
 	}
-	current = g_env;
+	current = g_data.envl;
 }
 
 void	handling_dollar4(char **w, int *i, char **ret, char **v, char **s1)
@@ -1036,7 +1036,7 @@ int	fill_list(char *str)
 {
 	int     pipes_num;
 	t_sep	*head;
-	t_env	*current = g_env;
+	t_env	*current = g_data.envl;
 	int		exit_status;
 
 	head = NULL;
@@ -1071,7 +1071,7 @@ int    fill_args(char *str)
 
 void    print_list_env()
 {
-	t_env *current = g_env;
+	t_env *current = g_data.envl;
 	while (current != NULL)
 	{
 		printf("%s\n",current->key);
@@ -1131,7 +1131,7 @@ t_env    *fill_env(char **env)
 
 char    *my_getcwd()
 {
-	t_env *current = g_env;
+	t_env *current = g_data.envl;
 	while(current != NULL)
 	{
 		if(ft_strcmp(current->key,"PWD") == 0)
@@ -1163,8 +1163,10 @@ int     main(int argc, char **argv, char **env)
 	
 	(void)argc;
 	(void)argv;
-	g_envp = env;
-	g_env = fill_env(env);
+	
+	g_data.envp = env;
+	g_data.is_forked = 0;
+	g_data.envl = fill_env(env);
 	i = 0;
 	ret = 0;
 	ignctl();

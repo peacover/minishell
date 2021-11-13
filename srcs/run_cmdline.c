@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   run_cmdline.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mhaddi <mhaddi@student.1337.ma>            +#+  +:+       +#+        */
+/*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/08 15:34:01 by mhaddi            #+#    #+#             */
-/*   Updated: 2021/11/12 11:06:07 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/11/13 11:27:07 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -89,8 +89,6 @@ int has_quotes(char *str)
 	return (0);
 }
 
-int is_forked = 0;
-
 int check_heredoc_syntax(int condition)
 {
 	if (condition)
@@ -159,7 +157,7 @@ int heredoc_process(t_sep *node, int *exit_status, char *file_name)
 	if (check_error(fork_pid < 0, file_name, "minishell: fork", -1)) return (1);
 	if (fork_pid == 0)
 	{
-		is_forked = 1;
+		g_data.is_forked = 1;
 		input_fd = open(file_name, O_WRONLY | O_TRUNC | O_CREAT, 0644);
 		if (check_error(input_fd < 0, file_name, "minishell: open", -1)) return (1);
 		if (heredoc_loop(&input_fd, node, file_name)) return (1);
@@ -168,7 +166,7 @@ int heredoc_process(t_sep *node, int *exit_status, char *file_name)
 	}
 	if (check_error(waitpid(fork_pid, exit_status, 0) < 0, file_name, "minishell: waitpid", -1)) return (1);
 	*exit_status = WEXITSTATUS(*exit_status);
-	is_forked = 0;
+	g_data.is_forked = 0;
 	if (check_error(signal(SIGINT, signal_handler_parent) == SIG_ERR, file_name, "minishell: signal", -1))
 		return (1);
 	free(node->red->r_file);
@@ -266,7 +264,7 @@ void    ft_lstadd_back(t_env **alst, t_env *new)
 
 char    *ft_getenv(char *key)
 {
-   t_env *current = g_env;
+   t_env *current = g_data.envl;
 
    while (current != NULL)
    {
@@ -279,7 +277,7 @@ char    *ft_getenv(char *key)
 
 void set_value_for_key(char *key, char *value, int *key_exists)
 {
-	t_env *current = g_env;
+	t_env *current = g_data.envl;
 
 	while (current != NULL)
 	{
@@ -318,7 +316,7 @@ void set_new_key(char *key, char *value)
 	new_env_var->key = key;
 	new_env_var->value = value;
 	new_env_var->next = NULL;
-	ft_lstadd_back(&g_env, new_env_var);
+	ft_lstadd_back(&g_data.envl, new_env_var);
 }
 
 int    ft_setenv(char *key, char *value)
@@ -357,7 +355,7 @@ int unset_key(int i, t_env *current, t_env *prev)
 	if (i)
 		prev->next = tmp;
 	else
-		g_env = tmp;
+		g_data.envl = tmp;
 	free(current->val);
 	free(current->key);
 	free(current->value);
@@ -368,7 +366,7 @@ int unset_key(int i, t_env *current, t_env *prev)
 int    ft_unsetenv(char *key)
 {
    int i = 0;
-   t_env *current = g_env;
+   t_env *current = g_data.envl;
    t_env *prev;
 
    if (check_key_syntax(*key == '\0', key))
@@ -568,7 +566,7 @@ void put_new_key(char *env_var, char **env_var_pair)
 	new_env_var->key = ft_strdup(env_var_pair[0]);
 	new_env_var->value= ft_strdup(env_var_pair[1]);
 	new_env_var->next = NULL;
-	ft_lstadd_back(&g_env, new_env_var);
+	ft_lstadd_back(&g_data.envl, new_env_var);
 }
 
 void	lookup_key(char **env_var_pair, t_env *current, int *key_exists, int *is_valid_key)
@@ -589,7 +587,7 @@ void	lookup_key(char **env_var_pair, t_env *current, int *key_exists, int *is_va
 
 int ft_putenv(char *env_var)
 {
-   t_env *current = g_env;
+   t_env *current = g_data.envl;
    int is_valid_key = 1;
    int key_exists = 0;
    int exit_status = 0;
@@ -629,7 +627,7 @@ int do_export_with_args(char **args)
 
 void do_export_with_noargs()
 {
-	t_env *current = g_env;
+	t_env *current = g_data.envl;
 	while (current != NULL)
 	{
 		if (current->key[0] != '?')
@@ -674,7 +672,7 @@ int unset(char **args)
 
 void env()
 {
-	t_env *current = g_env;
+	t_env *current = g_data.envl;
 	while (current != NULL)
 	{
 		if (current->value && current->key[0] != '?')
@@ -782,7 +780,7 @@ int	redirect(int *stdin_fd, int *stdout_fd, t_sep *node)
 
 void	signal_handler_heredoc(int sig)
 {
-	if (sig == SIGINT && is_forked)
+	if (sig == SIGINT && g_data.is_forked)
 	{
 		write(1, "\n", 1);
 		rl_on_new_line();
@@ -792,12 +790,12 @@ void	signal_handler_heredoc(int sig)
 
 void	signal_handler_parent(int sig)
 {
-	if (sig == SIGINT && is_forked)
+	if (sig == SIGINT && g_data.is_forked)
 	{
 		write(1, "\n", 1);
 		rl_on_new_line();
 	}
-	if (sig == SIGINT && !is_forked)
+	if (sig == SIGINT && !g_data.is_forked)
 	{
 		write(1, "\n", 1);
 		rl_replace_line("", 1);
@@ -842,8 +840,8 @@ int run_executable(t_sep *node)
 	if (check_error(fork_pid < 0, NULL, "minishell: fork", -1)) return (1);
 	if (fork_pid == 0)
 	{
-		is_forked = 1;
-		if (execve((char *[2]){node->path, node->builtin}[!node->path], node->args, g_envp) == -1)
+		g_data.is_forked = 1;
+		if (execve((char *[2]){node->path, node->builtin}[!node->path], node->args, g_data.envp) == -1)
 		{
 			printf("minishell: %s: command not found\n", node->builtin);
 			exit(127);
@@ -926,7 +924,7 @@ int pipe_redirect(t_sep *node, pid_t *pids)
 
 void	run_pipe_executable(t_sep *node, int pipe_fd[2])
 {
-	if (execve((char *[2]){node->path, node->builtin}[!node->path], node->args, g_envp) == -1)
+	if (execve((char *[2]){node->path, node->builtin}[!node->path], node->args, g_data.envp) == -1)
 	{
 		printf("minishell: %s: command not found\n", node->builtin);
 		close(pipe_fd[1]);
@@ -943,7 +941,7 @@ void case_no_cmd(int pipe_fd[2], pid_t *pids)
 
 void run_piped_process(int *num_cmd, int *pipes_num, int *exit_status, t_sep *node, int pipe_fd[2], pid_t *pids)
 {
-	is_forked = 1;
+	g_data.is_forked = 1;
 	if (*num_cmd < *pipes_num && (node->path || node->builtin))
 		check_error(dup2(pipe_fd[1], 1) < 0, pids, "minishell: dup2", 1);
 	if (node->is_red)
@@ -1020,7 +1018,7 @@ int    run_cmdline(t_sep *node, int pipes_num)
 		exit_status = run_no_pipe_cmd(node, &stdin_fd, &stdout_fd);
 	else if (node->next)
 		exit_status = run_pipes(node, pipes_num, &stdin_fd, &stdout_fd);
-	is_forked = 0;
+	g_data.is_forked = 0;
 
 	return exit_status;
 }

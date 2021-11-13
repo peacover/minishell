@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:09:15 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/11/06 16:47:14 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/11/13 11:25:04 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,6 +43,7 @@ typedef struct	s_env
     char *val; // all line
     char *value; // after command
     char *key; // command
+	
     struct s_env * next;
 }				t_env;
 
@@ -77,8 +78,14 @@ typedef struct  s_sep
 	struct s_sep *next;
 }               t_sep;
 
-t_env	*g_env;
-char **g_envp;
+typedef struct	s_data
+{
+	t_env	*envl;
+	char	**envp;
+	int		is_forked;
+}				t_data;
+
+t_data g_data;
 
 int		ft_strcmp(char *s1, char *s2);
 int		ft_strlen2(char **w);
@@ -99,7 +106,7 @@ int    run_cmdline(t_sep *node, int pipes_num);
 char	*handling_dollar(char *s);
 void	signal_handler_parent(int sig);
 void	signal_handler_heredoc(int sig);
-void    add_to_args(int start, int end, char *s, int i, t_sep *node);
+void    add_to_args(int start, int end, char *s, int *i, t_sep *node);
 
 #endif
 
