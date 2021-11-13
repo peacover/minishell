@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/08 15:34:01 by mhaddi            #+#    #+#             */
-/*   Updated: 2021/11/13 23:23:10 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/11/13 23:23:58 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -1106,8 +1106,6 @@ void	run_piped_process(int *ptrs[3], t_sep *node,
 		*exit_status = run_builtins(node, 1);
 	else if (node->path || node->builtin)
 		run_pipe_executable(node, pipe_fd);
-	// else
-	// 	case_no_cmd(pipe_fd, pids);
 }
 
 int	run_parent_process(pid_t *pids, int *num_cmd,
