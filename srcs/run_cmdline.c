@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/08 15:34:01 by mhaddi            #+#    #+#             */
-/*   Updated: 2021/11/13 22:30:34 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/11/13 23:23:10 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -153,6 +153,19 @@ int	heredoc_loop(int *input_fd, t_sep *node, char *file_name)
 	return (0);
 }
 
+int	run_heredoc_child(int *input_fd, char *file_name, t_sep *node)
+{
+	g_data.is_forked = 1;
+	*input_fd = open(file_name, O_WRONLY | O_TRUNC | O_CREAT, 0644);
+	if (check_error(*input_fd < 0, file_name, "minishell: open", -1))
+		return (1);
+	if (heredoc_loop(input_fd, node, file_name))
+		return (1);
+	if (check_error(close(*input_fd) < 0, file_name, "minishell: close", -1))
+		return (1);
+	exit(0);
+}
+
 int	heredoc_process(t_sep *node, int *exit_status, char *file_name)
 {
 	int		input_fd;
@@ -162,17 +175,8 @@ int	heredoc_process(t_sep *node, int *exit_status, char *file_name)
 	if (check_error(fork_pid < 0, file_name, "minishell: fork", -1))
 		return (1);
 	if (fork_pid == 0)
-	{
-		g_data.is_forked = 1;
-		input_fd = open(file_name, O_WRONLY | O_TRUNC | O_CREAT, 0644);
-		if (check_error(input_fd < 0, file_name, "minishell: open", -1))
+		if (run_heredoc_child(&input_fd, file_name, node))
 			return (1);
-		if (heredoc_loop(&input_fd, node, file_name))
-			return (1);
-		if (check_error(close(input_fd) < 0, file_name, "minishell: close", -1))
-			return (1);
-		exit(0);
-	}
 	if (check_error(waitpid(fork_pid, exit_status, 0) < 0,
 			file_name, "minishell: waitpid", -1))
 		return (1);
