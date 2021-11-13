@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:09:15 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/11/13 15:50:36 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/11/13 22:08:41 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,6 +77,14 @@ typedef struct  s_sep
 	t_red	*red;
 	struct s_sep *next;
 }               t_sep;
+
+typedef struct	s_redirect
+{
+	int		input_fd;
+	int		output_fd;
+	int		is_input;
+	int		is_output;
+}				t_redirect;
 
 typedef struct	s_data
 {
