@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/08 15:34:01 by mhaddi            #+#    #+#             */
-/*   Updated: 2021/11/13 11:27:07 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/11/13 12:34:43 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -801,7 +801,7 @@ void	signal_handler_parent(int sig)
 		rl_replace_line("", 1);
 		rl_on_new_line();
 		rl_redisplay();
-		// update_status_code(1);
+		set_exit_code(1);
 	}
 }
 
@@ -913,7 +913,6 @@ int pipe_redirect(t_sep *node, pid_t *pids)
 		}
 		node->red = node->red->next;
 	}
-	// test if o_red_file and i_red_file are int, if not, pass? idk we'll see
 	if (o_red_found)
 		check_error(dup2(ft_atoi(o_red_file), 1) < 0, pids, "minishell: dup2", 1);
 	if (i_red_found)
@@ -939,8 +938,15 @@ void case_no_cmd(int pipe_fd[2], pid_t *pids)
 	check_error(dup2(open("/dev/null", O_WRONLY), 1) < 0, pids, "minishell: dup2", 1);
 }
 
-void run_piped_process(int *num_cmd, int *pipes_num, int *exit_status, t_sep *node, int pipe_fd[2], pid_t *pids)
+void run_piped_process(int *ptrs[3], t_sep *node, int pipe_fd[2], pid_t *pids)
 {
+	int *num_cmd;
+	int *pipes_num;
+	int *exit_status;
+
+	num_cmd = ptrs[0];
+	pipes_num = ptrs[1];
+	exit_status = ptrs[2];
 	g_data.is_forked = 1;
 	if (*num_cmd < *pipes_num && (node->path || node->builtin))
 		check_error(dup2(pipe_fd[1], 1) < 0, pids, "minishell: dup2", 1);
@@ -969,14 +975,23 @@ int run_parent_process(pid_t *pids, int *num_cmd, int *exit_status, int pipe_fd[
 	return (0);
 }
 
-int run_piped_cmd(int *num_cmd, int *pipes_num, int *exit_status, int *stdin_fd, int pipe_fd[2], pid_t *pids, t_sep *node)
+int run_piped_cmd(int *ptrs[4], int pipe_fd[2], pid_t *pids, t_sep *node)
 {
+	int *num_cmd;
+	int *pipes_num;
+	int *exit_status;
+	int *stdin_fd;
+
+	num_cmd = ptrs[0];
+	pipes_num = ptrs[1];
+	exit_status = ptrs[2];
+	stdin_fd = ptrs[3];
 	if (*num_cmd > 0)
 		create_pipe(stdin_fd, pipe_fd, pids);
 	pids[*num_cmd] = fork();
 	check_error(pids[*num_cmd] < 0, pids, "minishell: fork", 1);
 	if (pids[*num_cmd] == 0)
-		run_piped_process(num_cmd, pipes_num, exit_status, node, pipe_fd, pids);
+		run_piped_process((int *[3]){num_cmd, pipes_num, exit_status}, node, pipe_fd, pids);
 	else {
 		if (run_parent_process(pids, num_cmd, exit_status, pipe_fd))
 			return (1);
@@ -995,7 +1010,7 @@ int	run_pipes(t_sep *node, int pipes_num, int *stdin_fd, int *stdout_fd)
 	while (node != NULL)
 	{
 		if (node->t_sp == '|' || num_cmd == pipes_num)
-			if (run_piped_cmd(&num_cmd, &pipes_num, &exit_status, stdin_fd, pipe_fd, pids, node))
+			if (run_piped_cmd((int *[4]){&num_cmd, &pipes_num, &exit_status, stdin_fd}, pipe_fd, pids, node))
 				return (1);
 		check_error(dup2(*stdin_fd, 0) < 0 || dup2(*stdout_fd, 1) < 0, pids, "minishell: dup2", 1);
 		node = node->next;

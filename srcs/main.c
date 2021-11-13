@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/11/13 11:43:01 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/11/13 12:41:26 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -1068,11 +1068,26 @@ void	fill_list2(char *str, int *pipes_num, t_sep **head)
 	}
 }
 
+void    set_exit_code(int value)
+{
+    t_env *current = g_data.envl;
+
+    while (current != NULL)
+    {
+        if (ft_strcmp(current->key, "?") == 0)
+        {
+            free(current->value);
+            current->value = ft_itoa(value);
+            break ;
+        }
+        current = current->next;
+    }
+}
+
 int	fill_list(char *str)
 {
 	int     pipes_num;
 	t_sep	*head;
-	t_env	*current = g_data.envl;
 	int		exit_status;
 
 	head = NULL;
@@ -1080,17 +1095,7 @@ int	fill_list(char *str)
 	fill_list2(str, &pipes_num, &head);
 	print_mylist(head, pipes_num); 
 	exit_status = run_cmdline(head, pipes_num);
-	// set exit_status value 
-	while (current != NULL)
-	{
-		if (ft_strcmp(current->key, "?") == 0)
-		{
-			free(current->value);
-			current->value = ft_itoa(exit_status);
-			break ;
-		}
-		current = current->next;
-	}
+	set_exit_code(exit_status);
 	free_mylist_red(head->red);
 	free_mylist_sep(head);
 	return (0);
