@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:09:15 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/11/13 22:08:41 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/11/14 15:34:18 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,7 +65,6 @@ typedef struct  s_sep
 	char    *upper_builtin; // normalized builtin (UPPER)
 	char	*lower_builtin;
 	char    **args; // commands without builtin
-	char	*r_file;
 	char	red_op;
 	char	*red_args;
 	char	**r_args; // r_args[0] is the command and the others are arguments
@@ -86,6 +85,7 @@ typedef struct	s_redirect
 	int		is_output;
 }				t_redirect;
 
+
 typedef struct	s_data
 {
 	t_env	*envl;
@@ -93,6 +93,17 @@ typedef struct	s_data
 	int		is_forked;
 }				t_data;
 
+typedef	struct s_vars
+{
+	int		i;
+	int		end;
+	int		start;
+	char    *s1;
+	char	*ret;
+	int		is_dollar;
+	char	*v;
+	char	*w;
+}				t_vars;
 t_data g_data;
 
 int		ft_strcmp(char *s1, char *s2);
@@ -127,7 +138,7 @@ void    set_exit_code(int value);
 
 // echo $(( $(getconf ARG_MAX) - $(env | wc -c) ))
 
-// bash-5.1$ echo t >>>t | t>><< | t<> !!!! 
+// bash-5.1$ echo t >>>t | t>><< | t <> !!!! 
 // bash: syntax error near unexpected token `>'
 
 // bash-5.1$ >

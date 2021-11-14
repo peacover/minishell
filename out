@@ -1,0 +1,20 @@
+total 192
+drwxr-xr-x  19 yer-raki  2019    646 Nov 14 17:14 .
+drwx------  28 yer-raki  2019    952 Nov 14 14:23 ..
+drwxr-xr-x  12 yer-raki  2019    408 Nov 14 16:34 .git
+-rw-r--r--   1 yer-raki  2019    514 Nov 14 13:33 .gitignore
+drwxr-xr-x   3 yer-raki  2019    102 Nov 14 13:33 .vscode
+drwxr-xr-x  75 yer-raki  2019   2550 Nov 14 17:02 Libft
+-rw-r--r--   1 yer-raki  2019    805 Nov 14 13:36 Makefile
+-rw-r--r--   1 yer-raki  2019      6 Nov 14 17:09 f1
+-rw-r--r--   1 yer-raki  2019      0 Nov 14 17:12 f2
+-rw-r--r--   1 yer-raki  2019      6 Nov 14 17:09 f3
+-rw-r--r--   1 yer-raki  2019     90 Nov 14 17:12 f4
+-rw-r--r--   1 yer-raki  2019     58 Nov 14 17:03 file
+-rw-r--r--   1 yer-raki  2019    121 Nov 14 17:04 file2
+drwxr-xr-x   3 yer-raki  2019    102 Nov 14 13:33 includes
+-rwxr-xr-x   1 yer-raki  2019  62772 Nov 14 17:02 minishell
+drwxr-xr-x   3 yer-raki  2019    102 Nov 14 17:02 minishell.dSYM
+-rw-r--r--   1 yer-raki  2019      0 Nov 14 17:15 out
+-rw-r--r--   1 yer-raki  2019     90 Nov 14 17:14 out2
+drwxr-xr-x   5 yer-raki  2019    170 Nov 14 13:33 srcs

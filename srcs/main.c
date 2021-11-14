@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/11/13 16:16:49 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/11/14 17:02:43 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@
 #define KCYN  "\x1B[36m"
 #define KWHT  "\x1B[37m"
 
-void    error_msg(char *s)
+void	error_msg(char *s)
 {
 	ft_putstr(s);
 	ft_putchar('\n');
@@ -30,12 +30,13 @@ void    error_msg(char *s)
 
 char	*join_free(char *s1, char *s2)
 {
-	char *tmp;
-	
+	char	*tmp;
+
 	tmp = ft_strjoin(s1, s2);
 	free(s1);
 	return (tmp);
 }
+
 void	print_red(t_red *red)
 {
 	int i;
@@ -58,7 +59,7 @@ void    print_mylist(t_sep *node, int pipes_num)
 	int l;
 	int l2;
 	int node_num;
-	
+
 	i = 0;
 	node_num = 0;
 	while (node != NULL)
@@ -72,7 +73,7 @@ void    print_mylist(t_sep *node, int pipes_num)
 		printf ("\n s_red : %s", node->s_red);
 		printf ("\n sep : %c", node->t_sp);
 		printf ("\n pipes_num : %d", pipes_num);
-		
+
 		printf ("\n\n is_red : %d", node->is_red);
 		print_red(node->red);
 		i = 0; 
@@ -94,12 +95,12 @@ void    print_mylist(t_sep *node, int pipes_num)
 	}
 }
 
-char    *remove_char(char *s, int i)
+char	*remove_char(char *s, int i)
 {
-	char    *s1;
-	char    *s2;
+	char	*s1;
+	char	*s2;
 	int		l;
-	
+
 	l = (int)ft_strlen(s);
 	s1 = ft_substr(s, 0, i);
 	s2 = ft_substr(s, i + 1, l - i + 1);
@@ -110,9 +111,9 @@ char    *remove_char(char *s, int i)
 	return (s);
 }
 
-int    handling_errors_arg(char *str)
+int	handling_errors_arg(char *str)
 {
-	int i;
+	int	i;
 
 	i = 0;
 	if (!str)
@@ -127,20 +128,21 @@ int    handling_errors_arg(char *str)
 			error_msg("syntax error near unexpected token `;'");
 		else if (str[i] == '|' && str[i + 1] == ';')
 			error_msg("syntax error near unexpected token `|'");
-		if ((str[i] == ';' || str[i] == '|') && (str[i + 1] == ';' || str[i + 1] == '|'))
+		if ((str[i] == ';' || str[i] == '|')
+			&& (str[i + 1] == ';' || str[i + 1] == '|'))
 			return (1);
 		i++;
 	}
 	return (0);
 }
+
 int	check_fill_path2(char *w, t_sep *node)
 {
-	int fd;
-	char *s;
+	int		fd;
+	char	*s;
 
 	fd = 0;
 	s = ft_strjoin(w, "/");
-	// s = ft_strjoin(s, node->lower_builtin);
 	s = join_free(s, node->lower_builtin);
 	fd = open(s, O_RDONLY);
 	if (fd > 0)
@@ -153,13 +155,15 @@ int	check_fill_path2(char *w, t_sep *node)
 	free(s);
 	return (0);
 }
+
 void	check_fill_path(t_sep *node)
 {
-	int     i;
-	char    **w;
-	
+	int		i;
+	char	**w;
+	t_env	*current;
+
 	i = 0;
-	t_env *current = g_data.envl;
+	current = g_data.envl;
 	while (current != NULL)
 	{
 		if (!ft_strcmp(current->key, "PATH"))
@@ -179,19 +183,22 @@ void	check_fill_path(t_sep *node)
 
 void	check_builtin(t_sep *node)
 {
-	int i;
+	int	i;
 
 	i = 0;
-	if (!ft_strcmp(node->upper_builtin, "ECHO") || !ft_strcmp(node->upper_builtin, "CD")
-	|| !ft_strcmp(node->upper_builtin, "PWD") || !ft_strcmp(node->upper_builtin, "EXPORT")
-	|| !ft_strcmp(node->upper_builtin, "UNSET") || !ft_strcmp(node->upper_builtin, "ENV")
-	|| !ft_strcmp(node->upper_builtin, "EXIT"))
+	if (!ft_strcmp(node->upper_builtin, "ECHO")
+		|| !ft_strcmp(node->upper_builtin, "CD")
+		|| !ft_strcmp(node->upper_builtin, "PWD")
+		|| !ft_strcmp(node->upper_builtin, "EXPORT")
+		|| !ft_strcmp(node->upper_builtin, "UNSET")
+		|| !ft_strcmp(node->upper_builtin, "ENV")
+		|| !ft_strcmp(node->upper_builtin, "EXIT"))
 	{
 		node->is_builtin = 1;
 	}
 }
 
-int     search_second_quote(char *s, int start, char type)
+int	search_sq(char *s, int start, char type)
 {
 	if (type == '\'')
 	{
@@ -207,7 +214,7 @@ int     search_second_quote(char *s, int start, char type)
 	{
 		while (s[start])
 		{
-			if (s[start] == type && s[start]!= '\\')
+			if (s[start] == type && s[start] != '\\')
 				return (start);
 			start++;
 		}
@@ -218,7 +225,7 @@ int     search_second_quote(char *s, int start, char type)
 
 char	*handling_bs(char *s)
 {
-	int i;
+	int	i;
 
 	i = 0;
 	while (s[i])
@@ -228,7 +235,7 @@ char	*handling_bs(char *s)
 			if (!s[i + 1])
 			{
 				error_msg("error multiligne");
-				break;
+				break ;
 			}
 			s = remove_char(s, i);
 		}
@@ -239,7 +246,7 @@ char	*handling_bs(char *s)
 
 char	*handling_bs_dq(char *s)
 {
-	int i;
+	int	i;
 
 	i = 0;
 	while (s[i])
@@ -249,7 +256,7 @@ char	*handling_bs_dq(char *s)
 			if (!s[i + 1])
 			{
 				error_msg("error multiligne");
-				break;
+				break ;
 			}
 			if (s[i + 1] == '\\')
 				s = remove_char(s, i);
@@ -259,24 +266,24 @@ char	*handling_bs_dq(char *s)
 	return (s);
 }
 
-int		equal_export(char *s, int i)
+int	equal_export(char *s, int i)
 {
 	i++;
 	while (s[i] && s[i] != '$' && (ft_isalpha(s[i]) || s[i] == '_'
-	|| ft_isdigit(s[i]) || (s[i] == '?' && s[i - 1] == '$')))
+			|| ft_isdigit(s[i]) || (s[i] == '?' && s[i - 1] == '$')))
 		i++;
 	return (i);
 }
 
 char	*str_export_split(char *s, int start, int is_dollar)
 {
-	int i;
+	int	i;
 
 	i = start;
 	if (is_dollar)
 	{
 		while (s[i] && s[i] != '$' && (ft_isalpha(s[i]) || s[i] == '_'
-		|| ft_isdigit(s[i]) || (s[i] == '?' && s[i - 1] == '$')))
+				|| ft_isdigit(s[i]) || (s[i] == '?' && s[i - 1] == '$')))
 			i++;
 		return (ft_substr(s, start, i - start));
 	}
@@ -288,12 +295,11 @@ char	*str_export_split(char *s, int start, int is_dollar)
 	}
 }
 
-int		check_dollar(char *s, char **ret)
+int	check_dollar(char *s)
 {
-	int i;
+	int	i;
 
 	i = 0;
-	*ret = NULL;
 	while (s[i])
 	{
 		if (s[i] == '$')
@@ -303,110 +309,129 @@ int		check_dollar(char *s, char **ret)
 	return (0);
 }
 
-void	handling_dollar3(char **s1, char *s, int *i, char **w)
+void	handling_dollar3(char *s, t_vars *vars)
 {
-	*s1 = str_export_split(s, *i, 0);
-	if (!*w && *s1)
-		*w = ft_strdup(*s1);
-	else if (*s1)
-		*w = join_free(*w, *s1); //
-	*i += ft_strlen(*s1);
+	vars->s1 = str_export_split(s, vars->i, 0);
+	if (!vars->w && vars->s1)
+		vars->w = ft_strdup(vars->s1);
+	else if (vars->s1)
+		vars->w = join_free(vars->w, vars->s1);
+	vars->i += ft_strlen(vars->s1);
 }
-void	handling_dollar2(char *v, int is_dollar, int *start, char **ret)
-{	
-	t_env	*current = g_data.envl;
-	
+
+void	handling_dollar2(t_vars *vars)
+{
+	t_env	*current;
+
+	current = g_data.envl;
 	while (current != NULL)
 	{
-		if (!ft_strcmp((current)->key, v))
+		if (!ft_strcmp((current)->key, vars->v))
 		{
-			if (is_dollar)
-				*start = 1;
+			if (vars->is_dollar)
+				vars->start = 1;
 			if ((current)->value && ft_strlen((current)->value) > 0)
-				*ret = ft_strdup((current)->value);
-			break;
+				vars->ret = ft_strdup((current)->value);
+			break ;
 		}
 		current = (current)->next;
 	}
 	current = g_data.envl;
 }
 
-void	handling_dollar4(char **w, int *i, char **ret, char **v, char **s1)
+void	handling_dollar4(t_vars *vars)
 {
-	if (!*w && *ret)
-		*w = ft_strdup(*ret);
-	else if (*ret)
-		*w = join_free(*w, *ret);
-	*i += ft_strlen(*s1);
-	if (*ret)
-		free(*ret); 
-	if (*v)
-		free(*v);
-	if (*s1)
-		free(*s1);
+	if (!vars->w && vars->ret)
+		vars->w = ft_strdup(vars->ret);
+	else if (vars->ret)
+		vars->w = join_free(vars->w, vars->ret);
+	vars->i += ft_strlen(vars->s1);
+	if (vars->ret)
+		free(vars->ret);
+	if (vars->v)
+		free(vars->v);
+	if (vars->s1)
+		free(vars->s1);
 }
 
-char *handling_dollar5(char *w, int is_dollar, char *s)
+void	free_struct(t_vars *vars, char c)
 {
-	if (w)
-		return (w);
-	else if (is_dollar)
+	if (vars->s1)
+		free(vars->s1);
+	if (vars->ret)
+		free(vars->ret);
+	if (vars->v)
+		free(vars->v);
+	if (c != 'w' && vars->w)
+		free(vars->w);
+}
+
+char	*handling_dollar5(char *s, t_vars *vars)
+{
+	if (vars->w)
+	{
+		// free_struct(vars, 'w');
+		return (vars->w);
+	}
+	else if (vars->is_dollar)
+	{
+		// free_struct(vars, '\0');
 		return (NULL);
+	}
 	else
+	{
+		// free_struct(vars, '\0');
 		return (s);
+	}
 }
-    
-int		handling_dollar6(int *i, int *start, char **s1, int *end, char **w)
+
+void	handling_dollar7(char *s, t_vars *vars)
 {
-	*i = 0;
-	*start = 0;
-	*s1 = NULL;
-	*end = 0;
-	*w = NULL;
-	return (0);
+	vars->end = equal_export(s, vars->i);
+	vars->start = ++(vars->i);
+	vars->v = ft_substr(s, vars->start, vars->i - vars->start);
+	if (vars->end)
+		vars->v = ft_substr(s, vars->start, vars->end - vars->start);
+	vars->s1 = str_export_split(s, vars->start, 1);
 }
-char	*handling_dollar7(int *end, char *s, int *i, int *start, char **v)
+
+void	init_data(t_vars *vars)
 {
-	*end = equal_export(s, *i);
-	*start = ++(*i);
-	*v = ft_substr(s, *start, *i - *start);
-	if (*end)
-		*v = ft_substr(s, *start, *end - *start);
-	return (str_export_split(s, *start, 1));
+	vars->i = 0;
+	vars->end = 0;
+	vars->start = 0;
+	vars->s1 = NULL;
+	vars->ret = NULL;
+	vars->is_dollar = 0;
+	vars->v = NULL;
+	vars->w = NULL;
 }
 
 char	*handling_dollar(char *s)
 {
-	int		i;
-	int		end;
-	int		start;
-	char    *s1;
-	char	*ret;
-	int		is_dollar;
-	char	*v;
-	char	*w;
+	t_vars	vars;
 
-	is_dollar = handling_dollar6(&i, &start, &s1, &end, &w);
-	while (s[i] && check_dollar(s, &ret))
+	init_data(&vars);
+	while (s[vars.i] && check_dollar(s))
 	{
 		if (ft_strlen(s) == 1 && s[0] == '$')
 			return (ft_strdup("$"));
-		if (s[i] == '$')
+		if (s[vars.i] == '$')
 		{
-			is_dollar = 1;
-			s1 = handling_dollar7(&end, s, &i, &start, &v);
-			handling_dollar2(v, is_dollar, &start, &ret);
-			handling_dollar4(&w, &i, &ret, &v, &s1);
+			vars.is_dollar = 1;
+			handling_dollar7(s, &vars);
+			handling_dollar2(&vars);
+			handling_dollar4(&vars);
 		}
 		else
-			handling_dollar3(&s1, s, &i, &w);
+			handling_dollar3(s, &vars);
 	}
-	return (handling_dollar5(w, is_dollar, s));
+	return (handling_dollar5(s, &vars));
 }
 
 char	*str_upper(char *s)
 {
-	int i;
+	int	i;
 
 	i = 0;
 	while (s[i])
@@ -414,12 +439,12 @@ char	*str_upper(char *s)
 		s[i] = ft_toupper(s[i]);
 		i++;
 	}
-	return(s);
+	return (s);
 }
 
 char	*str_lower(char *s)
 {
-	int i;
+	int	i;
 
 	i = 0;
 	while (s[i])
@@ -427,8 +452,9 @@ char	*str_lower(char *s)
 		s[i] = ft_tolower(s[i]);
 		i++;
 	}
-	return(s);
+	return (s);
 }
+
 void	add_to_args2(int i, int *j, t_sep *node, char **str)
 {
 	*str = NULL;
@@ -469,7 +495,7 @@ void	add_to_args4(char *s, int *l, char **str, int start)
 	}
 	else
 	{				
-		*l = search_second_quote(s, start + 1, s[start]);
+		*l = search_sq(s, start + 1, s[start]);
 		if (!*l)
 			error_msg("error multiligne");
 		*str = ft_substr(s, start + 1, *l - start - 1);
@@ -477,6 +503,7 @@ void	add_to_args4(char *s, int *l, char **str, int start)
 	if (s[start] != '\'')
 		*str = handling_dollar(*str);
 }
+
 void	add_to_args5(t_sep *node, char **str, int j, int *i)
 {
 	if (!node->args[j] && *str)
@@ -494,18 +521,38 @@ void	add_to_args5(t_sep *node, char **str, int j, int *i)
 	*str = NULL;
 }
 
-int    add_to_args(int *end, char *s, int *i, t_sep *node)
+void	add_to_args6(char *s, int *start, int l)
+{
+	if (s[*start] == '\'' || s[*start] == '\"')
+		*start = l + 1;
+	else
+		*start = l;
+}
+
+void	add_to_args7(int *tmp, int *start, int *end, char *s)
+{
+	*tmp = 0;
+	*start = *end;
+	get_args2(s, end, tmp);
+}
+
+int	add_to_args8(t_sep *node, int j, int tmp)
+{
+	if (node->args[j])
+		node->args[j + 1] = NULL;
+	return (tmp);
+}
+
+int	add_to_args(int *end, char *s, int *i, t_sep *node)
 {
 	int		l;
-	char 	*str;
-	int j;
-	int start;
-	int tmp;
-	
+	char	*str;
+	int		j;
+	int		start;
+	int		tmp;
+
 	l = 0;
-	tmp = 0;
-	start = *end;
-	get_args2(s, end, &tmp);
+	add_to_args7(&tmp, &start, end, s);
 	add_to_args2(*i, &j, node, &str);
 	while (s[start] && start < *end)
 	{
@@ -518,21 +565,16 @@ int    add_to_args(int *end, char *s, int *i, t_sep *node)
 		else
 		{
 			add_to_args5(node, &str, j, i);
-			if (s[start] == '\'' || s[start] == '\"')
-				start = l + 1;
-			else
-				start = l;	
+			add_to_args6(s, &start, l);
 		}
 	}
-	if (node->args[j])
-		node->args[j + 1] = NULL;
-	return (tmp);
+	return (add_to_args8(node, j, tmp));
 }
 
 void	handling_builtins(t_sep *node, char *s, int start)
 {
-	int l;
-	char *str;
+	int		l;
+	char	*str;
 
 	l = 0;
 	str = NULL;
@@ -545,7 +587,7 @@ void	handling_builtins(t_sep *node, char *s, int start)
 	}
 	else
 	{				
-		l = search_second_quote(s, start + 1, s[start]);
+		l = search_sq(s, start + 1, s[start]);
 		if (!l)
 			error_msg("error multiligne");
 		str = ft_substr(s, start + 1, l - start - 1);
@@ -563,7 +605,7 @@ void	get_args2(char *s, int *start, int *end)
 	{
 		if (s[*start] == '\'' || s[*start] == '\"')
 		{
-			*end = search_second_quote(s, *start + 1, s[*start]);
+			*end = search_sq(s, *start + 1, s[*start]);
 			if (!*end)
 				error_msg("error multiligne");
 			*start = *end + 1;
@@ -576,9 +618,9 @@ void	get_args2(char *s, int *start, int *end)
 
 void	check_first_cmd_dollar(char **s, int *start)
 {
-	int l;
-	char *str;
-	char *tmp;
+	int		l;
+	char	*str;
+	char	*tmp;
 
 	tmp = NULL;
 	if (*s[*start] != '\'' && *s[*start] != '\"')
@@ -590,7 +632,7 @@ void	check_first_cmd_dollar(char **s, int *start)
 	}
 	else
 	{				
-		l = search_second_quote(*s, *start + 1, *s[*start]);
+		l = search_sq(*s, *start + 1, *s[*start]);
 		if (!l)
 			error_msg("error multiligne");
 		str = ft_substr(*s, *start + 1, l - *start - 1);
@@ -599,13 +641,13 @@ void	check_first_cmd_dollar(char **s, int *start)
 	{
 		tmp = handling_dollar(str);
 		if (ft_strcmp(tmp, str))
-			*s = ft_strjoin(tmp, ft_substr(*s, l - 1, ft_strlen(*s) - l));//free prob soon
+			*s = ft_strjoin(tmp, ft_substr(*s, l - 1, ft_strlen(*s) - l));
 	}
 }
 
-void    get_args(char *s, int start, t_sep *node)
+void	get_args(char *s, int start, t_sep *node)
 {
-	int     i;
+	int		i;
 	int		end;
 	int		t;
 
@@ -613,27 +655,21 @@ void    get_args(char *s, int start, t_sep *node)
 	t = 0;
 	end = 0;
 	check_first_cmd_dollar(&s, &start);
-	while (start < (int)ft_strlen(s))
+	while (s && start < (int)ft_strlen(s))
 	{
-		// t = start;
-		// get_args2(s, &start, &end);
-		// if (t < start)
-		// {
-			end = add_to_args(&start, s, &i, node);
-			// i++;
-		// }
+		end = add_to_args(&start, s, &i, node);
 		while (start < (int)ft_strlen(s) && s[start] == ' ')
 			start++;
 	}
 }
 
-void    red_add_to_args(int start, int end, int *i, t_sep *node)
+void	red_add_to_args(int start, int end, int *i, t_sep *node)
 {
 	int		l;
-	char 	*str;
-	char *s;
-	int j;
-	
+	char	*str;
+	char	*s;
+	int		j;
+
 	l = 0;
 	s = node->red_args;
 	add_to_args2(*i, &j, node, &str);
@@ -648,7 +684,7 @@ void    red_add_to_args(int start, int end, int *i, t_sep *node)
 			if (s[start] == '\'' || s[start] == '\"')
 				start = l + 1;
 			else
-				start = l;	
+				start = l;
 		}
 	}
 	if (node->args[j])
@@ -666,40 +702,42 @@ char	*red_redim_s(char *s, int start, int end)
 	s = join_free(s, s2);
 	free(s1);
 	free(s2);
-	return(s);
+	return (s);
 }
 
-char	*red_get_file2(t_sep *node, int i, int start, int *end, char *s)
-{
-	char *file;
-
-	file = NULL;
-	*end = search_second_quote(s, start + 1, s[start]);
-	if (!*end)
-		error_msg("error multiligne");
-	file = ft_substr(s, start + 1, *end - start - 1);
-	if (s[start] != '\'')
-	{
-		if (s[start] == '\"')
-			file = handling_bs_dq(file);
-		else
-			file = handling_bs(file);
-		file = handling_dollar(file);
-	}
-	node->red_args = red_redim_s(s, i, *end);
-	return (file);
-}
-
-char	*red_get_file3(t_sep *node, int i, int start, int *end, char *s)
+char	*red_get_file2(t_sep *node, int i, int start, char *s)
 {
 	char	*file;
+	int		end;
 
-	file = NULL;	
-	*end = start;
-	while (s[*end] && s[*end] != ' ' && s[*end] != '<' && s[*end] != '>')
-		(*end)++;
-	file = ft_substr(s, start, *end - start);
-	node->red_args = red_redim_s(s, i, *end - 1);
+	file = NULL;
+	end = search_sq(s, start + 1, s[start]);
+	if (!end)
+		error_msg("error multiligne");
+	file = ft_substr(s, start + 1, end - start - 1);
+	if (s[start] != '\'')
+	{
+		if (s[start] == '\"')
+			file = handling_bs_dq(file);
+		else
+			file = handling_bs(file);
+		file = handling_dollar(file);
+	}
+	node->red_args = red_redim_s(s, i, end);
+	return (file);
+}
+
+char	*red_get_file3(t_sep *node, int i, int start, char *s)
+{
+	char	*file;
+	int		end;
+
+	file = NULL;
+	end = start;
+	while (s[end] && s[end] != ' ' && s[end] != '<' && s[end] != '>')
+		(end)++;
+	file = ft_substr(s, start, end - start);
+	node->red_args = red_redim_s(s, i, end - 1);
 	if (s[start] != '\'')
 	{
 		if (s[start] == '\"')
@@ -710,13 +748,12 @@ char	*red_get_file3(t_sep *node, int i, int start, int *end, char *s)
 	}
 	return (file);
 }
+
 char	*red_get_file(t_sep *node, char *s, int start, char type)
 {
-	int i;
-	int end;
+	int	i;
 
 	i = 0;
-	end = 0;
 	while (s[start])
 	{
 		node->red_args = NULL;
@@ -730,11 +767,11 @@ char	*red_get_file(t_sep *node, char *s, int start, char type)
 		if (s[start] == '\'' || s[start] == '\"')
 		{
 			if (i != 0 && s[start - 1] == '\\')
-				continue;
-			return (red_get_file2(node, i, start, &end, s));
+				continue ;
+			return (red_get_file2(node, i, start, s));
 		}
 		else
-			return (red_get_file3(node, i, start, &end, s));
+			return (red_get_file3(node, i, start, s));
 	}
 	return (NULL);
 }
@@ -745,16 +782,13 @@ void	red_get_cmd_args2(t_sep *node, int *start, int *end, int *i)
 	while (node->red_args[*end] && node->red_args[*end] != ' ')
 		(*end)++;
 	if (*end > *start)
-	{
 		red_add_to_args(*start, *end, i, node);
-		// (*i)++;
-	}
 	*start = *end;
 }
 
 void	red_get_cmd_args(t_sep *node)
 {
-	int     i;
+	int		i;
 	int		end;
 	int		start;
 
@@ -765,12 +799,11 @@ void	red_get_cmd_args(t_sep *node)
 		if (node->red_args[start] == '\'' || node->red_args[start] == '\"')
 		{
 			if (node->red_args[start - 1] == '\\')
-				continue;
-			end = search_second_quote(node->red_args, start + 1, node->red_args[start]);
+				continue ;
+			end = search_sq(node->red_args, start + 1, node->red_args[start]);
 			if (!end)
 				error_msg("error multiligne");
 			red_add_to_args(start, end, &i, node);
-			// i++;
 			start = end + 1;
 		}
 		else
@@ -779,6 +812,7 @@ void	red_get_cmd_args(t_sep *node)
 			start++;
 	}
 }
+
 char	red_get_type(char *s, int start)
 {
 	while (s[start])
@@ -805,7 +839,7 @@ char	red_get_type(char *s, int start)
 		}
 		start++;
 	}
-	return('\0');
+	return ('\0');
 }
 
 void	init_node_red(t_red *red)
@@ -817,38 +851,41 @@ void	init_node_red(t_red *red)
 void	fill_node_red(t_red *red, char *file, char type)
 {
 	red->r_file = file;
-	red->red_op = type;	
+	red->red_op = type;
 }
 
 void	fill_red_list(t_red **head, char *file, char type)
 {
-	int i;
-	
+	int		i;
+	t_red	*newnode;
+	t_red	*lastnode;
+
 	i = 0;
-	t_red *newNode = malloc(sizeof(t_red));
-	t_red *lastNode = *head;
-	init_node_red(newNode);
-	fill_node_red(newNode, file, type);
-	newNode->next = NULL;
+	newnode = malloc(sizeof(t_red));
+	lastnode = *head;
+	init_node_red(newnode);
+	fill_node_red(newnode, file, type);
+	newnode->next = NULL;
 	if (*head == NULL)
-		 *head = newNode;
+		*head = newnode;
 	else
 	{
-		lastNode = *head;
-		while (lastNode->next != NULL)
+		lastnode = *head;
+		while (lastnode->next != NULL)
 		{
-			lastNode = lastNode->next;
+			lastnode = lastnode->next;
 		}
-		lastNode->next = newNode;
+		lastnode->next = newnode;
 	}
 }
+
 void	red_get_type_file2(int *i, int *end, char *s)
 {
 	while (s[*i] && s[*i] == ' ')
 		(*i)++;
 	if (s[*i] == '\'' || s[*i] == '\"')
 	{
-		*end = search_second_quote(s, *i + 1, s[*i]);
+		*end = search_sq(s, *i + 1, s[*i]);
 		if (!*end)
 			error_msg("error multiligne");
 		*i = *end;
@@ -861,7 +898,7 @@ void	red_get_type_file(t_sep *node, char *s)
 	char	type;
 	char	*file;
 	int		end;
-	
+
 	i = 0;
 	file = NULL;
 	end = 0;
@@ -869,7 +906,7 @@ void	red_get_type_file(t_sep *node, char *s)
 	while (s[i])
 	{
 		red_get_type_file2(&i, &end, s);
-		if ((s[i] == '>' ) || (s[i] == '<' ) )
+		if ((s[i] == '>' ) || (s[i] == '<' ))
 		{
 			type = red_get_type(s, i);
 			file = red_get_file(node, s, i, type);
@@ -877,7 +914,7 @@ void	red_get_type_file(t_sep *node, char *s)
 			fill_red_list(&node->red, file, type);
 		}
 		if ((int)ft_strlen(s) < i + 1)
-			break;
+			break ;
 		i++;
 	}
 	red_get_cmd_args(node);
@@ -899,25 +936,24 @@ void	init_t_sep(t_sep *node)
 	node->red = NULL;
 }
 
-int		check_red(t_sep *node, char *s)
+int	check_red(t_sep *node, char *s)
 {
-	int start;
-	int end;
+	int	start;
+	int	end;
 
 	start = 0;
 	while (s[start])
 	{
 		if (s[start] == '\'' || s[start] == '\"')
 		{
-			if (s[start - 1] == '\\')
-				continue;
-			end = search_second_quote(s, start + 1, s[start]);
+			end = search_sq(s, start + 1, s[start]);
 			if (!end)
 				error_msg("error multiligne");
 			start = end;
 		}
-		else if ((start == 0 && (s[start] == '>' || s[start] == '<')) ||
-			(start > 0 && (s[start] == '>' || s[start] == '<') && s[start - 1] != '\\'))
+		else if ((start == 0 && (s[start] == '>' || s[start] == '<'))
+			|| (start > 0 && (s[start] == '>' || s[start] == '<')
+				&& s[start - 1] != '\\'))
 		{
 			node->is_red = 1;
 			red_get_type_file(node, s);
@@ -928,11 +964,11 @@ int		check_red(t_sep *node, char *s)
 	return (0);
 }
 
-void    get_builtin(char *s, t_sep *node)
+void	get_builtin(char *s, t_sep *node)
 {
-	int     i;
+	int		i;
 	int		l;
-	
+
 	i = 0;
 	l = ft_strlen(s);
 	if (s[i] == '|')
@@ -948,10 +984,11 @@ void    get_builtin(char *s, t_sep *node)
 	if (!check_red(node, s))
 		get_args(s, i, node);
 }
+
 void	parsing_red(t_sep *node, char *s)
 {
-	int i;
-	int end;
+	int	i;
+	int	end;
 
 	i = 0;
 	end = 0;
@@ -960,25 +997,26 @@ void	parsing_red(t_sep *node, char *s)
 		if (s[i] == '\'' || s[i] == '\"')
 		{
 			if (i != 0 && s[i - 1] == '\\')
-				continue;
-			end = search_second_quote(s, i + 1, s[i]);
+				continue ;
+			end = search_sq(s, i + 1, s[i]);
 			if (!end)
 				error_msg("error multiligne");
 			i = end;
 		}
 		else
 		{
-			if ((i == 0 && (s[i] == '>' || s[i] == '<')) ||
-			(i > 0 && (s[i] == '>' || s[i] == '<') && s[i - 1] != '\\'))
+			if ((i == 0 && (s[i] == '>' || s[i] == '<'))
+				|| (i > 0 && (s[i] == '>' || s[i] == '<') && s[i - 1] != '\\'))
 				node->is_red = 1;
 		}
 		i++;
 	}
 }
-void    fill_node(char *s, t_sep *node, int start, char *str)
+
+void	fill_node(char *s, t_sep *node, int start, char *str)
 {
-	int i;
-	int l;
+	int	i;
+	int	l;
 
 	i = 0;
 	l = ft_strlen(s);
@@ -988,57 +1026,95 @@ void    fill_node(char *s, t_sep *node, int start, char *str)
 	get_builtin(s, node);
 }
 
-
 void	addlast_sep(t_sep **head, char *s, int start, char *str)
 {
-	int i;
-	
+	int		i;
+	t_sep	*newnode;
+	t_sep	*lastnode;
+
 	i = 0;
-	t_sep *newNode = malloc(sizeof(t_sep));
-	t_sep *lastNode = *head;
-	init_t_sep(newNode);
-	fill_node(s, newNode, start, str);
-	newNode->next = NULL;
+	newnode = malloc(sizeof(t_sep));
+	lastnode = *head;
+	init_t_sep(newnode);
+	fill_node(s, newnode, start, str);
+	newnode->next = NULL;
 	if (*head == NULL)
-		 *head = newNode;
+		*head = newnode;
 	else
 	{
-		lastNode = *head;
-		while (lastNode->next != NULL)
+		lastnode = *head;
+		while (lastnode->next != NULL)
 		{
-			lastNode = lastNode->next;
+			lastnode = lastnode->next;
 		}
-		lastNode->next = newNode;
+		lastnode->next = newnode;
 	}
 }
 
 void	free_mylist_red(t_red *head)
 {
-	t_red *tmp;
-	
+	t_red	*tmp;
+
 	while (head != NULL)
 	{
-	   tmp = head;
-	   head = head->next;
-	   free(tmp);
+		tmp = head;
+		free(tmp->r_file);
+		head = head->next;
+		free(tmp);
 	}
 }
 
 void	free_mylist_sep(t_sep *head)
 {
-	t_sep *tmp;
-	
+	t_sep	*tmp;
+	int		i;
+	int		l;
+
+	i = 0;
+	l = 0;
 	while (head != NULL)
 	{
-	   tmp = head;
-	   head = head->next;
-	   free(tmp);
+		tmp = head;
+		free(tmp->path);
+		free(tmp->builtin);
+		free(tmp->upper_builtin);
+		free(tmp->red_args);
+		free(tmp->s_red);
+		l = ft_strlen2(tmp->args);
+		while (l > i)
+			free(tmp->args[i++]);
+		head = head->next;
+		free(tmp);
+	}
+}
+
+void	free_mylist_env(t_data *data)
+{
+	t_env	*tmp;
+	t_env	*env;
+	int		i;
+
+	i = 0;
+	env = data->envl;
+	while (env != NULL)
+	{
+		tmp = env;
+		free(tmp->val);
+		free(tmp->value);
+		free(tmp->key);
+		env = env->next;
+		free(tmp);
+	}
+	while (data->envp[i])
+	{
+		free(data->envp[i]);
+		i++;
 	}
 }
 
 void	fill_list3(t_sep **head, char *str, int i, int *start)
 {
-	char *s;
+	char	*s;
 
 	while (str[*start] && str[*start] == ' ')
 		(*start)++;
@@ -1047,7 +1123,7 @@ void	fill_list3(t_sep **head, char *str, int i, int *start)
 	else
 		s = ft_substr(str, *start, i - *start);
 	if (ft_strlen(s) > 0)
-		addlast_sep(head, s, *start , str);
+		addlast_sep(head, s, *start, str);
 	if (s)
 		free(s);
 	*start = i;
@@ -1055,9 +1131,9 @@ void	fill_list3(t_sep **head, char *str, int i, int *start)
 
 void	fill_list2(char *str, int *pipes_num, t_sep **head)
 {
-	int i;
-	int start;
-	int end;
+	int	i;
+	int	start;
+	int	end;
 
 	i = 0;
 	start = 0;
@@ -1065,7 +1141,7 @@ void	fill_list2(char *str, int *pipes_num, t_sep **head)
 	{
 		if (str[i] == '\'' || str[i] == '\"')
 		{
-			end = search_second_quote(str, i + 1, str[i]);
+			end = search_sq(str, i + 1, str[i]);
 			if (!end)
 				error_msg("error multiligne");
 			i = end;
@@ -1081,71 +1157,64 @@ void	fill_list2(char *str, int *pipes_num, t_sep **head)
 	}
 }
 
-void    set_exit_code(int value)
+void	set_exit_code(int value)
 {
-    t_env *current = g_data.envl;
+	t_env	*current;
 
-    while (current != NULL)
-    {
-        if (ft_strcmp(current->key, "?") == 0)
-        {
-            free(current->value);
-            current->value = ft_itoa(value);
-            break ;
-        }
-        current = current->next;
-    }
+	current = g_data.envl;
+	while (current != NULL)
+	{
+		if (ft_strcmp(current->key, "?") == 0)
+		{
+			free(current->value);
+			current->value = ft_itoa(value);
+			break ;
+		}
+		current = current->next;
+	}
 }
 
 int	fill_list(char *str)
 {
-	int     pipes_num;
+	int		pipes_num;
 	t_sep	*head;
 	int		exit_status;
 
 	head = NULL;
 	pipes_num = 0;
 	fill_list2(str, &pipes_num, &head);
-	print_mylist(head, pipes_num); 
+	// print_mylist(head, pipes_num);
 	exit_status = run_cmdline(head, pipes_num);
 	set_exit_code(exit_status);
-	free_mylist_red(head->red);
-	free_mylist_sep(head);
+	// if (head->is_red)
+	// 	free_mylist_red(head->red);
+	// free_mylist_sep(head);
 	return (0);
 }
 
-int    fill_args(char *str)
+int	fill_args(char *str)
 {
-	int     i;
-	
+	int	i;
+
 	i = 0;
 	return (fill_list(str));
 }
 
-
-void    print_list_env()
-{
-	t_env *current = g_data.envl;
-	while (current != NULL)
-	{
-		printf("%s\n",current->key);
-		current = current->next;
-	}
-}
-
 void	fill_env2(t_env	**temp, char **env, int i)
 {
-	char **s;
-	
-	s = ft_split(env[i],'=');
+	char	**s;
+
+
+	s = ft_split(env[i], '=');
 	*temp = malloc(sizeof(**temp));
 	(*temp)->val = ft_strdup(env[i]);
 	(*temp)->key = ft_strdup(s[0]);
 	(*temp)->value = ft_strdup(s[1]);
 	(*temp)->next = NULL;
+	free_t2(s);
 }
 
-void fill_env3(t_env **temp)
+void	fill_env3(t_env **temp)
 {
 	*temp = malloc(sizeof(**temp));
 	(*temp)->val = ft_strdup("?=0");
@@ -1154,13 +1223,13 @@ void fill_env3(t_env **temp)
 	(*temp)->next = NULL;
 }
 
-t_env    *fill_env(char **env)
+t_env	*fill_env(char **env)
 {
 	t_env	*head;
 	t_env	*last;
 	t_env	*temp;
 	int		i;
-	
+
 	i = 0;
 	head = NULL;
 	while (env[i])
@@ -1183,24 +1252,26 @@ t_env    *fill_env(char **env)
 	return (head);
 }
 
-char    *my_getcwd()
+char	*my_getcwd(void)
 {
-	t_env *current = g_data.envl;
-	while(current != NULL)
+	t_env	*current;
+
+	current = g_data.envl;
+	while (current != NULL)
 	{
-		if(ft_strcmp(current->key,"PWD") == 0)
+		if (ft_strcmp(current->key, "PWD") == 0)
 		{
-			return(ft_strjoin(current->value, "> "));
-			break;
+			return (ft_strjoin(current->value, "> "));
+			break ;
 		}
 		current = current->next;
 	}
 	return (NULL);
 }
 
-void ignctl()
+void	ignctl(void)
 {
-	struct termios term;
+	struct termios	term;
 
 	if (tcgetattr(STDIN_FILENO, &term) != 0)
 		perror("tcgetattr() error");
@@ -1209,7 +1280,7 @@ void ignctl()
 		perror("tcsetattr() error");
 }
 
-int     main(int argc, char **argv, char **env)
+int		main(int argc, char **argv, char **env)
 {
 	int i;
 	char *str;
@@ -1253,5 +1324,6 @@ int     main(int argc, char **argv, char **env)
 		free(str);
 		// system("leaks minishell");
 	}
+	// free_mylist_env(&g_data);
 	return (0);
 }
