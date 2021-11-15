@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/08 15:34:01 by mhaddi            #+#    #+#             */
-/*   Updated: 2021/11/13 23:23:58 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/11/15 12:02:20 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -888,6 +888,23 @@ void	redirect(int *stdin_fd, int *stdout_fd, t_sep *node, int *exit_code)
 		redirect.is_output, exit_code);
 }
 
+void	set_exit_code(int value)
+{
+	t_env	*current;
+
+	current = g_data.envl;
+	while (current != NULL)
+	{
+		if (ft_strcmp(current->key, "?") == 0)
+		{
+			free(current->value);
+			current->value = ft_itoa(value);
+			break ;
+		}
+		current = current->next;
+	}
+}
+
 void	signal_handler_heredoc(int sig)
 {
 	if (sig == SIGINT && g_data.is_forked)
@@ -915,6 +932,97 @@ void	signal_handler_parent(int sig)
 	}
 }
 
+char	*get_last_exit_code(void)
+{
+	t_env	*current;
+
+	current = g_data.envl;
+	while (current != NULL)
+	{
+		if (ft_strcmp(current->key, "?") == 0)
+			return (current->value);
+		current = current->next;
+	}
+	return (NULL);
+}
+
+int is_number(char *s)
+{
+	int i = 0;
+
+	if (s[i] == '-' || s[i] == '+')
+		i++;
+
+	while (s[i])
+	{
+		if (!ft_isdigit(s[i]))
+			return (0);
+		i++;
+	}
+	return (1);
+}
+
+int	ft_exit(char **args, int is_in_pipe)
+{
+	int args_num;
+	(void)is_in_pipe;
+
+	args_num = 0;
+
+	if (args)
+		while (args[args_num])
+			args_num++;
+
+	if (args_num > 1)
+	{
+		if (is_number(args[0]))
+		{
+			set_exit_code(1);
+			if (!is_in_pipe)
+				printf("exit\n");
+			printf("minishell: exit: too many arguments\n");
+			return (1);
+		}
+		else
+		{
+			set_exit_code(255);
+			if (!is_in_pipe)
+				printf("exit\n");
+			printf("minishell: exit: %s: numeric argument required\n", args[0]);
+			exit(255);
+		}
+	}
+	else if (args_num == 1)
+	{
+		if (is_number(args[0]))
+		{
+			int number = ft_atoi(args[0]);
+			while (number > 256)
+				number -= 256;
+			while (number < 0)
+				number += 256;
+			set_exit_code(number);
+			if (!is_in_pipe)
+				printf("exit\n");
+			exit(number);
+		}
+		else
+		{
+			set_exit_code(255);
+			if (!is_in_pipe)
+				printf("exit\n");
+			printf("minishell: exit: %s: numeric argument required\n", args[0]);
+			exit(255);
+		}
+	}
+	else
+	{
+		if (!is_in_pipe)
+			printf("exit\n");
+		exit(ft_atoi(get_last_exit_code()));
+	}
+}
+
 int	run_builtins(t_sep *node, int is_in_pipe)
 {
 	int		exit_status;
@@ -933,13 +1041,9 @@ int	run_builtins(t_sep *node, int is_in_pipe)
 	if (ft_strcmp(node->lower_builtin, "env") == 0)
 		env();
 	if (ft_strcmp(node->lower_builtin, "exit") == 0)
-	{
-		if (!is_in_pipe)
-			printf("exit\n");
-		exit(0);
-	}
+		exit_status = ft_exit(node->args, is_in_pipe);
 	if (is_in_pipe)
-		exit(0);
+		exit(ft_atoi(get_last_exit_code()));
 	return (exit_status);
 }
 

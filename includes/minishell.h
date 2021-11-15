@@ -104,6 +104,7 @@ typedef	struct s_vars
 	char	*v;
 	char	*w;
 }				t_vars;
+
 t_data g_data;
 
 int		ft_strcmp(char *s1, char *s2);

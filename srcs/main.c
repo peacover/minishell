@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/11/14 17:02:43 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/11/15 11:39:59 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -1154,23 +1154,6 @@ void	fill_list2(char *str, int *pipes_num, t_sep **head)
 			fill_list3(head, str, i, &start);
 		}
 		i++;
-	}
-}
-
-void	set_exit_code(int value)
-{
-	t_env	*current;
-
-	current = g_data.envl;
-	while (current != NULL)
-	{
-		if (ft_strcmp(current->key, "?") == 0)
-		{
-			free(current->value);
-			current->value = ft_itoa(value);
-			break ;
-		}
-		current = current->next;
 	}
 }
 
