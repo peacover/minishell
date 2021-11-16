@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:09:15 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/11/16 11:42:39 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/11/16 18:50:03 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -88,14 +88,19 @@ typedef struct	s_redirect
 	int		is_output;
 }				t_redirect;
 
+typedef struct s_garbage
+{
+	void				*str;
+	struct s_garbage	*next;
+}				t_garbage;
 
 typedef struct	s_data
 {
-	t_env	*envl;
-	char	**envp;
+	t_env		*envl;
+	t_garbage	*gg;
+	char		**envp;
 	int		is_forked;
 }				t_data;
-
 typedef	struct s_vars
 {
 	int		i;
@@ -110,14 +115,12 @@ typedef	struct s_vars
 
 t_data g_data;
 
-int		ft_strcmp(char *s1, char *s2);
 int		ft_strlen2(char **w);
 void	ft_putstr(char *s);
 void	ft_putchar(char c);
 void	*ft_realloc(void *ptr, size_t old_size, size_t new_size);
 void	ft_putnbr(int n);
 char	**ft_split_edited(char const *s);
-void	free_t2(char **w);
 char	*ft_strcpy(char *dest, char *src);
 char	**ft_realloc_2(char **old, size_t old_size, size_t new_size);
 void    ft_simplecmd(t_sep *node,char *str);
@@ -143,6 +146,61 @@ int	run_parent_process(pid_t *pids, int *num_cmd, int *exit_status, int pipe_fd[
 int	pipe_redirect(t_sep *node, pid_t *pids);
 int	open_input(t_redirect *redirect, t_sep *node, int *exit_status);
 int	open_output(t_redirect *redirect, char type, t_sep *node, int *exit_status);
+int		cd(char **args);
+int	echo(char **args);
+int	check_valid_dir(char **args, char *cwd);
+void	goto_oldpwd(int *exit_status, char *cwd);
+void	check_tilde(char **args);
+int	ft_setenv(char *key, char *value);
+char	*ft_getenv(char *key);
+void	pwd(void);
+int	is_valid_identifier(char *key);
+void	free_pair(char **pair);
+int	ft_export(char **args);
+int	ft_putenv(char *env_var);
+int	unset(char **args);
+void	env(void);
+int	ft_exit(char **args, int is_in_pipe);
+char	*get_last_exit_code(void);
+int	is_number(char *s);
+void	set_value_for_key(char *key, char *value, int *key_exists);
+void	set_new_key(char *key, char *value);
+int	check_key_syntax(int condition, char *key);
+void	check_fill_path(t_sep *node);
+void	handling_builtins(t_sep *node, char *s, int start);
+int	handling_errors_arg(char *str);
+void	error_msg(char *s);
+t_env	*fill_env(char **env);
+int	fill_list(char *str);
+void	add_garbage(void **str);
+void	free_garbage(void);
+void	get_args(char *s, int start, t_sep *node);
+void	get_args2(char *s, int *start, int *end);
+int	add_to_args(int *end, char *s, int *i, t_sep *node);
+char	*handling_dollar(char *s);
+int	check_dollar(char *s);
+void	check_first_cmd_dollar(char **s, int *start);
+void	init_node_red(t_red *red);
+void	init_data(t_vars *vars);
+void	init_t_sep(t_sep *node);
+char	*red_redim_s(char *s, int start, int end);
+char	*str_upper(char *s);
+char	*str_lower(char *s);
+int	search_sq(char *s, int start, char type);
+char	*remove_char(char *s, int i);
+char	*handling_bs_dq(char *s);
+void	ft_lstadd_back(t_env **alst, t_env *new);
+void	ft_lstadd_front(t_env **alst, t_env *new);
+void	add_to_args3(t_sep *node, char *str, int *i);
+void	add_to_args4(char *s, int *l, char **str, int start);
+void	add_to_args5(t_sep *node, char **str, int j, int *i);
+void	add_to_args2(int i, int *j, t_sep *node, char **str);
+int	check_red(t_sep *node, char *s);
+void	free_t2(char **w);
+
+
+int		ft_strcmp(char *s1, char *s2);
+char	*ft_strcpy(char *dest, char *src);
 
 #endif
 

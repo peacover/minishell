@@ -12,48 +12,6 @@
 
 #include "../../includes/minishell.h"
 
-int	check_error(int condition, void *to_free, char *to_print, int exit_code)
-{
-	if (condition)
-	{
-		if (to_free)
-			free(to_free);
-		if (to_print)
-			printf("%s: %s\n", to_print, strerror(errno));
-		if (exit_code > -1)
-			exit(exit_code);
-		return (1);
-	}
-	return (0);
-}
-
-void	signal_handler_heredoc(int sig)
-{
-	if (sig == SIGINT && g_data.is_forked)
-	{
-		write(1, "\n", 1);
-		rl_on_new_line();
-		exit(1);
-	}
-}
-
-void	signal_handler_parent(int sig)
-{
-	if (sig == SIGINT && g_data.is_forked)
-	{
-		write(1, "\n", 1);
-		rl_on_new_line();
-	}
-	if (sig == SIGINT && !g_data.is_forked)
-	{
-		write(1, "\n", 1);
-		rl_replace_line("", 1);
-		rl_on_new_line();
-		rl_redisplay();
-		set_exit_code(1);
-	}
-}
-
 int	run_cmdline(t_sep *node, int pipes_num)
 {
 	int		stdin_fd;

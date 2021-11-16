@@ -3,14 +3,120 @@
 /*                                                        :::      ::::::::   */
 /*   minishell_utils.c                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: yer-raki <yer-raki@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/04/02 13:28:12 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/06/28 10:09:47 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/11/16 18:49:12 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../includes/minishell.h"
+
+char	*red_redim_s(char *s, int start, int end)
+{
+	char	*s1;
+	char	*s2;
+
+	s1 = ft_substr(s, 0, start);
+	s2 = ft_substr(s, end + 1, ft_strlen(s) - end + 1);
+	s = ft_strjoin(s1, " ");
+	add_garbage((void *)&s);
+	s = ft_strjoin(s, s2);
+	add_garbage((void *)&s);
+	free(s1);
+	free(s2);
+	return (s);
+}
+
+char	*str_upper(char *s)
+{
+	int	i;
+
+	i = 0;
+	while (s[i])
+	{
+		s[i] = ft_toupper(s[i]);
+		i++;
+	}
+	return (s);
+}
+
+char	*str_lower(char *s)
+{
+	int	i;
+
+	i = 0;
+	while (s[i])
+	{
+		s[i] = ft_tolower(s[i]);
+		i++;
+	}
+	return (s);
+}
+
+int	search_sq(char *s, int start, char type)
+{
+	if (type == '\'')
+	{
+		while (s[start])
+		{
+			if (s[start] == type)
+				return (start);
+			start++;
+		}
+		return (0);
+	}
+	else if (type == '\"')
+	{
+		while (s[start])
+		{
+			if (s[start] == type && s[start] != '\\')
+				return (start);
+			start++;
+		}
+		return (0);
+	}
+	return (0);
+}
+
+char	*remove_char(char *s, int i)
+{
+	char	*s1;
+	char	*s2;
+	int		l;
+
+	l = (int)ft_strlen(s);
+	s1 = ft_substr(s, 0, i);
+	s2 = ft_substr(s, i + 1, l - i + 1);
+	free(s);
+	s = ft_strjoin(s1, s2);
+	add_garbage((void *)&s);
+	free(s1);
+	free(s2);
+	return (s);
+}
+
+char	*handling_bs_dq(char *s)
+{
+	int	i;
+
+	i = 0;
+	while (s[i])
+	{
+		if (s[i] == '\\')
+		{
+			if (!s[i + 1])
+			{
+				error_msg("error multiligne");
+				break ;
+			}
+			if (s[i + 1] == '\\')
+				s = remove_char(s, i);
+		}
+		i++;
+	}
+	return (s);
+}
 
 int		ft_strcmp(char *s1, char *s2)
 {
@@ -87,6 +193,7 @@ char	**ft_realloc_2(char **old, size_t old_size, size_t new_size)
 	int		i;
 	
 	new = malloc(sizeof(char *) * (new_size + 1));
+	add_garbage((void *)&new);
 	i = 0;
 	while (i < (int)old_size)
 	{

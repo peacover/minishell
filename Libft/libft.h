@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/16 15:14:57 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/04/10 14:14:00 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/11/16 18:49:31 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,4 +51,5 @@ void	ft_putnbr_fd(int n, int fd);
 char	*ft_strmapi(char const *s, char (*f)(unsigned int, char));
 void	*ft_calloc(size_t count, size_t size);
 char	*ft_strnstr(const char *dst, const char *to_find, size_t len);
+
 #endif
