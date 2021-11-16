@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/08 15:34:01 by mhaddi            #+#    #+#             */
-/*   Updated: 2021/11/15 12:15:09 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/11/16 10:41:38 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -250,9 +250,8 @@ int	echo(char **args)
 	while (args[i])
 	{
 		printf("%s", args[i]);
-		if (args[i][0])
-			if (args[i + 1] && args[i + 1][0])
-				printf(" ");
+		if (args[i + 1])
+			printf(" ");
 		i++;
 	}
 	if (no_newline == 0)
