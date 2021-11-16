@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:09:15 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/11/14 15:34:18 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/11/16 11:42:39 by mhaddi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,9 @@
 #include <termios.h>
 #include <readline/readline.h>
 #include <readline/history.h>
+#include <dirent.h>
+#include <errno.h>
+#include <sys/fcntl.h>
 #include "../Libft/libft.h"
 
 # define HISTORY_MAX_SIZE 500
@@ -129,6 +132,17 @@ void	signal_handler_heredoc(int sig);
 int		add_to_args(int *end, char *s, int *i, t_sep *node);
 void	get_args2(char *s, int *start, int *end);
 void    set_exit_code(int value);
+int		run_heredoc(t_sep *node);
+void	redirect(int *stdin_fd, int *stdout_fd, t_sep *node, int *exit_code);
+int	run_pipes(t_sep *node, int pipes_num, int *stdin_fd, int *stdout_fd);
+int	run_cmd(t_sep *node, int *stdin_fd, int *stdout_fd);
+int	check_error(int condition, void *to_free, char *to_print, int exit_code);
+int	run_builtins(t_sep *node, int is_in_pipe);
+int	heredoc_loop(int *input_fd, t_sep *node, char *file_name);
+int	run_parent_process(pid_t *pids, int *num_cmd, int *exit_status, int pipe_fd[2]);
+int	pipe_redirect(t_sep *node, pid_t *pids);
+int	open_input(t_redirect *redirect, t_sep *node, int *exit_status);
+int	open_output(t_redirect *redirect, char type, t_sep *node, int *exit_status);
 
 #endif
 
