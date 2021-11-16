@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/11/15 11:39:59 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/11/16 07:58:44 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -136,7 +136,7 @@ int	handling_errors_arg(char *str)
 	return (0);
 }
 
-int	check_fill_path2(char *w, t_sep *node)
+int		check_fill_path2(char *w, t_sep *node)
 {
 	int		fd;
 	char	*s;
@@ -144,10 +144,16 @@ int	check_fill_path2(char *w, t_sep *node)
 	fd = 0;
 	s = ft_strjoin(w, "/");
 	s = join_free(s, node->lower_builtin);
-	fd = open(s, O_RDONLY);
+	if (node->builtin[0] && node->builtin[0] == '/')
+		fd = open(node->builtin, O_RDONLY);
+	else
+		fd = open(s, O_RDONLY);
 	if (fd > 0)
 	{
-		node->path = s;
+		if (node->builtin[0] && node->builtin[0] == '/')
+			node->path = node->builtin;
+		else
+			node->path = s;
 		close(fd);
 		return (1);
 	}
@@ -514,7 +520,8 @@ void	add_to_args5(t_sep *node, char **str, int j, int *i)
 	else if (*str)
 	{
 		node->args[j] = join_free(node->args[j], *str);
-		(*i)++;
+		if (j == *i - 1)
+			(*i)++;
 	}
 	if (*str)
 		free(*str);
@@ -1166,7 +1173,7 @@ int	fill_list(char *str)
 	head = NULL;
 	pipes_num = 0;
 	fill_list2(str, &pipes_num, &head);
-	// print_mylist(head, pipes_num);
+	print_mylist(head, pipes_num);
 	exit_status = run_cmdline(head, pipes_num);
 	set_exit_code(exit_status);
 	// if (head->is_red)
