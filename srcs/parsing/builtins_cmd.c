@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/16 12:24:55 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/11/17 07:57:50 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/11/17 10:26:33 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,19 +53,17 @@ void	check_fill_path(t_sep *node)
 		if (!ft_strcmp(current->key, "PATH"))
 		{
 			w = ft_split(current->value, ':');
-			while (w[i])
+			while (w && w[i])
 			{
 				if (check_fill_path2(w[i], node))
-				{
-					free_t2(w);
-					return ;
-				}
+					return (free_t2(w));
 				i++;
 			}
+			if (w)
+				free_t2(w);
 		}
 		current = current->next;
 	}
-	free_t2(w);
 	node->path = NULL;
 }
 
@@ -88,7 +86,8 @@ void	check_builtin(t_sep *node)
 
 void	fill_builtin(t_sep *node, char *str)
 {
-	node->builtin = ft_strdup(str);
+	if (str)
+		node->builtin = ft_strdup(str);
 	node->upper_builtin = ft_strdup(str_upper(str));
 	node->lower_builtin = ft_strdup(str_lower(str));
 }

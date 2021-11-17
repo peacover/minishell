@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/16 12:09:36 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/11/16 12:10:05 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/11/17 09:54:32 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,8 +23,11 @@ void	fill_env2(t_env	**temp, char **env, int i)
 	add_garbage((void *)&((*temp)->val));
 	(*temp)->key = ft_strdup(s[0]);
 	add_garbage((void *)&((*temp)->key));
-	(*temp)->value = ft_strdup(s[1]);
-	add_garbage((void *)&((*temp)->value));
+	if (s[1])
+	{
+		(*temp)->value = ft_strdup(s[1]);
+		add_garbage((void *)&((*temp)->value));
+	}
 	(*temp)->next = NULL;
 	free_t2(s);
 	add_garbage((void *)temp);

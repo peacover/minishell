@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/16 12:06:05 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/11/17 08:00:34 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/11/17 10:43:58 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -93,7 +93,7 @@ void	fill_list2(char *str, int *pipes_num, t_sep **head)
 	}
 }
 
-int	fill_list(char *str)
+void	fill_list(char *str)
 {
 	int		pipes_num;
 	t_sep	*head;
@@ -102,7 +102,7 @@ int	fill_list(char *str)
 	head = NULL;
 	pipes_num = 0;
 	fill_list2(str, &pipes_num, &head);
+	print_mylist(head,pipes_num);
 	exit_status = run_cmdline(head, pipes_num);
 	set_exit_code(exit_status);
-	return (0);
 }

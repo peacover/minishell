@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/11/17 07:43:00 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/11/17 10:46:41 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@
 #define KCYN  "\x1B[36m"
 #define KWHT  "\x1B[37m"
 
-/*void	print_red(t_red *red)
+void	print_red(t_red *red)
 {
 	int i;
 
@@ -78,7 +78,7 @@ void    print_mylist(t_sep *node, int pipes_num)
 		node_num++;
 		node = node->next;
 	}
-}*/
+}
 
 void	ignctl(void)
 {
@@ -91,31 +91,35 @@ void	ignctl(void)
 		perror("tcsetattr() error");
 }
 
-int	main(int argc, char **argv, char **env)
+void	main_init(int argc, char **argv, char **env)
 {
-	int		i;
-	char	*str;
-	int		ret;
-
 	(void)argc;
 	(void)argv;
 	g_data.gg = NULL;
 	g_data.envp = env;
 	g_data.is_forked = 0;
 	g_data.envl = fill_env(env);
-	i = 0;
-	ret = 0;
+}
+
+void	signal_handlers(void)
+{
 	ignctl();
 	signal(SIGQUIT, SIG_IGN);
 	signal(SIGINT, signal_handler_parent);
+}
+
+int	main(int argc, char **argv, char **env)
+{
+	char	*str;
+
+	main_init(argc, argv, env);
+	signal_handlers();
 	while (1)
 	{
-		str = NULL;
 		str = readline("$> ");
 		if (!str)
 		{
-			//if (isatty(0))
-				write(2, "\b\bexit\n", 7); // return 1
+			write(2, "\b\bexit\n", 7);
 			break ;
 		}
 		if (str[0] == '\0')
@@ -125,14 +129,7 @@ int	main(int argc, char **argv, char **env)
 		}
 		add_history(str);
 		if (!handling_errors_arg(str))
-		{
-			if (fill_list(str) == 1)
-			{
-				free(str);
-				free_garbage();
-				return (1);
-			}
-		}
+			fill_list(str);		
 		free(str);
 	}
 	free_garbage();
