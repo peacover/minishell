@@ -6,79 +6,11 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:08:10 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/11/17 10:46:41 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/11/17 18:13:57 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/minishell.h"
-
-#define KNRM  "\x1B[0m"
-#define KRED  "\x1B[31m"
-#define KGRN  "\x1B[32m"
-#define KYEL  "\x1B[33m"
-#define KBLU  "\x1B[34m"
-#define KMAG  "\x1B[35m"
-#define KCYN  "\x1B[36m"
-#define KWHT  "\x1B[37m"
-
-void	print_red(t_red *red)
-{
-	int i;
-
-	i = 0;
-	while (red)
-	{
-		printf(" \nRED_Node: %d\n", i);
-		printf("\n---------------------------\n");
-		printf (" File : %s", red->r_file);
-		printf ("\n Type_red : %c", red->red_op);
-		printf("\n---------------------------\n");
-		red = red->next;
-		i++;
-	}
-}
-
-void    print_mylist(t_sep *node, int pipes_num)
-{
-	int i;
-	int l;
-	int l2;
-	int node_num;
-
-	i = 0;
-	node_num = 0;
-	while (node != NULL)
-	{
-		printf(" \nNode: %d\n", node_num);
-		printf("\n------------------------------------------\n");
-		printf (" path : %s", node->path);
-		printf ("\n cmd : %s", node->builtin);
-		printf ("\n is_builtin : %d", node->is_builtin);
-		printf ("\n builtin : %s", node->builtin);
-		printf ("\n s_red : %s", node->s_red);
-		printf ("\n sep : %c", node->t_sp);
-		printf ("\n pipes_num : %d", pipes_num);
-
-		printf ("\n\n is_red : %d", node->is_red);
-		print_red(node->red);
-		i = 0; 
-		l = ft_strlen2(node->args);
-		l2 = ft_strlen2(node->r_args);
-		while (l > i)
-		{
-			printf ("\n arg %d : |%s|", i, node->args[i]);
-			i++;
-		}
-		// while (l2 > i)
-		// {
-		// 	printf ("\n r_arg %d : |%s|", i, node->r_args[i]);
-		// 	i++;
-		// }
-		printf("\n------------------------------------------\n\n");
-		node_num++;
-		node = node->next;
-	}
-}
 
 void	ignctl(void)
 {
@@ -129,7 +61,7 @@ int	main(int argc, char **argv, char **env)
 		}
 		add_history(str);
 		if (!handling_errors_arg(str))
-			fill_list(str);		
+			fill_list(str);
 		free(str);
 	}
 	free_garbage();

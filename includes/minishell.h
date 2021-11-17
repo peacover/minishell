@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:09:15 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/11/17 11:44:32 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/11/17 18:15:36 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,18 +28,6 @@
 # include <errno.h>
 # include <sys/fcntl.h>
 # include "../Libft/libft.h"
-
-# define HISTORY_MAX_SIZE 500
-# define KEY_UP 183
-# define KEY_DOWN 184
-# define KEY_LEFT  186
-# define KEY_RIGHT 185
-# define ENTER 10
-# define KEY_REMOVE 127
-# define KEY_TAB 9
-# define CTRL_D 4
-# define NODE_INDEX 0
-# define REDIR_INDEX 1
 
 typedef struct s_env
 {
@@ -208,6 +196,4 @@ void	check_first_cmd_dollar(char **s, int *start);
 void	red_get_cmd_args2(t_sep *node, int *start, int *end, int *i);
 int		ft_strcmp(char *s1, char *s2);
 char	*ft_strcpy(char *dest, char *src);
-
-void    print_mylist(t_sep *node, int pipes_num);
 #endif

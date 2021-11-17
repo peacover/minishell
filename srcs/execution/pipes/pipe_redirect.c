@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   pipe_redirect.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mhaddi <mhaddi@student.1337.ma>            +#+  +:+       +#+        */
+/*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/16 11:25:32 by mhaddi            #+#    #+#             */
-/*   Updated: 2021/11/17 16:03:08 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/11/17 17:33:19 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,7 @@ int	dup_redirection(int i_red_found, int o_red_found,
 	return (0);
 }
 
-char	*set_redir_file(int *red_found, char *old_file, char *new_file)
+char	*set_file(int *red_found, char *old_file, char *new_file)
 {
 	if (*red_found)
 		close(ft_atoi(old_file));
@@ -56,13 +56,13 @@ int	pipe_redirect(t_sep *node, pid_t *pids)
 	{
 		if (node->red->red_op == 'o' || node->red->red_op == 'a')
 		{
-			o_red_file = set_redir_file(&o_red_found, o_red_file, node->red->r_file);
+			o_red_file = set_file(&o_red_found, o_red_file, node->red->r_file);
 			if (!is_number(o_red_file) || ft_atoi(o_red_file) < 0)
 				return (1);
 		}
 		else if (node->red->red_op == 'h' || node->red->red_op == 'i')
 		{
-			i_red_file = set_redir_file(&i_red_found, i_red_file, node->red->r_file);
+			i_red_file = set_file(&i_red_found, i_red_file, node->red->r_file);
 			if (!is_number(i_red_file) || ft_atoi(i_red_file) < 0)
 				return (1);
 		}
