@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/17 07:29:56 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/11/17 07:34:03 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/11/17 11:47:59 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -99,8 +99,7 @@ int	check_red(t_sep *node, char *s)
 			start = end;
 		}
 		else if ((start == 0 && (s[start] == '>' || s[start] == '<'))
-			|| (start > 0 && (s[start] == '>' || s[start] == '<')
-				&& s[start - 1] != '\\'))
+			|| (start > 0 && (s[start] == '>' || s[start] == '<')))
 		{
 			node->is_red = 1;
 			red_get_type_file(node, s);

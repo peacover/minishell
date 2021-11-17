@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:09:15 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/11/17 10:46:23 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/11/17 11:44:32 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -186,7 +186,6 @@ char	*str_upper(char *s);
 char	*str_lower(char *s);
 int		search_sq(char *s, int start, char type);
 char	*remove_char(char *s, int i);
-char	*handling_bs_dq(char *s);
 void	ft_lstadd_back(t_env **alst, t_env *new);
 void	ft_lstadd_front(t_env **alst, t_env *new);
 void	add_to_args3(t_sep *node, char *str, int *i);

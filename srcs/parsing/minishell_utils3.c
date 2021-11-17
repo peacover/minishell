@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/17 07:40:24 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/11/17 07:40:59 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/11/17 11:47:47 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,7 +70,7 @@ int	search_sq(char *s, int start, char type)
 	{
 		while (s[start])
 		{
-			if (s[start] == type && s[start] != '\\')
+			if (s[start] == type)
 				return (start);
 			start++;
 		}

@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/16 12:06:05 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/11/17 10:43:58 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/11/17 11:40:17 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,8 +85,6 @@ void	fill_list2(char *str, int *pipes_num, t_sep **head)
 		if ((str[i] == '|') || (!str[i + 1]))
 		{
 			*pipes_num += (str[i] == '|');
-			if (i && str[i - 1] == '\\')
-				error_msg("error multiligne");
 			fill_list3(head, str, i, &start);
 		}
 		i++;

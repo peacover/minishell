@@ -6,33 +6,11 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/17 07:40:27 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/11/17 08:16:24 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/11/17 11:44:36 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../includes/minishell.h"
-
-char	*handling_bs_dq(char *s)
-{
-	int	i;
-
-	i = 0;
-	while (s[i])
-	{
-		if (s[i] == '\\')
-		{
-			if (!s[i + 1])
-			{
-				error_msg("error multiligne");
-				break ;
-			}
-			if (s[i + 1] == '\\')
-				s = remove_char(s, i);
-		}
-		i++;
-	}
-	return (s);
-}
 
 int	ft_strcmp(char *s1, char *s2)
 {
