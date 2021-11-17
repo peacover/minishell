@@ -6,13 +6,20 @@ SRCS =	./srcs/main.c \
 		./srcs/parsing/builtins_cmd.c \
 		./srcs/parsing/errors_arg_msg.c \
 		./srcs/parsing/fill_list.c \
+		./srcs/parsing/fill_list2.c \
 		./srcs/parsing/fill_list_env.c \
 		./srcs/parsing/garbage_list.c \
 		./srcs/parsing/get_args.c \
+		./srcs/parsing/get_args2.c \
 		./srcs/parsing/handling_dollar.c \
+		./srcs/parsing/handling_dollar2.c \
 		./srcs/parsing/init.c \
 		./srcs/parsing/minishell_utils.c \
-		./srcs/parsing/red_get_args.c \
+		./srcs/parsing/minishell_utils2.c \
+		./srcs/parsing/minishell_utils3.c \
+		./srcs/parsing/redirections.c \
+		./srcs/parsing/redirections2.c \
+		./srcs/parsing/redirections3.c \
 		./srcs/execution/run_cmdline.c \
 		./srcs/execution/heredoc/run_heredoc.c \
 		./srcs/execution/heredoc/heredoc_loop.c \

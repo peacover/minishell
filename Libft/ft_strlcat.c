@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_strlcat.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: yer-raki <marvin@42.fr>                    +#+  +:+       +#+        */
+/*   By: yer-raki <yer-raki@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/11 19:31:43 by yer-raki          #+#    #+#             */
-/*   Updated: 2019/10/24 20:00:04 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/07/03 20:44:41 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,9 +14,9 @@
 
 size_t	ft_strlcat(char *dst, const char *src, size_t size)
 {
-	size_t i;
-	size_t ld;
-	size_t ls;
+	size_t	i;
+	size_t	ld;
+	size_t	ls;
 
 	i = 0;
 	ls = ft_strlen(src);

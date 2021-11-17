@@ -3,16 +3,16 @@
 /*                                                        :::      ::::::::   */
 /*   ft_itoa.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: yer-raki <marvin@42.fr>                    +#+  +:+       +#+        */
+/*   By: yer-raki <yer-raki@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/15 21:34:23 by yer-raki          #+#    #+#             */
-/*   Updated: 2019/10/23 18:56:23 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/07/03 20:42:13 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "libft.h"
 
-int		len_int(int n)
+int	len_int(int n)
 {
 	int				l;
 	unsigned int	nb;

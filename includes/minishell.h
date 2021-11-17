@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/03/29 16:09:15 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/11/16 18:50:03 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/11/17 09:02:24 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -119,7 +119,6 @@ int		ft_strlen2(char **w);
 void	ft_putstr(char *s);
 void	ft_putchar(char c);
 void	*ft_realloc(void *ptr, size_t old_size, size_t new_size);
-void	ft_putnbr(int n);
 char	**ft_split_edited(char const *s);
 char	*ft_strcpy(char *dest, char *src);
 char	**ft_realloc_2(char **old, size_t old_size, size_t new_size);
@@ -132,7 +131,6 @@ int    run_cmdline(t_sep *node, int pipes_num);
 char	*handling_dollar(char *s);
 void	signal_handler_parent(int sig);
 void	signal_handler_heredoc(int sig);
-int		add_to_args(int *end, char *s, int *i, t_sep *node);
 void	get_args2(char *s, int *start, int *end);
 void    set_exit_code(int value);
 int		run_heredoc(t_sep *node);
@@ -177,7 +175,6 @@ void	free_garbage(void);
 void	get_args(char *s, int start, t_sep *node);
 void	get_args2(char *s, int *start, int *end);
 int	add_to_args(int *end, char *s, int *i, t_sep *node);
-char	*handling_dollar(char *s);
 int	check_dollar(char *s);
 void	check_first_cmd_dollar(char **s, int *start);
 void	init_node_red(t_red *red);
@@ -197,7 +194,18 @@ void	add_to_args5(t_sep *node, char **str, int j, int *i);
 void	add_to_args2(int i, int *j, t_sep *node, char **str);
 int	check_red(t_sep *node, char *s);
 void	free_t2(char **w);
-
+int	check_red(t_sep *node, char *s);
+void	red_get_type_file(t_sep *node, char *s);
+char	*red_get_file(t_sep *node, char *s, int start, char type);
+char	red_get_type(char *s, int start);
+void	red_get_cmd_args(t_sep *node);
+void	red_add_to_args(int start, int end, int *i, t_sep *node);
+void	get_builtin(char *s, t_sep *node);
+char	*str_export_split(char *s, int start, int is_dollar);
+int	equal_export(char *s, int i);
+void	handling_dollar7(char *s, t_vars *vars);
+void	check_first_cmd_dollar(char **s, int *start);
+void	red_get_cmd_args2(t_sep *node, int *start, int *end, int *i);
 
 int		ft_strcmp(char *s1, char *s2);
 char	*ft_strcpy(char *dest, char *src);

@@ -3,49 +3,28 @@
 /*                                                        :::      ::::::::   */
 /*   heredoc_loop.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mhaddi <mhaddi@student.1337.ma>            +#+  +:+       +#+        */
+/*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/16 11:30:42 by mhaddi            #+#    #+#             */
-/*   Updated: 2021/11/16 11:39:09 by mhaddi           ###   ########.fr       */
+/*   Updated: 2021/11/17 07:45:26 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../../includes/minishell.h"
-
-char	*raise_error(char *line)
-{
-	printf("minishell: read: %s\n", strerror(errno));
-	free(line);
-	line = NULL;
-	return (line);
-}
-
-char	*mark_eof(char *line)
-{
-	char	*tmp;
-
-	tmp = line;
-	line = ft_strjoin(tmp, "EOF");
-	free(tmp);
-	return (line);
-}
 
 char	*ft_getline(void)
 {
 	char	c;
 	char	*line;
 	char	*tmp;
-	int		read_status;
 
 	line = malloc(1);
 	*line = '\0';
 	while (1)
 	{
-		read_status = read(0, &c, 1);
-		if (!read_status)
-			return (mark_eof(line));
-		else if (read_status < 0)
-			return (raise_error(line));
+		read(0, &c, 1);
+		if (c == EOF)
+			return (line);
 		tmp = line;
 		line = ft_strjoin(tmp, (char [2]){c, '\0'});
 		free(tmp);

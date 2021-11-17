@@ -3,16 +3,16 @@
 /*                                                        :::      ::::::::   */
 /*   ft_strtrim.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: yer-raki <marvin@42.fr>                    +#+  +:+       +#+        */
+/*   By: yer-raki <yer-raki@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/14 17:35:13 by yer-raki          #+#    #+#             */
-/*   Updated: 2019/10/25 22:52:14 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/07/03 20:45:35 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "libft.h"
 
-int		positionl(char const *s1, char const *set)
+int	positionl(char const *s1, char const *set)
 {
 	size_t	i;
 	size_t	j;
@@ -32,7 +32,7 @@ int		positionl(char const *s1, char const *set)
 	return (i);
 }
 
-int		positionr(char const *s1, char const *set)
+int	positionr(char const *s1, char const *set)
 {
 	size_t	i;
 	size_t	t;

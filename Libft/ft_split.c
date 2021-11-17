@@ -3,20 +3,20 @@
 /*                                                        :::      ::::::::   */
 /*   ft_split.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
+/*   By: yer-raki <yer-raki@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/15 16:54:53 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/05/21 11:31:39 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/07/03 20:48:16 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "libft.h"
 
-int				nb_w(char const *s, char c)
+int	nb_w(char const *s, char c)
 {
-	int i;
-	int x;
-	int l;
+	int	i;
+	int	x;
+	int	l;
 
 	i = 0;
 	x = 0;
@@ -37,7 +37,7 @@ int				nb_w(char const *s, char c)
 
 unsigned long	nb_c(char const *s, char c, int i)
 {
-	int l;
+	int	l;
 
 	l = 0;
 	while (s[i] != c && s[i] != '\0')
@@ -48,7 +48,7 @@ unsigned long	nb_c(char const *s, char c, int i)
 	return (l);
 }
 
-char			**ft_split(char const *s, char c)
+char	**ft_split(char const *s, char c)
 {
 	char	**w;
 	int		i;
@@ -59,7 +59,8 @@ char			**ft_split(char const *s, char c)
 	j = 0;
 	if (!s)
 		return (NULL);
-	if (!(w = (char**)malloc(sizeof(char *) * (nb_w(s, c) + 1))))
+	w = (char **)malloc(sizeof(char *) * (nb_w(s, c) + 1));
+	if (!w)
 		return (NULL);
 	while (s[i] != '\0' && nb_w(s, c) > j)
 	{

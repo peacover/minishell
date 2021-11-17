@@ -6,7 +6,7 @@
 /*   By: yer-raki <yer-raki@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/16 12:24:55 by yer-raki          #+#    #+#             */
-/*   Updated: 2021/11/16 18:45:18 by yer-raki         ###   ########.fr       */
+/*   Updated: 2021/11/17 07:57:50 by yer-raki         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,6 +85,7 @@ void	check_builtin(t_sep *node)
 		node->is_builtin = 1;
 	}
 }
+
 void	fill_builtin(t_sep *node, char *str)
 {
 	node->builtin = ft_strdup(str);
